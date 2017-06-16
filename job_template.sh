@@ -5,6 +5,7 @@
 #PBS -o {job_file_folder}/logs/step_{step_number}_run_{run_number}_${PBS_JOBID}.out
 #PBS -e {job_file_folder}/logs/step_{step_number}_run_{run_number}_${PBS_JOBID}.err
 #PBS -q long
+#PBS -S /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
 FINAL_OUT={final_out}
 echo $FINAL_OUT
 if [ -z ${PBS_JOBID} ] || [ -z ${CLUSTER} ]
