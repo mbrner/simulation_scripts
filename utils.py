@@ -1,7 +1,6 @@
 import os
 
 from icecube import phys_services
-from utils import create_filename
 
 MAX_DATASET_NUMBER = 100000
 MAX_RUN_NUMBER = 100000

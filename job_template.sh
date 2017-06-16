@@ -10,9 +10,9 @@ FINAL_OUT={final_out}
 echo $FINAL_OUT
 if [ -z ${PBS_JOBID} ] || [ -z ${CLUSTER} ]
 then
-    {script_folder}/step_{step_number}.py {yaml_copy} -r {run_number} --scratch
+    {script_folder}/step_{step_number}.py {yaml_copy} {run_number} --scratch
     cp {scratch_out} $FINAL_OUT
 else
-    {script_folder}/step_{step_number}.py {yaml_copy} -r {run_number} --no-scratch
+    {script_folder}/step_{step_number}.py {yaml_copy} {run_number} --no-scratch
 fi
 

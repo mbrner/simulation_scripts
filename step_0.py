@@ -8,12 +8,12 @@ from icecube.simprod import segments
 
 from I3Tray import I3Tray
 from icecube import icetray, dataclasses
-from utils import create_random_services, create_filename
+from utils import create_random_services
 
 
 @click.command()
 @click.argument('config_file', click.Path(exists=True))
-@click.argument('run_number')
+@click.argument('run_number', type=int)
 @click.option('--scratch/--no-scratch', default=True)
 def main(cfg, run_number, scratch):
     with open(cfg, 'r') as stream:
