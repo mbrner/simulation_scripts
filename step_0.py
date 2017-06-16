@@ -12,7 +12,7 @@ from utils import create_random_services
 
 
 @click.command()
-@click.argument('config_file', click.Path(exists=True))
+@click.argument('cfg', click.Path(exists=True))
 @click.argument('run_number', type=int)
 @click.option('--scratch/--no-scratch', default=True)
 def main(cfg, run_number, scratch):

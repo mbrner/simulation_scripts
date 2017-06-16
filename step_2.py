@@ -15,9 +15,9 @@ MCPE_SERIES_MAP = 'I3MCPESeriesMap'
 
 
 @click.command()
-@click.argument('config_file', click.Path(exists=True))
+@click.argument('cfg', click.Path(exists=True))
+@click.argument('run_number', type=int)
 @click.option('--scratch/--no-scratch', default=True)
-@click.argument('run_number')
 def main(cfg, run_number, scratch):
     with open(cfg, 'r') as stream:
         cfg = yaml.load(stream)
