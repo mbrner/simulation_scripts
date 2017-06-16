@@ -27,6 +27,7 @@ step_enum = {-1: None,
                    '2 = everythin up to L2')
 
 def main(config_file, step):
+    config_file = click.format_filename(config_file)
     with open(config_file, 'r') as stream:
         config = yaml.load(stream)
     config.update({'step': step_enum[step],
@@ -38,13 +39,14 @@ def main(config_file, step):
     config['output_folder'] = config['output_folder'].format(**config)
     config['previous_step'] = step_enum[step - 1]
 
-    outfile = os.path.join(config_file)
-    raw_filename = os.path.splitext(outfile)
+    outfile = os.path.basename(os.path.join(config_file))
+    raw_filename = os.path.splitext(outfile)[0]
     filled_yaml = '{}_{}.yaml'.format(raw_filename, config['step'])
     if not os.path.isdir(config['output_folder']):
-        os.makedir(config['output_folder'])
-    with open('data.yml', 'w') as filled_yaml:
-        yaml.dump(config, filled_yaml, default_flow_style=False)
+        os.makedirs(config['output_folder'])
+    filled_yaml = os.path.join(config['output_folder'], filled_yaml)
+    with open(filled_yaml, 'w') as yaml_copy:
+        yaml.dump(config, yaml_copy, default_flow_style=False)
 
 if __name__ == '__main__':
     main()
