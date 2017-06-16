@@ -1,5 +1,5 @@
 #!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
-#METAPROJECT icerec/V05-01-01
+#METAPROJECT simulation/V05-01-01
 
 import click
 import yaml
