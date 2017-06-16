@@ -22,7 +22,7 @@ def main(cfg, run_number):
     tray = I3Tray()
 
     random_service, random_service_prop = create_random_services(
-        dataset_number=cfg['run_number'],
+        dataset_number=run_number,
         run_number=cfg['dataset_number'],
         seed=cfg['seed'])
 
@@ -59,7 +59,8 @@ def main(cfg, run_number):
         "PropagateMuons",
         RandomService = random_service_prop)
 
-    outfile = create_filename(cfg)
+    outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
+    outfile = outfile.replace(' ', '0')
     tray.AddModule("I3Writer","writer",
         Filename=outfile,
         Streams=[icetray.I3Frame.DAQ,

@@ -22,7 +22,8 @@ def main(cfg, run_number):
         cfg = yaml.load(stream)
     cfg['run_number'] = run_number
 
-    infile = create_filename(cfg, previous=True)
+    infile = cfg['infile_pattern'].format(run_number=run_number)
+    infile = infile.replace(' ', '0')
 
     tray = I3Tray()
 
@@ -46,7 +47,8 @@ def main(cfg, run_number):
         KeepPropagatedMCTree=True,
         SkipNoiseGenerator=False)
 
-    outfile = create_filename(cfg)
+    outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
+    outfile = outfile.replace(' ', '0')
     tray.AddModule("I3Writer","writer",
         Filename=outfile,
         Streams=[icetray.I3Frame.DAQ,

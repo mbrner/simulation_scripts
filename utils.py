@@ -1,7 +1,7 @@
 import os
 
 from icecube import phys_services
-
+from utils import create_filename
 
 MAX_DATASET_NUMBER = 100000
 MAX_RUN_NUMBER = 100000
@@ -34,15 +34,3 @@ def create_random_services(dataset_number, run_number, seed):
         nstreams=max_int_run_number * 2,
         streamnum=int_run_number)
     return random_service, random_service_prop
-
-
-def create_filename(cfg, previous=False):
-    if previous:
-        filename = ('Level{previous_step}.IC86.YEAR.{generator}.' +
-            '{dataset_number:6d}.{run_number:6d}.i3.bz2').format(**cfg)
-    else:
-        filename = ('Level{step}.IC86.YEAR.{generator}.' +
-            '{dataset_number:6d}.{run_number:6d}.i3.bz2').format(**cfg)
-    filename = filename.replace(' ', '0')
-    full_path = os.path.join(cfg['output_folder'], filename)
-    return full_path
