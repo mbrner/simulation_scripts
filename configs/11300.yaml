@@ -7,8 +7,6 @@ n_runs: 1000
 e_min: 100
 e_max: 1e8
 gamma: 2.
-nugen_flavor: numu
-nugen_autoextend: True
 icemodel: SpiceLea
 clsim_unshadowed_fraction: 0.9
 clsim_ignore_muon_light: True
