@@ -16,14 +16,13 @@ def create_random_services(dataset_number, run_number, seed):
 
     int_run_number = dataset_number * MAX_RUN_NUMBER + run_number
 
-    max_int_run_number = dataset_number * MAX_RUN_NUMBER + MAX_RUN_NUMBER - 1
     random_service = phys_services.I3SPRNGRandomService(
         seed=seed,
-        nstreams=max_int_run_number * 2,
-        streamnum=int_run_number + max_int_run_number)
+        nstreams=MAX_RUN_NUMBER * 2,
+        streamnum=int_run_number + MAX_RUN_NUMBER)
 
     random_service_prop = phys_services.I3SPRNGRandomService(
         seed=seed,
-        nstreams=max_int_run_number * 2,
+        nstreams=MAX_RUN_NUMBER * 2,
         streamnum=int_run_number)
     return random_service, random_service_prop, int_run_number
