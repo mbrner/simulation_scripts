@@ -41,6 +41,8 @@ def main(config_file, step):
     outfile = os.path.join(config_file)
     raw_filename = os.path.splitext(outfile)
     filled_yaml = '{}_{}.yaml'.format(raw_filename, config['step'])
+    if not os.path.isdir(config['output_folder']):
+        os.makedir(config['output_folder'])
     with open('data.yml', 'w') as filled_yaml:
         yaml.dump(config, filled_yaml, default_flow_style=False)
 
