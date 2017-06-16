@@ -1,3 +1,6 @@
+#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
+#METAPROJECT XXXXX
+
 import click
 import yaml
 

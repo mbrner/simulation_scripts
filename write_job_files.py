@@ -2,8 +2,13 @@ import os
 
 import click
 import yaml
+import getpass
 
-base_dir = os.path.abspath('.')
+username = getpass.getuser()
+default_outdir = '/data/user/{}/simulation-scripts/'.format(username)
+base_dir = click.prompt(
+    'Please enter the dir were the files should be stored',
+    default=default_outdir)
 
 step_enum = {-1: None,
               0: '0_after_proposal',
@@ -20,6 +25,7 @@ step_enum = {-1: None,
               help='0 = everything upto proposal\n' + \
                    '1 = clsim\n' + \
                    '2 = everythin up to L2')
+
 def main(config_file, step):
     with open(config_file, 'r') as stream:
         config = yaml.load(stream)
@@ -32,5 +38,11 @@ def main(config_file, step):
     config['output_folder'] = config['output_folder'].format(**config)
     config['previous_step'] = step_enum[step - 1]
 
+    outfile = os.path.join(config_file)
+    raw_filename = os.path.splitext(outfile)
+    filled_yaml = '{}_{}.yaml'.format(raw_filename, config['step'])
+    with open('data.yml', 'w') as filled_yaml:
+        yaml.dump(config, filled_yaml, default_flow_style=False)
+
 if __name__ == '__main__':
-    main(test='jaja')
+    main()
