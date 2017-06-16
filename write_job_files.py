@@ -36,6 +36,7 @@ def write_job_files(config, step):
                  'step_number': config['step_number'],
                  'script_folder': config['script_folder'],
                  'PBS_JOBID': '{PBS_JOBID}',
+                 'CLUSTER': '{CLUSTER}',
                  'yaml_copy': config['yaml_copy']}
     output_base = os.path.join(config['job_file_folder'], 'jobs')
 
