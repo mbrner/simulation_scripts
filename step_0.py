@@ -22,7 +22,7 @@ def main(cfg, run_number, scratch):
 
     tray = I3Tray()
 
-    random_service, random_service_prop = create_random_services(
+    random_service, random_service_prop, _ = create_random_services(
         dataset_number=run_number,
         run_number=cfg['dataset_number'],
         seed=cfg['seed'])

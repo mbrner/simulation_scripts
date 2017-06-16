@@ -30,7 +30,7 @@ def main(cfg, run_number, scratch):
 
     tray.context['I3FileStager'] = dataio.get_stagers()
 
-    random_service, _ = create_random_services(
+    random_service, _, run_number = create_random_services(
         dataset_number=cfg['run_number'],
         run_number=cfg['dataset_number'],
         seed=cfg['seed'])
@@ -41,7 +41,7 @@ def main(cfg, run_number, scratch):
 
     tray.AddSegment(segments.DetectorSim, "DetectorSim",
         RandomService='I3RandomService',
-        RunID=cfg['run_number'],
+        RunID=run_number,
         GCDFile=cfg['gcd'],
         InputPESeriesMapName=MCPE_SERIES_MAP,
         KeepMCHits=False,

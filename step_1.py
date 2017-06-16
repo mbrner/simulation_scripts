@@ -29,7 +29,7 @@ def main(cfg, run_number, scratch):
 
     tray.context['I3FileStager'] = dataio.get_stagers()
 
-    random_service, _ = create_random_services(
+    random_service, _, _ = create_random_services(
         dataset_number=cfg['run_number'],
         run_number=cfg['dataset_number'],
         seed=cfg['seed'])
