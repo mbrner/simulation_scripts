@@ -1,5 +1,5 @@
 #!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
-#METAPROJECT XXXXX
+#METAPROJECT icerec/V05-01-01
 
 import click
 import yaml
@@ -8,7 +8,7 @@ from icecube.simprod import segments
 
 from I3Tray import I3Tray
 from icecube import icetray, dataclasses, dataio, phys_services
-from utils import create_random_services, create_filename
+from utils import create_random_services
 
 
 MCPE_SERIES_MAP = 'I3MCPESeriesMap'
@@ -16,8 +16,9 @@ MCPE_SERIES_MAP = 'I3MCPESeriesMap'
 
 @click.command()
 @click.argument('config_file', click.Path(exists=True))
+@click.option('--scratch/--no-scratch', default=True)
 @click.argument('run_number')
-def main(cfg, run_number):
+def main(cfg, run_number, scratch):
     with open(cfg, 'r') as stream:
         cfg = yaml.load(stream)
     cfg['run_number'] = run_number
@@ -47,7 +48,10 @@ def main(cfg, run_number):
         KeepPropagatedMCTree=True,
         SkipNoiseGenerator=False)
 
-    outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
+    if scratch:
+        outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
+    else:
+        outfile = cfg['outfile_pattern'].format(run_number=run_number)
     outfile = outfile.replace(' ', '0')
     tray.AddModule("I3Writer","writer",
         Filename=outfile,

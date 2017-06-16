@@ -1,5 +1,5 @@
 #!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
-#METAPROJECT XXXXX
+#METAPROJECT icerec/V05-01-01
 
 import click
 import yaml
@@ -14,7 +14,8 @@ from utils import create_random_services, create_filename
 @click.command()
 @click.argument('config_file', click.Path(exists=True))
 @click.argument('run_number')
-def main(cfg, run_number):
+@click.option('--scratch/--no-scratch', default=True)
+def main(cfg, run_number, scratch):
     with open(cfg, 'r') as stream:
         cfg = yaml.load(stream)
     cfg['run_number'] = run_number
@@ -58,8 +59,10 @@ def main(cfg, run_number):
         segments.PropagateMuons,
         "PropagateMuons",
         RandomService = random_service_prop)
-
-    outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
+    if scratch:
+        outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
+    else:
+        outfile = cfg['outfile_pattern'].format(run_number=run_number)
     outfile = outfile.replace(' ', '0')
     tray.AddModule("I3Writer","writer",
         Filename=outfile,
