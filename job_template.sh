@@ -13,8 +13,6 @@ then
     echo 'Running Script w/o temporary scratch'
     {script_folder}/step_{step_number}.py {yaml_copy} {run_number} --no-scratch
     if [ "$?" != "0" ] ; then
-        cp {scratch_out} $FINAL_OUT
-    else:
         echo 'IceTray finished with Exit Code: $?'
     fi
 else
