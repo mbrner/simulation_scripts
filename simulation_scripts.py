@@ -114,9 +114,9 @@ def build_config(data_folder, custom_settings):
               help='folder were all files should be placed')
 @click.option('--processing_scratch', '-p', default=None,
               help='Folder for the DAGMAN Files')
-@click.option('--dagman/--no-dagman', default=True,
+@click.option('--dagman/--no-dagman', default=False,
               help='Write/Not write files to start dagman process.')
-@click.option('--pbs/--no-pbs', default=True,
+@click.option('--pbs/--no-pbs', default=False,
               help='Write/Not write files to start processing on a pbs system')
 @click.option('--step', '-s', default=1,
               help='0=upto clsim\n1 = clsim\n2 =upto L2')
@@ -127,6 +127,11 @@ def main(data_folder, config_file, processing_scratch, step, pbs, dagman):
     chain_name = custom_settings['chain_name']
     click.echo('Initialized {} chain!'.format(chain_name))
     step_enum, default_config, job_template = fetch_chain(chain_name)
+    custom_settings.update({
+        'step': step,
+        'step_name': step_enum[step],
+        'previous_step_name': step_enum.get(step - 1, None)})
+
     if 'outfile_pattern' in custom_settings.keys():
         click.echo('Building config for next step based on provided config!')
         config = custom_settings
