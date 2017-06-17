@@ -11,5 +11,5 @@ icemodel: SpiceLea
 clsim_unshadowed_fraction: 0.9
 clsim_ignore_muon_light: True
 clsim_usegpus: True
-muongun_e_break: 1e6
+muongun_e_break: !!float 1e6
 dom_oversize: 5

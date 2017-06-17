@@ -73,6 +73,7 @@ def main(cfg, run_number, scratch):
 #                            icetray.I3Frame.Physics,
 #                            icetray.I3Frame.Stream('S'),
 #                            icetray.I3Frame.Stream('M')])
+    outfile = outfile.replace('.bz2', '')
     tray.AddModule("I3Writer", "writer",
                    Filename=outfile)
 
