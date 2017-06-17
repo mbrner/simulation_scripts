@@ -61,6 +61,10 @@ def main(cfg, run_number, scratch):
                  icetray.I3Frame.Stream('S'),
                  icetray.I3Frame.Stream('M')],
         )
+    tray.AddModule("TrashCan", "the can")
+    tray.Execute()
+    tray.Finish()
+
 
 if __name__ == '__main__':
     main()
