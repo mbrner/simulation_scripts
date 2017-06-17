@@ -30,7 +30,8 @@ def main(cfg, run_number, scratch):
     tray.context['I3RandomService'] = random_service
 
     if cfg['generator'].lower() == "nugen":
-        tray.AddModule("I3InfiniteSource","TheSource",
+        tray.AddModule("I3InfiniteSource",
+                       "TheSource",
                        Prefix=cfg['gcd'],
                        Stream=icetray.I3Frame.DAQ)
         tray.AddSegment(
@@ -60,19 +61,21 @@ def main(cfg, run_number, scratch):
     tray.AddSegment(
         segments.PropagateMuons,
         "PropagateMuons",
-        RandomService = random_service_prop)
+        RandomService=random_service_prop)
     if scratch:
         outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
     else:
         outfile = cfg['outfile_pattern'].format(run_number=run_number)
     outfile = outfile.replace(' ', '0')
-    tray.AddModule("I3Writer","writer",
-        Filename=outfile,
-        Streams=[icetray.I3Frame.DAQ,
-                 icetray.I3Frame.Physics,
-                 icetray.I3Frame.Stream('S'),
-                 icetray.I3Frame.Stream('M')],
-        )
+#    tray.AddModule("I3Writer", "writer",
+#                   Filename=outfile,
+#                   Streams=[icetray.I3Frame.DAQ,
+#                            icetray.I3Frame.Physics,
+#                            icetray.I3Frame.Stream('S'),
+#                            icetray.I3Frame.Stream('M')])
+    tray.AddModule("I3Writer", "writer",
+                   Filename=outfile)
+
     tray.AddModule("TrashCan", "the can")
     tray.Execute()
     tray.Finish()
