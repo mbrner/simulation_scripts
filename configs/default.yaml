@@ -1,0 +1,47 @@
+# Used Random Seed
+seed: 1337
+
+# Number of the dataset
+dataset_number: 0
+# Events generated for each file
+n_events_per_run: 10000
+# Number of total runs/file
+n_runs: 1000
+# Whether file after IceTray should be kept
+keep_crashed_files: False
+
+
+
+# PATH to the GCD File
+gcd: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2012.56063_V1.i3.gz
+# Folder in which the different step outputs should be stored
+output_folder: '{base_folder}/{generator}/{dataset_number}/{step}'
+
+
+# Generator for the particle production ['muongun', 'nugen']
+generator: muongun
+# Starting Energy GeV
+e_min: 100
+# Maximal Energy GeV
+e_max: !!float 1e8
+# Used gamme for the generator (E^-gamma)
+gamma: 2.
+# Used icemodel ['SpiceLea']
+icemodel: SpiceLea
+
+# CLSIM specific options
+# Ratio of the dom not shadowed by calbes other anything else
+clsim_unshadowed_fraction: 0.9
+# whether direct light of muons should be ignored
+clsim_ignore_muon_light: True
+# Run CLSIM using GPUS
+clsim_usegpus: False
+# DOM oversize factor
+dom_oversize: 5
+
+
+# muongun specific options
+# Energy offset `b` of power-law approximation (E + b)^{-gamma}
+muongun_e_break: !!float 1e6
+
+

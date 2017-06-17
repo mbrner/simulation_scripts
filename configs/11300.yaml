@@ -5,7 +5,7 @@ generator: muongun
 n_events_per_run: 10000
 n_runs: 1000
 e_min: 100
-e_max: 1e8
+e_max: !!float 1e8
 gamma: 2.
 icemodel: SpiceLea
 clsim_unshadowed_fraction: 0.9
@@ -13,4 +13,3 @@ clsim_ignore_muon_light: True
 clsim_usegpus: True
 muongun_e_break: 1e6
 dom_oversize: 5
-output_folder: '{base_dir}/{generator}/{dataset_number}/{step}'
