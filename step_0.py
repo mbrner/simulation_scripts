@@ -27,6 +27,8 @@ def main(cfg, run_number, scratch):
         run_number=cfg['dataset_number'],
         seed=cfg['seed'])
 
+    tray.context['I3RandomService'] = random_service
+
     if cfg['generator'].lower() == "nugen":
         tray.AddModule("I3InfiniteSource","TheSource",
                        Prefix=cfg['gcd'],
