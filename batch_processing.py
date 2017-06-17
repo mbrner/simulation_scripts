@@ -1,5 +1,10 @@
 import os
 import stat
+import subprocess
+import time
+
+import click
+import yaml
 
 
 def write_onejob_file(config,
@@ -90,3 +95,38 @@ def create_dagman_files(config,
 
 def create_pbs_files(config, script_files, scratch_folder):
     pass
+
+
+@click.command()
+@click.argument('config_file', click.Path(exists=True))
+@click.option('-j', '--n_jobs', default=1,
+              help='Number of parallel jobs')
+def process_local(config_file, n_jobs):
+    config_file = click.format_filename(config_file)
+    with open(config_file, 'r') as stream:
+        config = yaml.load(stream)
+    click.echo('Processing {} with max. {} parralel jobs!'.format(
+        config_file, n_jobs))
+    output_base = os.path.join(config['processing_folder'], 'jobs')
+    job_files = []
+    for i in range(config['n_runs']):
+        script_name = config['scipt_name'].format(run_number=i)
+        script_path = os.path.join(output_base, script_name)
+        if os.path.isfile(script_path):
+            job_files.append(script_path)
+        else:
+            click.echo('{} not found!'.format(script_path))
+    click.echo('Starting processing!')
+
+    processes = {}
+    with click.progressbar(job_files) as bar:
+        for job in bar:
+            sub_process = subprocess.Popen([job])
+            processes[sub_process.pid] = [sub_process, job]
+            if len(processes) >= n_jobs:
+                pid, exit_code = os.wait()
+                if exit_code != 0:
+                    job_file = processes[pid][1]
+                    click.echo('{} finished with exit code {}'.format(job_file,
+                                                                      pid))
+                del processes[pid]

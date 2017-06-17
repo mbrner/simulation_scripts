@@ -57,8 +57,7 @@ def write_job_files(config, step):
         config['scratch_out'] = scratch_out
         config['run_number'] = i
         file_config = template.format(**config)
-        scipt_name = 'step_{step_number}_run_{run_number}.sh'.format(
-            **config)
+        scipt_name = config['scipt_name'].format(**config)
         script_path = os.path.join(output_base, scipt_name)
         with open(script_path, 'w') as f:
             f.write(file_config)
@@ -133,11 +132,13 @@ def main(data_folder, config_file, processing_scratch, step, pbs, dagman):
         config['infile_pattern'] = create_filename(config, input=True)
     config['outfile_pattern'] = create_filename(config)
     config['scratchfile_pattern'] = os.path.basename(config['outfile_pattern'])
+    config['scipt_name'] = 'step_{step_number}_run_{run_number}.sh'
 
     outfile = os.path.basename(os.path.join(config_file))
     filled_yaml = os.path.join(config['processing_folder'], outfile)
     config['yaml_copy'] = filled_yaml
-    script_files = write_job_files(config, step)
+    with open(config['yaml_copy'], 'w') as yaml_copy:
+        yaml.dump(config, yaml_copy, default_flow_style=False)
 
     if dagman or pbs:
         if processing_scratch is None:
@@ -147,6 +148,10 @@ def main(data_folder, config_file, processing_scratch, step, pbs, dagman):
                 'Please enter a processing scrath:',
                 default=default)
         config['processing_scratch'] = os.path.abspath(processing_scratch)
+
+    script_files = write_job_files(config, step)
+
+    if dagman or pbs:
         scratch_subfolder = '{dataset_number}_level{step}'.format(**config)
         scratch_folder = os.path.join(config['processing_scratch'],
                                       scratch_subfolder)
@@ -160,9 +165,6 @@ def main(data_folder, config_file, processing_scratch, step, pbs, dagman):
             create_pbs_files(config,
                              script_files,
                              scratch_folder)
-
-    with open(config['yaml_copy'], 'w') as yaml_copy:
-        yaml.dump(config, yaml_copy, default_flow_style=False)
 
 
 if __name__ == '__main__':
