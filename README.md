@@ -1,6 +1,15 @@
 # simulation_scripts
 
-Usage: python write_job_files.py -s "step" "path_to_config_yaml"
+## Usage
 
+```
+$ python simulation_scripts.py -s "step" "path_to_config_yaml"
+```
 
-Example: python write_job_files.py -s 0 ~/simulation_scripts/configs/11300.yaml 
+or is installed with pip:
+```
+$ simulation_scripts_write -s "step" "path_to_config_yaml"
+```
+check --help for options.
+
+Example: simulation_scripts_write -s 0 ~/simulation_scripts/configs/11300.yaml 
