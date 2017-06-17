@@ -6,7 +6,7 @@ def write_onejob_file(config):
 
     lines = []
     lines.append('processname = {}'.format(process_name))
-    lines.append('executable = bash')
+    lines.append('executable = $(script_file)')
     lines.append('getenv         = true')
     log_dir = os.path.join(config['dagman_scratch'], 'logs')
     if not os.path.isdir(log_dir):
@@ -20,7 +20,6 @@ def write_onejob_file(config):
     lines.append('universe       = vanilla')
     if 'memory' in config.keys():
         lines.append('request_memory = {}'.format(config['memory']))
-    lines.append('Arguments = $(script_file)')
     lines.append('queue')
     onejob_file = os.path.join(config['dagman_scratch'], 'OneJob.submit')
     with open(onejob_file, 'w') as open_file:
