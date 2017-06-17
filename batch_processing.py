@@ -1,6 +1,7 @@
 import os
 import stat
 
+
 def write_onejob_file(config):
     process_name = '{dataset_number}_level{step}'.format(**config)
 
@@ -8,7 +9,7 @@ def write_onejob_file(config):
     lines.append('processname = {}'.format(process_name))
     lines.append('executable = $(script_file)')
     lines.append('getenv         = true')
-    log_dir = os.path.join(config['dagman_scratch'], 'logs')
+    log_dir = os.path.join(config['processing_scratch'], 'logs')
     if not os.path.isdir(log_dir):
         os.makedirs(log_dir)
     lines.append('should_transfer_files = YES')
@@ -21,11 +22,12 @@ def write_onejob_file(config):
     if 'memory' in config.keys():
         lines.append('request_memory = {}'.format(config['memory']))
     lines.append('queue')
-    onejob_file = os.path.join(config['dagman_scratch'], 'OneJob.submit')
+    onejob_file = os.path.join(config['processing_scratch'], 'OneJob.submit')
     with open(onejob_file, 'w') as open_file:
         for line in lines:
             open_file.write(line + '\n')
     return onejob_file
+
 
 def write_config_file(config):
     lines = []
@@ -40,11 +42,12 @@ def write_config_file(config):
     if 'dagman_submits_interval' in config.keys():
         lines.append('DAGMAN_MAX_SUBMIT_PER_INTERVAL={}'.format(
             config['dagman_submits_interval']))
-    config_file = os.path.join(config['dagman_scratch'], 'dagman.config')
+    config_file = os.path.join(config['processing_scratch'], 'dagman.config')
     with open(config_file, 'w') as open_file:
         for line in lines:
             open_file.write(line + '\n')
     return config_file
+
 
 def write_option_file(config,
                       script_files,
@@ -57,26 +60,27 @@ def write_option_file(config,
         lines.append('JOB {} {}'.format(job_name, job_file))
         lines.append('VARS {} script_file="{}"'.format(job_name, script_i))
 
-    option_file = os.path.join(config['dagman_scratch'], 'dagman.options')
+    option_file = os.path.join(config['processing_scratch'], 'dagman.options')
     with open(option_file, 'w') as open_file:
         for line in lines:
             open_file.write(line + '\n')
     return option_file
 
+
 def create_dagman_files(config,
                         script_files):
+    print(config.keys())
     config_file = write_config_file(config)
     onejob_file = write_onejob_file(config)
     options_file = write_option_file(config, script_files, onejob_file)
     cmd = 'condor_submit_dag -config {} -notification Complete {}'.format(
         config_file, options_file)
-    run_script = os.path.join(config['dagman_scratch'], 'start_dagman.sh')
+    run_script = os.path.join(config['processing_scratch'], 'start_dagman.sh')
     with open(run_script, 'w') as open_file:
         open_file.write(cmd)
     st = os.stat(run_script)
     os.chmod(run_script, st.st_mode | stat.S_IEXEC)
 
 
-def create_pbs_files(config,
-                            script_files):
+def create_pbs_files(config, script_files):
     pass
