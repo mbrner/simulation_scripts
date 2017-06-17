@@ -31,7 +31,7 @@ def create_filename(cfg, input=False):
     return full_path
 
 def write_job_files(config, step):
-    with open('./job_template.sh') as f:
+    with open(os.path.join(SCRIPT_FOLDER, 'job_template.sh')) as f:
         template = f.read()
     fill_dict = {'job_file_folder': config['job_file_folder'],
                  'step_number': config['step_number'],
