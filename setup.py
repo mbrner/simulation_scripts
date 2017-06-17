@@ -11,5 +11,6 @@ setup(
     entry_points='''
         [console_scripts]
         simulation_scripts_write=simulation_scripts:main
+        simulation_scripts_process=batch_processing:process_local
     ''',
 )
