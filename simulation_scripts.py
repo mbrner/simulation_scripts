@@ -9,25 +9,37 @@ from batch_processing import create_pbs_files, create_dagman_files
 
 
 DATASET_FOLDER = '{data_folder}/{generator}/{dataset_number}'
-STEP_FOLDER = DATASET_FOLDER + '/{step}'
-PROCESSING_FOLDER = DATASET_FOLDER + '/processing/{step}'
+STEP_FOLDER = DATASET_FOLDER + '/{step_name}'
+PROCESSING_FOLDER = DATASET_FOLDER + '/processing/{step_name}'
 SCRIPT_FOLDER = os.path.dirname(os.path.abspath(__file__))
 
-step_enum = {-1: None,
-             0: '0_after_proposal',
-             1: '0_after_clsim',
-             2: '2',
-             3: '3'}
+
+def fetch_chain(chain_name):
+    processing_chains_f = os.path.join(SCRIPT_FOLDER, 'processing_chains.yaml')
+    with open(processing_chains_f, 'r') as stream:
+        processing_chains = yaml.load(stream)
+    try:
+        chain_definition = processing_chains[chain_name]
+    except KeyError:
+        click.echo("Not chain called '' found!".format(chain_name))
+    else:
+        default_config = chain_definition['default_config']
+        if not os.path.isabs(default_config):
+            default_config = os.path.join(SCRIPT_FOLDER, default_config)
+        job_template = chain_definition['job_template']
+        if not os.path.isabs(job_template):
+            job_template = os.path.join(SCRIPT_FOLDER, job_template)
+        step_enum = chain_definition['steps']
+    return step_enum, default_config, job_template
 
 
 def create_filename(cfg, input=False):
     if input:
-        filename = (
-            'Level{previous_step}.IC86.YEAR.{generator}.' +
-            '{dataset_number:6d}.{run_number}.i3.bz2').format(**cfg)
+        filename = ('{previous_step_name}.{dataset_number:6d}.' +
+                    '{run_number}.i3.bz2').format(**cfg)
     else:
         filename = (
-            'Level{step}.IC86.YEAR.{generator}.' +
+            'Level{step_name}.IC86.YEAR' +
             '{dataset_number:6d}.{run_number}.i3.bz2').format(**cfg)
     full_path = os.path.join(cfg['output_folder'], filename)
     full_path = full_path.replace(' ', '0')
@@ -35,7 +47,7 @@ def create_filename(cfg, input=False):
 
 
 def write_job_files(config, step):
-    with open(os.path.join(SCRIPT_FOLDER, 'job_template.sh')) as f:
+    with open(config['job_template']) as f:
         template = f.read()
 
     config.update({'PBS_JOBID': '{PBS_JOBID}',
@@ -69,7 +81,7 @@ def write_job_files(config, step):
     return scripts
 
 
-def build_config(data_folder, custom_settings, step):
+def build_config(data_folder, custom_settings):
     if data_folder is None:
         default = '/data/user/{}/simulation_scripts/'.format(getpass.getuser())
         data_folder = click.prompt(
@@ -78,16 +90,11 @@ def build_config(data_folder, custom_settings, step):
     data_folder = os.path.abspath(data_folder)
     if data_folder.endswith('/'):
         data_folder = data_folder[:-1]
-
-    default_cfg = os.path.join(SCRIPT_FOLDER, 'configs/default.yaml')
-    with open(default_cfg, 'r') as stream:
+    with open(custom_settings['default_config'], 'r') as stream:
         config = yaml.load(stream)
     config.update(custom_settings)
 
-    config.update({'step_number': step,
-                   'step': step_enum[step],
-                   'previous_step': step_enum[step - 1],
-                   'data_folder': data_folder,
+    config.update({'data_folder': data_folder,
                    'run_number': '{run_number:6d}'})
 
     config['output_folder'] = STEP_FOLDER.format(**config)
@@ -117,22 +124,33 @@ def main(data_folder, config_file, processing_scratch, step, pbs, dagman):
     config_file = click.format_filename(config_file)
     with open(config_file, 'r') as stream:
         custom_settings = yaml.load(stream)
+    chain_name = custom_settings['chain_name']
+    click.echo('Initialized {} chain!'.format(chain_name))
+    step_enum, default_config, job_template = fetch_chain(chain_name)
     if 'outfile_pattern' in custom_settings.keys():
         click.echo('Building config for next step based on provided config!')
         config = custom_settings
         config['infile_pattern'] = config['outfile_pattern']
-        step = config['step_number'] + 1
-        config.update({'step_number': step,
-                       'step': step_enum[step],
-                       'previous_step': step_enum[step - 1]})
-        processing_scratch = config['processing_scratch']
-        config['processing_folder'] = PROCESSING_FOLDER.format(**config)
+        step = config['step'] + 1
+        config.update({
+            'step': step,
+            'step_name': step_enum[step],
+            'previous_step_name': step_enum.get(step - 1, None)})
+        if 'processing_scratch' in config.keys():
+            processing_scratch = config['processing_scratch']
     else:
-        config = build_config(data_folder, custom_settings, step)
+        click.echo('Building config from scratch!')
+        custom_settings['default_config'] = default_config
+        custom_settings['job_template'] = job_template
+        config = build_config(data_folder, custom_settings)
         config['infile_pattern'] = create_filename(config, input=True)
+
+    config['processing_folder'] = PROCESSING_FOLDER.format(**config)
     config['outfile_pattern'] = create_filename(config)
     config['scratchfile_pattern'] = os.path.basename(config['outfile_pattern'])
-    config['script_name'] = 'step_{step_number}_run_{run_number}.sh'
+    config['script_name'] = '{step_name}_{run_number}.sh'
+    if not os.path.isdir(config['processing_folder']):
+        os.makedirs(config['processing_folder'])
 
     outfile = os.path.basename(os.path.join(config_file))
     filled_yaml = os.path.join(config['processing_folder'], outfile)
@@ -152,7 +170,7 @@ def main(data_folder, config_file, processing_scratch, step, pbs, dagman):
     script_files = write_job_files(config, step)
 
     if dagman or pbs:
-        scratch_subfolder = '{dataset_number}_level{step}'.format(**config)
+        scratch_subfolder = '{dataset_number}_{step_name}'.format(**config)
         scratch_folder = os.path.join(config['processing_scratch'],
                                       scratch_subfolder)
         if not os.path.isdir(scratch_folder):

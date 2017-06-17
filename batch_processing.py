@@ -1,7 +1,6 @@
 import os
 import stat
 import subprocess
-import time
 
 import click
 import yaml
@@ -9,7 +8,7 @@ import yaml
 
 def write_onejob_file(config,
                       scratch_folder):
-    process_name = '{dataset_number}_level{step}'.format(**config)
+    process_name = '{dataset_number}_{step_name}'.format(**config)
 
     lines = []
     lines.append('processname = {}'.format(process_name))
@@ -60,7 +59,7 @@ def write_option_file(config,
                       script_files,
                       job_file,
                       scratch_folder):
-    process_name = '{dataset_number}_level{step}'.format(**config)
+    process_name = '{dataset_number}_{step_name}'.format(**config)
 
     lines = []
     for i, script_i in enumerate(script_files):
