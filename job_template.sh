@@ -14,7 +14,7 @@ then
     echo 'Running Script w/o temporary scratch'
     {script_folder}/step_{step_number}.py {yaml_copy} {run_number} --no-scratch
     echo 'IceTray finished with Exit Code: ' $?
-    if [ "$?" != "0" ] && [ !$KEEP_CRASHED_FILES ] ; then
+    if [ "$?" != "0" ] && [ $KEEP_CRASHED_FILES != "0" ] ; then
         echo 'Deleting partially processed file!'
         rm $FINAL_OUT
     fi
@@ -22,7 +22,7 @@ else
     echo 'Running Script w/ temporary scratch'
     {script_folder}/step_{step_number}.py {yaml_copy} {run_number} --scratch
     echo 'IceTray finished with Exit Code: ' $?
-    if [ "$?" = "0" ] || && [ !$KEEP_CRASHED_FILES ]; then
+    if [ "$?" = "0" ] || [ $KEEP_CRASHED_FILES = "1" ]; then
         cp {scratch_out} $FINAL_OUT
     else
         rm {scratch_out}
