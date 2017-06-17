@@ -132,3 +132,13 @@ def process_local(config_file, n_jobs):
                     click.echo('{} finished with exit code {}'.format(job_file,
                                                                       pid))
                 del processes[pid]
+    click.echo('Waiting for last {} processes to finish!'.format(
+        len(processes)))
+    while len(processes) > 0:
+        pid, exit_code = os.wait()
+        if exit_code != 0:
+            job_file = processes[pid][1]
+            click.echo('{} finished with exit code {}'.format(job_file,
+                                                              pid))
+        del processes[pid]
+    click.echo('Finished!')
