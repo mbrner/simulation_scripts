@@ -57,6 +57,10 @@ def main(cfg, run_number, scratch):
         Filename=outfile,
         Streams=[icetray.I3Frame.DAQ,
                  icetray.I3Frame.Physics])
+    tray.AddModule("TrashCan", "the can")
+    tray.Execute()
+    tray.Finish()
+
 
 if __name__ == '__main__':
     main()
