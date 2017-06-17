@@ -55,7 +55,7 @@ def write_option_file(config,
     for i, script_i in enumerate(script_files):
         job_name = '{}_{}'.format(process_name, i)
         lines.append('JOB {} {}'.format(job_name, job_file))
-        lines.append('VARS {} script_file={}'.format(job_name, script_i))
+        lines.append('VARS {} script_file="{}"'.format(job_name, script_i))
 
     option_file = os.path.join(config['dagman_scratch'], 'dagman.options')
     with open(option_file, 'w') as open_file:
