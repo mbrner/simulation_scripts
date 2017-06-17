@@ -6,7 +6,7 @@
 $ python simulation_scripts.py -s "step" "path_to_config_yaml"
 ```
 
-or is installed with pip:
+or if installed with pip:
 ```
 $ simulation_scripts_write -s "step" "path_to_config_yaml"
 ```
