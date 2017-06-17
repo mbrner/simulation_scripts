@@ -1,4 +1,5 @@
 import os
+import stat
 
 import click
 import yaml
@@ -60,6 +61,9 @@ def write_job_files(config, step):
         script_path = os.path.join(output_base, scipt_name)
         with open(script_path, 'w') as f:
             f.write(file_config)
+        st = os.stat(script_path)
+        os.chmod(script_path, st.st_mode | stat.S_IEXEC)
+
         scripts.append(script_path)
     return scripts
 
