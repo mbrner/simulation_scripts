@@ -45,7 +45,7 @@ def main(cfg, run_number, scratch):
             ToEnergy=cfg['e_max'] * icetray.I3Units.GeV,)
     elif cfg['generator'].lower() == "muongun":
         tray.AddSegment(
-            segments.GenerateCosmicRayMuons,
+            segments.GenerateSingleMuons,
             "GenerateCosmicRayMuons",
             NumEvents=cfg['n_events_per_run'],
             FromEnergy=cfg['e_min'] * icetray.I3Units.GeV,
