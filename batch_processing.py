@@ -110,7 +110,8 @@ def process_local(config_file, n_jobs):
     output_base = os.path.join(config['processing_folder'], 'jobs')
     job_files = []
     for i in range(config['n_runs']):
-        script_name = config['scipt_name'].format(run_number=i)
+        script_name = config['script_name'].format(**config)
+        script_name = config['script_name'].format(run_number=i)
         script_path = os.path.join(output_base, script_name)
         if os.path.isfile(script_path):
             job_files.append(script_path)
