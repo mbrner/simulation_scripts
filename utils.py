@@ -19,10 +19,10 @@ def create_random_services(dataset_number, run_number, seed):
     random_service = phys_services.I3SPRNGRandomService(
         seed=seed,
         nstreams=MAX_RUN_NUMBER * 2,
-        streamnum=int_run_number + MAX_RUN_NUMBER)
+        streamnum=run_number + MAX_RUN_NUMBER)
 
     random_service_prop = phys_services.I3SPRNGRandomService(
         seed=seed,
         nstreams=MAX_RUN_NUMBER * 2,
-        streamnum=int_run_number)
+        streamnum=run_number)
     return random_service, random_service_prop, int_run_number
