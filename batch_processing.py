@@ -127,21 +127,14 @@ def process_local(config_file, n_jobs):
             job_name = os.path.splitext(job)[0]
             stderr = os.path.join(log_dir, '{}.err'.format(job_name))
             stdout = os.path.join(log_dir, '{}.err'.format(job_name))
-            stderr_f = open(stderr, 'w')
-            stdout_f = open(stdout, 'w')
-            sub_process = subprocess.Popen([job],
-                                           stdout=stdout_f,
-                                           stderr=stderr_f)
-            processes[sub_process.pid] = [sub_process, job, stdout_f, stderr_f]
+            sub_process = subprocess.Popen([job, '>>', stdout, '2>>', stderr],)
+            processes[sub_process.pid] = [sub_process, job]
             if len(processes) >= n_jobs:
                 pid, exit_code = os.wait()
                 if exit_code != 0:
                     job_file = processes[pid][1]
                     click.echo('{} finished with exit code {}'.format(job_file,
                                                                       pid))
-                stdout_f, stderr_f = processes[pid][2], processes[pid][3]
-                stdout_f.close()
-                stderr_f.close()
                 del processes[pid]
                 finished += 1
                 bar.update(finished)
@@ -151,9 +144,6 @@ def process_local(config_file, n_jobs):
                 job_file = processes[pid][1]
                 click.echo('{} finished with exit code {}'.format(job_file,
                                                                   pid))
-            stdout_f, stderr_f = processes[pid][2], processes[pid][3]
-            stdout_f.close()
-            stderr_f.close()
             del processes[pid]
             finished += 1
             bar.update(finished)
