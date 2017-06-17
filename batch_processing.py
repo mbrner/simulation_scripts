@@ -122,7 +122,7 @@ def process_local(config_file, n_jobs):
 
     processes = {}
     finished = 0
-    with click.progressbar(lenght=len(job_files)) as bar:
+    with click.progressbar(length=len(job_files)) as bar:
         for job in job_files:
             job_name = os.path.splitext(job)[0]
             stderr = os.path.join(log_dir, '{}.err'.format(job_name))
