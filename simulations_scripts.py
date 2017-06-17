@@ -8,9 +8,9 @@ import getpass
 from batch_processing import create_pbs_files, create_dagman_files
 
 
-DATASET_FOLDER = '{base_folder}/{generator}/{dataset_number}'
+DATASET_FOLDER = '{data_folder}/{generator}/{dataset_number}'
 STEP_FOLDER = DATASET_FOLDER + '/{step}'
-JOB_FOLDER = DATASET_FOLDER + '/jobs/{step}'
+PROCESSING_FOLDER = DATASET_FOLDER + '/processing/{step}'
 SCRIPT_FOLDER = os.path.dirname(os.path.abspath(__file__))
 
 step_enum = {-1: None,
@@ -40,11 +40,11 @@ def write_job_files(config, step):
 
     config.update({'PBS_JOBID': '{PBS_JOBID}',
                    'CLUSTER': '{CLUSTER}'})
-    output_base = os.path.join(config['job_file_folder'], 'jobs')
+    output_base = os.path.join(config['processing_folder'], 'jobs')
 
     if not os.path.isdir(output_base):
         os.makedirs(output_base)
-    log_dir = os.path.join(config['job_file_folder'], 'logs')
+    log_dir = os.path.join(config['processing_folder'], 'logs')
     if not os.path.isdir(log_dir):
         os.makedirs(log_dir)
     scripts = []
@@ -70,79 +70,99 @@ def write_job_files(config, step):
     return scripts
 
 
-@click.command()
-@click.argument('config_file', click.Path(exists=True))
-@click.option('--base_folder', '-b', default=None,
-              help='folder were all files should be placed')
-@click.option('--dagman_scratch', '-d', default=None,
-              help='Folder for the DAGMAN Files')
-@click.option('--dagman/--no-dagman', default=True)
-@click.option('--pbs/--no-pbs', default=True)
-@click.option('--step', '-s', default=1,
-              help='0=upto clsim\n1 = clsim\n2 =upto L2')
-def main(base_folder, config_file, step, pbs, dagman, dagman_scratch):
-    if base_folder is None:
+def build_config(data_folder, custom_settings, step):
+    if data_folder is None:
         default = '/data/user/{}/simulation_scripts/'.format(getpass.getuser())
-        base_folder = os.path.abspath(click.prompt(
-            'Please enter the dir were the files should be stored',
-            default=default))
-        if base_folder.endswith('/'):
-            base_folder = base_folder[:-1]
+        data_folder = click.prompt(
+            'Please enter the dir were the files should be stored:',
+            default=default)
+    data_folder = os.path.abspath(data_folder)
+    if data_folder.endswith('/'):
+        data_folder = data_folder[:-1]
 
     default_cfg = os.path.join(SCRIPT_FOLDER, 'configs/default.yaml')
     with open(default_cfg, 'r') as stream:
         config = yaml.load(stream)
-    config_file = click.format_filename(config_file)
-    with open(config_file, 'r') as stream:
-        overwritten_settings = yaml.load(stream)
-    config.update(overwritten_settings)
+    config.update(custom_settings)
 
     config.update({'step_number': step,
                    'step': step_enum[step],
                    'previous_step': step_enum[step - 1],
-                   'base_folder': str(base_folder),
+                   'data_folder': data_folder,
                    'run_number': '{run_number:6d}'})
 
     config['output_folder'] = STEP_FOLDER.format(**config)
     config['dataset_folder'] = DATASET_FOLDER.format(**config)
-    config['job_file_folder'] = JOB_FOLDER.format(**config)
+    config['processing_folder'] = PROCESSING_FOLDER.format(**config)
     config['script_folder'] = SCRIPT_FOLDER
     if not os.path.isdir(config['output_folder']):
         os.makedirs(config['output_folder'])
-    if not os.path.isdir(config['job_file_folder']):
-        os.makedirs(config['job_file_folder'])
+    if not os.path.isdir(config['processing_folder']):
+        os.makedirs(config['processing_folder'])
+    return config
 
-    config['infile_pattern'] = create_filename(config, input=True)
+
+@click.command()
+@click.argument('config_file', click.Path(exists=True))
+@click.option('--data_folder', '-d', default=None,
+              help='folder were all files should be placed')
+@click.option('--processing_scratch', '-p', default=None,
+              help='Folder for the DAGMAN Files')
+@click.option('--dagman/--no-dagman', default=True,
+              help='Write/Not write files to start dagman process.')
+@click.option('--pbs/--no-pbs', default=True,
+              help='Write/Not write files to start processing on a pbs system')
+@click.option('--step', '-s', default=1,
+              help='0=upto clsim\n1 = clsim\n2 =upto L2')
+def main(data_folder, config_file, processing_scratch, step, pbs, dagman):
+    config_file = click.format_filename(config_file)
+    with open(config_file, 'r') as stream:
+        custom_settings = yaml.load(stream)
+    if 'outfile_pattern' in custom_settings.keys():
+        click.echo('Building config for next step based on provided config!')
+        config = custom_settings
+        config['infile_pattern'] = config['outfile_pattern']
+        step = config['step_number'] + 1
+        config.update({'step_number': step,
+                       'step': step_enum[step],
+                       'previous_step': step_enum[step - 1]})
+        processing_scratch = config['processing_scratch']
+        config['processing_folder'] = PROCESSING_FOLDER.format(**config)
+    else:
+        config = build_config(data_folder, custom_settings, step)
+        config['infile_pattern'] = create_filename(config, input=True)
     config['outfile_pattern'] = create_filename(config)
     config['scratchfile_pattern'] = os.path.basename(config['outfile_pattern'])
 
-    if dagman and dagman_scratch is None:
-        default = '/scratch/{}/simulation_scripts'.format(getpass.getuser())
-        dagman_scratch = click.prompt(
-            'Please enter the dir were the files should be stored',
-            default=default)
-    if dagman:
-        scratch_subfolder = '{dataset_number}_level{step}'.format(**config)
-        config['dagman_scratch'] = os.path.join(dagman_scratch,
-                                                scratch_subfolder)
-        if not os.path.isdir(config['dagman_scratch']):
-            os.makedirs(config['dagman_scratch'])
-
     outfile = os.path.basename(os.path.join(config_file))
-    raw_filename = os.path.splitext(outfile)[0]
-    filled_yaml = '{}_{}.yaml'.format(raw_filename, config['step'])
-    filled_yaml = os.path.join(config['job_file_folder'], filled_yaml)
-    with open(filled_yaml, 'w') as yaml_copy:
-        yaml.dump(config, yaml_copy, default_flow_style=False)
-
+    filled_yaml = os.path.join(config['processing_folder'], outfile)
     config['yaml_copy'] = filled_yaml
-
     script_files = write_job_files(config, step)
-    if dagman:
-        create_dagman_files(config, script_files)
-    if pbs:
-        create_pbs_files(config,
-                         script_files)
+
+    if dagman or pbs:
+        if processing_scratch is None:
+            default = '/scratch/{}/simulation_scripts'.format(
+                getpass.getuser())
+            processing_scratch = click.prompt(
+                'Please enter a processing scrath:',
+                default=default)
+        config['processing_scratch'] = os.path.abspath(processing_scratch)
+        scratch_subfolder = '{dataset_number}_level{step}'.format(**config)
+        scratch_folder = os.path.join(config['processing_scratch'],
+                                      scratch_subfolder)
+        if not os.path.isdir(scratch_folder):
+            os.makedirs(scratch_folder)
+        if dagman:
+            create_dagman_files(config,
+                                script_files,
+                                scratch_folder)
+        if pbs:
+            create_pbs_files(config,
+                             script_files,
+                             scratch_folder)
+
+    with open(config['yaml_copy'], 'w') as yaml_copy:
+        yaml.dump(config, yaml_copy, default_flow_style=False)
 
 
 if __name__ == '__main__':
