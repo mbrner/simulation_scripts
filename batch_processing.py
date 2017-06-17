@@ -121,8 +121,9 @@ def process_local(config_file, n_jobs):
     click.echo('Starting processing!')
 
     processes = {}
-    with click.progressbar(job_files) as bar:
-        for job in bar:
+    finished = 0
+    with click.progressbar(lenght=len(job_files)) as bar:
+        for job in job_files:
             job_name = os.path.splitext(job)[0]
             stderr = os.path.join(log_dir, '{}.err'.format(job_name))
             stdout = os.path.join(log_dir, '{}.err'.format(job_name))
@@ -142,16 +143,18 @@ def process_local(config_file, n_jobs):
                 stdout_f.close()
                 stderr_f.close()
                 del processes[pid]
-    click.echo('Waiting for last {} processes to finish!'.format(
-        len(processes)))
-    while len(processes) > 0:
-        pid, exit_code = os.wait()
-        if exit_code != 0:
-            job_file = processes[pid][1]
-            click.echo('{} finished with exit code {}'.format(job_file,
-                                                              pid))
-        stdout_f, stderr_f = processes[pid][2], processes[pid][3]
-        stdout_f.close()
-        stderr_f.close()
-        del processes[pid]
-    click.echo('Finished!')
+                finished += 1
+                bar.update(finished)
+        while len(processes) > 0:
+            pid, exit_code = os.wait()
+            if exit_code != 0:
+                job_file = processes[pid][1]
+                click.echo('{} finished with exit code {}'.format(job_file,
+                                                                  pid))
+            stdout_f, stderr_f = processes[pid][2], processes[pid][3]
+            stdout_f.close()
+            stderr_f.close()
+            del processes[pid]
+            finished += 1
+            bar.update(finished)
+        click.echo('Finished!')
