@@ -128,7 +128,9 @@ def process_local(config_file, n_jobs):
             stdout = os.path.join(log_dir, '{}.err'.format(job_name))
             stderr_f = open(stderr, 'w')
             stdout_f = open(stdout, 'w')
-            sub_process = subprocess.Popen([job])
+            sub_process = subprocess.Popen([job],
+                                           stdout=stdout_f,
+                                           stderr=stderr_f)
             processes[sub_process.pid] = [sub_process, job, stdout_f, stderr_f]
             if len(processes) >= n_jobs:
                 pid, exit_code = os.wait()
