@@ -16,9 +16,12 @@ keep_crashed_files: False
 gcd: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2012.56063_V1.i3.gz
 # Folder in which the different step outputs should be stored
 output_folder: '{data_folder}/{generator}/{dataset_number}/{step}'
+# Pattern for the outputfile
+output_pattern: '{step_name}.{dataset_number:6d}.{run_number}.i3.bz2'
 
-
-# Generator for the particle production ['muongun', 'nugen']
+# Name of the generator; only used for naming of the output folder
+generator: muongun
+# Starting Energy GeV
 e_min: 100
 # Maximal Energy GeV
 e_max: !!float 1e8
