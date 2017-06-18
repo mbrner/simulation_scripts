@@ -48,4 +48,8 @@ muongun_model: Hoerandel5_atmod12_SIBYLL
 muongun_min_multiplicity: 1
 muongun_max_multiplicity: 1
 
+# muongun floodlight specific options
+muongun_floodlight_min_cos: -1.0
+muongun_floodlight_max_cos: 1.0
+
 

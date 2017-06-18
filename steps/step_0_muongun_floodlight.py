@@ -85,10 +85,11 @@ def main(cfg, run_number, scratch):
                                                         spectrum, 
                                                         model.radius)
         elif cfg['muongun_generator'] =='floodlight':
-            generator = MuonGun.Floodlight(surface, 
-                                            model.flux, 
-                                            spectrum, 
-                                            model.radius)
+            generator = MuonGun.Floodlight(surface = surface, 
+                                           energyGenerator=spectrum, 
+                                           cosMin=cfg['muongun_floodlight_min_cos'],
+                                           cosMax=cfg['muongun_floodlight_max_cos'],
+                                           )
         else:
             err_msg = 'MuonGun generator {} is not known.'
             err_msg += " Must be 'energy','static' or 'floodlight"
