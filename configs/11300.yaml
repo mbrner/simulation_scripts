@@ -3,7 +3,7 @@ seed: 1337
 dataset_number: 11300
 gcd: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2012.56063_V1.i3.gz
 generator: muongun
-n_events_per_run: 100
+n_events_per_run: 10
 n_runs: 10
 e_min: 100
 e_max: !!float 1e8
