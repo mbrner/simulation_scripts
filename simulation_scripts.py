@@ -10,6 +10,7 @@ from batch_processing import create_pbs_files, create_dagman_files
 
 DATASET_FOLDER = '{data_folder}/{generator}/{dataset_number}'
 STEP_FOLDER = DATASET_FOLDER + '/{step_name}'
+PREVIOUS_STEP_FOLDER = DATASET_FOLDER + '/{previous_step_name}'
 PROCESSING_FOLDER = DATASET_FOLDER + '/processing/{step_name}'
 SCRIPT_FOLDER = os.path.dirname(os.path.abspath(__file__))
 
@@ -37,10 +38,12 @@ def create_filename(cfg, input=False):
     if input:
         step_name = cfg['step_name']
         cfg['step_name'] = cfg['previous_step_name']
-    filename = cfg['output_pattern'].format(**cfg)
-    if input:
+        filename = cfg['output_pattern'].format(**cfg)
+        full_path = os.path.join(cfg['input_folder'], filename)
         cfg['step_name'] = step_name
-    full_path = os.path.join(cfg['output_folder'], filename)
+    else:
+        filename = cfg['output_pattern'].format(**cfg)
+        full_path = os.path.join(cfg['output_folder'], filename)
     full_path = full_path.replace(' ', '0')
     return full_path
 
@@ -96,6 +99,7 @@ def build_config(data_folder, custom_settings):
     config.update({'data_folder': data_folder,
                    'run_number': '{run_number:6d}'})
 
+    config['input_folder'] = PREVIOUS_STEP_FOLDER.format(**config)
     config['output_folder'] = STEP_FOLDER.format(**config)
     config['dataset_folder'] = DATASET_FOLDER.format(**config)
     config['processing_folder'] = PROCESSING_FOLDER.format(**config)
