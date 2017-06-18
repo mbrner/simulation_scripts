@@ -1,6 +1,5 @@
 #!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
-#METAPROJECT simulation/V05-01-01
-from icecube.simprod import segments
+#METAPROJECT simulation/trunk
 import click
 import yaml
 
@@ -67,15 +66,13 @@ def main(cfg, run_number, scratch):
     else:
         outfile = cfg['outfile_pattern'].format(run_number=run_number)
     outfile = outfile.replace(' ', '0')
-#    tray.AddModule("I3Writer", "writer",
-#                   Filename=outfile,
-#                   Streams=[icetray.I3Frame.DAQ,
-#                            icetray.I3Frame.Physics,
-#                            icetray.I3Frame.Stream('S'),
-#                            icetray.I3Frame.Stream('M')])
     outfile = outfile.replace('.bz2', '')
     tray.AddModule("I3Writer", "writer",
-                   Filename=outfile)
+                   Filename=outfile,
+                   Streams=[icetray.I3Frame.DAQ,
+                            icetray.I3Frame.Physics,
+                            icetray.I3Frame.Stream('S'),
+                            icetray.I3Frame.Stream('M')])
 
     tray.AddModule("TrashCan", "the can")
     tray.Execute()
