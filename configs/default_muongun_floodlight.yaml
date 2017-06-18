@@ -11,7 +11,7 @@ n_runs: 1000
 keep_crashed_files: False
 # Indication which steps need GPUs
 gpu_steps:
-  - 1
+  1: 1
 
 
 # PATH to the GCD File
