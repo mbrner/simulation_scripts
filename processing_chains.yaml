@@ -1,8 +1,17 @@
 muongun_floodlight:
   default_config: configs/default_muongun_floodlight.yaml
-  job_template: job_templates/muongun_floodlight_template.sh
+  job_template: job_templates/muongun_general_template.sh
   steps:
     0: step_0_muongun_floodlight
-    1: step_1_muongun_floodlight
-    2: step_2_muongun_floodlight
-    3: step_3_muongun_floodlight
+    1: step_1_general_photon_propagation
+    2: step_2_general_detector_simulation
+    3: step_3_muon_L3
+
+muongun_general:
+  default_config: configs/default_muongun_general.yaml
+  job_template: job_templates/muongun_general_template.sh
+  steps:
+    0: step_0_muongun_floodlight
+    1: step_1_general_photon_propagation
+    2: step_2_general_detector_simulation
+    3: step_3_muon_L3

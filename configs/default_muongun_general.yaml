@@ -19,16 +19,13 @@ output_folder: '{data_folder}/{generator}/{dataset_number}/{step}'
 
 
 # Generator for the particle production ['muongun', 'nugen']
+generator: muongun
+# Starting Energy GeV
 e_min: 100
 # Maximal Energy GeV
 e_max: !!float 1e8
 # Used gamme for the generator (E^-gamma)
 gamma: 2.
-# Starting zenith
-zenith_min: 0.
-# End zenith
-zenith_max: 180.
-
 # Used icemodel ['SpiceLea']
 icemodel: SpiceLea
 
@@ -46,7 +43,13 @@ dom_oversize: 5
 # muongun specific options
 # Energy offset `b` of power-law approximation (E + b)^{-gamma}
 muongun_e_break: !!float 1e6
+muongun_generator: floodlight
+muongun_model: Hoerandel5_atmod12_SIBYLL
+muongun_min_multiplicity: 1
+muongun_max_multiplicity: 1
 
-
+# muongun floodlight specific options
+muongun_floodlight_min_cos: -1.0
+muongun_floodlight_max_cos: 1.0
 
 
