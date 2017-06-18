@@ -35,12 +35,11 @@ def fetch_chain(chain_name):
 
 def create_filename(cfg, input=False):
     if input:
-        filename = ('{previous_step_name}.{dataset_number:6d}.' +
-                    '{run_number}.i3.bz2').format(**cfg)
-    else:
-        filename = (
-            'Level{step_name}.IC86.YEAR' +
-            '{dataset_number:6d}.{run_number}.i3.bz2').format(**cfg)
+        step_name = cfg['step_name']
+        cfg['step_name'] = cfg['previous_step_name']
+    filename = cfg['output_pattern'].format(**cfg)
+    if input:
+        cfg['step_name'] = step_name
     full_path = os.path.join(cfg['output_folder'], filename)
     full_path = full_path.replace(' ', '0')
     return full_path

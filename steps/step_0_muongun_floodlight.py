@@ -1,5 +1,5 @@
 #!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
-#METAPROJECT simulation/trunk
+#METAPROJECT simulation/V05-01-01
 import click
 import yaml
 
@@ -7,6 +7,11 @@ from icecube.simprod import segments
 
 from I3Tray import I3Tray
 from icecube import icetray, dataclasses
+from icecube import sim_services, MuonGun
+import os
+import sys
+file_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(file_dir + '/..')
 from utils import create_random_services
 
 
@@ -28,34 +33,21 @@ def main(cfg, run_number, scratch):
 
     tray.context['I3RandomService'] = random_service
 
-    if cfg['generator'].lower() == "nugen":
-        tray.AddModule("I3InfiniteSource",
-                       "TheSource",
-                       Prefix=cfg['gcd'],
-                       Stream=icetray.I3Frame.DAQ)
-        tray.AddSegment(
-            segments.GenerateNeutrinos,
-            "GenerateNeutrinos",
-            RandomService=random_service,
-            NumEvents=cfg['n_events_per_run'],
-            Flavor=cfg['nugen_flavor'],
-            AutoExtendMuonVolume=cfg['nugen_autoextend'],
-            GammaIndex=cfg['gamma'],
-            FromEnergy=cfg['e_min'] * icetray.I3Units.GeV,
-            ToEnergy=cfg['e_max'] * icetray.I3Units.GeV,)
-    elif cfg['generator'].lower() == "muongun":
-        tray.AddSegment(
-            segments.GenerateSingleMuons,
-            "GenerateCosmicRayMuons",
-            NumEvents=cfg['n_events_per_run'],
-            FromEnergy=cfg['e_min'] * icetray.I3Units.GeV,
-            ToEnergy=cfg['e_max'] * icetray.I3Units.GeV,
-            BreakEnergy=cfg['muongun_e_break'] * icetray.I3Units.GeV,
-            GammaIndex=cfg['gamma'],
-            ZenithRange=[0., 180. * icetray.I3Units.deg])
-    else:
-        raise ValueError('This script only supports "muongun" and "nugen" '
-                         'as generators.')
+    tray.AddModule("I3InfiniteSource",
+                   "TheSource",
+                   Prefix=cfg['gcd'],
+                   Stream=icetray.I3Frame.DAQ)
+
+    tray.AddSegment(
+        segments.GenerateSingleMuons,
+        "GenerateCosmicRayMuons",
+        NumEvents=cfg['n_events_per_run'],
+        FromEnergy=cfg['e_min'] * icetray.I3Units.GeV,
+        ToEnergy=cfg['e_max'] * icetray.I3Units.GeV,
+        BreakEnergy=cfg['muongun_e_break'] * icetray.I3Units.GeV,
+        GammaIndex=cfg['gamma'],
+        ZenithRange=[cfg['zenith_min'] * icetray.I3Units.deg,
+                     cfg['zenith_max'] * icetray.I3Units.deg])
 
     tray.AddSegment(
         segments.PropagateMuons,
