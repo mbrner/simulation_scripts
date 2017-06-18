@@ -45,7 +45,7 @@ clsim_ignore_muon_light: True
 # Run CLSIM using GPUS
 clsim_usegpus: False
 # DOM oversize factor
-dom_oversize: 5
+clsim_dom_oversize: 5.
 
 
 # muongun specific options

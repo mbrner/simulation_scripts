@@ -46,8 +46,9 @@ def main(cfg, run_number, scratch):
         KeepIndividualMaps=False,
         IceModel=cfg['icemodel'],
         UnshadowedFraction=cfg['clsim_unshadowed_fraction'],
-        IgnoreMuons=cfg['ignore_muon_light'],
-        UseGPUs=cfg['clsim_usegpus'])
+        IgnoreMuons=cfg['clsim_ignore_muon_light'],
+        UseGPUs=cfg['clsim_usegpus'],
+        DOMOversizeFactor=cfg['clsim_dom_oversize'])
 
     if scratch:
         outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
