@@ -43,7 +43,7 @@ def main(cfg, run_number, scratch):
         "PropagatePhotons",
         RandomService=random_service,
         MaxParallelEvents=MAX_PARALLEL_EVENTS,
-        KeepIndividualMaps=False,
+        KeepIndividualMaps=cfg['clsim_keep_mcpe'],
         IceModel=cfg['icemodel'],
         UnshadowedFraction=cfg['clsim_unshadowed_fraction'],
         IgnoreMuons=cfg['clsim_ignore_muon_light'],

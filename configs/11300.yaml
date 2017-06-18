@@ -8,9 +8,10 @@ n_runs: 100
 e_min: 10
 e_max: !!float 1e8
 gamma: 2.
+muongun_e_break: !!float 1e6
 icemodel: SpiceLea
 clsim_unshadowed_fraction: 0.9
 clsim_ignore_muon_light: True
 clsim_usegpus: True
-muongun_e_break: !!float 1e6
-dom_oversize: 5
+clsim_keep_mcpe: False
+clsim_dom_oversize: 5.
