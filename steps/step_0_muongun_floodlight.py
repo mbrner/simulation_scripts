@@ -7,6 +7,11 @@ from icecube.simprod import segments
 
 from I3Tray import I3Tray
 from icecube import icetray, dataclasses
+from icecube import sim_services, MuonGun
+import os
+import sys
+file_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(file_dir + '/..') 
 from utils import create_random_services
 
 
@@ -44,15 +49,62 @@ def main(cfg, run_number, scratch):
             FromEnergy=cfg['e_min'] * icetray.I3Units.GeV,
             ToEnergy=cfg['e_max'] * icetray.I3Units.GeV,)
     elif cfg['generator'].lower() == "muongun":
-        tray.AddSegment(
-            segments.GenerateSingleMuons,
-            "GenerateCosmicRayMuons",
-            NumEvents=cfg['n_events_per_run'],
-            FromEnergy=cfg['e_min'] * icetray.I3Units.GeV,
-            ToEnergy=cfg['e_max'] * icetray.I3Units.GeV,
-            BreakEnergy=cfg['muongun_e_break'] * icetray.I3Units.GeV,
-            GammaIndex=cfg['gamma'],
-            ZenithRange=[0., 180. * icetray.I3Units.deg])
+        # tray.AddSegment(
+        #     segments.GenerateSingleMuons,
+        #     "GenerateCosmicRayMuons",
+        #     NumEvents=cfg['n_events_per_run'],
+        #     FromEnergy=cfg['e_min'] * icetray.I3Units.GeV,
+        #     ToEnergy=cfg['e_max'] * icetray.I3Units.GeV,
+        #     BreakEnergy=cfg['muongun_e_break'] * icetray.I3Units.GeV,
+        #     GammaIndex=cfg['gamma'],
+        #     ZenithRange=[0., 180. * icetray.I3Units.deg])
+
+        model = MuonGun.load_model(cfg['muongun_model'])
+        model.flux.min_multiplicity = cfg['muongun_min_multiplicity']
+        model.flux.max_multiplicity = cfg['muongun_max_multiplicity']
+        spectrum = MuonGun.OffsetPowerLaw(  cfg['gamma'], 
+                                            cfg['e_min']*icetray.I3Units.TeV, 
+                                            cfg['e_min']*icetray.I3Units.TeV, 
+                                            cfg['e_max']*icetray.I3Units.TeV)
+        surface = MuonGun.Cylinder(1600, 800, 
+                                dataclasses.I3Position(31.25, 19.64, 0))
+
+        if cfg['muongun_generator'] == 'energy':
+            scale = MuonGun.BasicSurfaceScalingFunction()
+            scale.SetSideScaling(4., 17266, 3.41, 1.74)
+            scale.SetCapScaling(4., 23710, 3.40, 1.88)
+            generator = MuonGun.EnergyDependentSurfaceInjector(surface, 
+                                                                model.flux, 
+                                                                spectrum, 
+                                                                model.radius, 
+                                                                scale)
+        elif cfg['muongun_generator'] == 'static':
+            generator = MuonGun.StaticSurfaceInjector(surface, 
+                                                        model.flux, 
+                                                        spectrum, 
+                                                        model.radius)
+        elif cfg['muongun_generator'] =='floodlight':
+            generator = MuonGun.Floodlight(surface = surface, 
+                                           energyGenerator=spectrum, 
+                                           cosMin=cfg['muongun_floodlight_min_cos'],
+                                           cosMax=cfg['muongun_floodlight_max_cos'],
+                                           )
+        else:
+            err_msg = 'MuonGun generator {} is not known.'
+            err_msg += " Must be 'energy','static' or 'floodlight"
+            raise ValueError(err_msg.format(cfg['muongun_generator']))
+
+        tray.Add(MuonGun.segments.GenerateBundles, 'MuonGenerator', 
+                                Generator=generator, 
+                                NEvents=cfg['n_events_per_run'], 
+                                GCDFile=cfg['gcd'])
+
+        def renameMCTree(frame):
+            mctree = frame["I3MCTree"]
+            del frame["I3MCTree"]
+            frame["I3MCTree_preMuonProp"] = mctree
+        tray.AddModule(renameMCTree, "RenameMCTree", Streams=[icetray.I3Frame.DAQ])
+
     else:
         raise ValueError('This script only supports "muongun" and "nugen" '
                          'as generators.')
