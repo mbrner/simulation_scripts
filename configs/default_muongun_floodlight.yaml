@@ -43,5 +43,9 @@ dom_oversize: 5
 # muongun specific options
 # Energy offset `b` of power-law approximation (E + b)^{-gamma}
 muongun_e_break: !!float 1e6
+muongun_generator: floodlight
+muongun_model: Hoerandel5_atmod12_SIBYLL
+muongun_min_multiplicity: 1
+muongun_max_multiplicity: 1
 
 
