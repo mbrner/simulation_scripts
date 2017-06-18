@@ -38,6 +38,15 @@ def main(cfg, run_number, scratch):
 
     tray.Add('I3Reader', FilenameList=[cfg['gcd'], infile])
 
+
+
+    hybrid_mode = (cfg['clsim_hybrid_mode'] and
+                   cfg['icemodel'].lower() != 'spicelea')
+    ignore_muon_light = (cfg['clsim_ignore_muon_light'] and
+                         cfg['clsim_hybrid_mode'])
+    click.echo('HybridMode: {}'.format(hybrid_mode))
+    click.echo('IgnoreMuonLight: {}'.format(ignore_muon_light))
+
     tray.AddSegment(
         segments.PropagatePhotons,
         "PropagatePhotons",
@@ -47,7 +56,8 @@ def main(cfg, run_number, scratch):
         KeepIndividualMaps=cfg['clsim_keep_mcpe'],
         IceModel=cfg['icemodel'],
         UnshadowedFraction=cfg['clsim_unshadowed_fraction'],
-        IgnoreMuons=cfg['clsim_ignore_muon_light'],
+        IgnoreMuons=ignore_muon_light,
+        HybridMode=hybrid_mode,
         UseGPUs=cfg['clsim_usegpus'],
         DOMOversizeFactor=cfg['clsim_dom_oversize'])
 
