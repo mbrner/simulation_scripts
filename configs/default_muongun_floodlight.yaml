@@ -9,7 +9,9 @@ n_events_per_run: 10000
 n_runs: 1000
 # Whether file after IceTray should be kept
 keep_crashed_files: False
-
+# Indication which steps need GPUs
+gpu_steps:
+  - 1
 
 
 # PATH to the GCD File

@@ -24,7 +24,11 @@ def write_onejob_file(config,
     lines.append('log = {}/$(processname).log'.format(log_dir))
     lines.append('notification   = never')
     lines.append('universe       = vanilla')
-    if 'memory' in config.keys():
+    if 'gpu_steps' in config.keys():
+        if config['step_number'] in config['gpu_steps'].keys():
+            lines.append('request_gpus = {}'.format(
+                config['gpu_steps'][config['step_number']]))
+    if 'request_memory' in config.keys():
         lines.append('request_memory = {}'.format(config['memory']))
     lines.append('queue')
     onejob_file = os.path.join(scratch_folder, 'OneJob.submit')

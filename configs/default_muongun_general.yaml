@@ -9,6 +9,9 @@ n_events_per_run: 10000
 n_runs: 1000
 # Whether file after IceTray should be kept
 keep_crashed_files: False
+# Indication which steps require how many gpus
+gpu_steps:
+  1: 1
 
 
 
@@ -36,7 +39,7 @@ clsim_unshadowed_fraction: 0.9
 # whether direct light of muons should be ignored
 clsim_ignore_muon_light: True
 # Run CLSIM using GPUS
-clsim_usegpus: False
+clsim_usegpus: True
 # DOM oversize factor
 dom_oversize: 5
 
