@@ -12,7 +12,7 @@ from utils import create_random_services
 
 
 MAX_PARALLEL_EVENTS = 1
-
+CSCD_TABLES = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables/splines'
 
 @click.command()
 @click.argument('cfg', click.Path(exists=True))
@@ -46,6 +46,12 @@ def main(cfg, run_number, scratch):
                          cfg['clsim_hybrid_mode'])
     click.echo('HybridMode: {}'.format(hybrid_mode))
     click.echo('IgnoreMuonLight: {}'.format(ignore_muon_light))
+    if hybrid_mode:
+        cascade_tables = segments.LoadCascadeTables(IceModel=options.ICEMODEL,
+                                                    TablePath=CSCD_TABLES)
+    else:
+         cascade_tables = None
+
 
     tray.AddSegment(
         segments.PropagatePhotons,
@@ -59,7 +65,8 @@ def main(cfg, run_number, scratch):
         IgnoreMuons=ignore_muon_light,
         HybridMode=hybrid_mode,
         UseGPUs=cfg['clsim_usegpus'],
-        DOMOversizeFactor=cfg['clsim_dom_oversize'])
+        DOMOversizeFactor=cfg['clsim_dom_oversize'],
+        CascadeService=cascade_tables)
 
     if scratch:
         outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
