@@ -9,6 +9,10 @@ from icecube.simprod import segments
 from I3Tray import I3Tray
 from icecube import icetray, dataclasses
 from icecube import sim_services, MuonGun
+import os
+import sys
+file_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(file_dir + '/..') 
 from utils import create_random_services
 
 
@@ -60,9 +64,9 @@ def main(cfg, run_number, scratch):
         model.flux.min_multiplicity = cfg['muongun_min_multiplicity']
         model.flux.max_multiplicity = cfg['muongun_max_multiplicity']
         spectrum = MuonGun.OffsetPowerLaw(  cfg['gamma'], 
-                                            cfg['e_min']*I3Units.TeV, 
-                                            cfg['e_min']*I3Units.TeV, 
-                                            cfg['e_max']*I3Units.TeV)
+                                            cfg['e_min']*icetray.I3Units.TeV, 
+                                            cfg['e_min']*icetray.I3Units.TeV, 
+                                            cfg['e_max']*icetray.I3Units.TeV)
         surface = MuonGun.Cylinder(1600, 800, 
                                 dataclasses.I3Position(31.25, 19.64, 0))
 
