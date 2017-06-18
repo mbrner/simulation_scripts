@@ -58,7 +58,6 @@ def main(cfg, run_number, scratch):
     else:
         outfile = cfg['outfile_pattern'].format(run_number=run_number)
     outfile = outfile.replace(' ', '0')
-    outfile = outfile.replace('.bz2', '')
     tray.AddModule("I3Writer", "writer",
                    Filename=outfile,
                    Streams=[icetray.I3Frame.DAQ,
