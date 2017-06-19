@@ -4,7 +4,12 @@ import subprocess
 
 import click
 import yaml
-from simulation_scripts import SafeDict
+
+
+class SafeDict(dict):
+    def __missing__(self, key):
+        return '{' + key + '}'
+
 
 def write_onejob_file(config,
                       scratch_folder):
@@ -124,6 +129,10 @@ def adjust_resouces(config, script_files, scratch_folder):
         'walltime': resources_cfg['walltime'][config['step_number']]})
     return config
 
+def create_pbs_files(config,
+                     script_files,
+                     scratch_folder):
+    pass
 
 
 @click.command()
