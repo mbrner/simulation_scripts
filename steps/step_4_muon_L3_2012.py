@@ -1,11 +1,11 @@
 #!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
 #METAPROJECT simulation/V05-01-01
+import os
 
 import click
 import yaml
 
 from I3Tray import I3Tray
-import os
 from icecube import icetray, dataio, dataclasses, hdfwriter, phys_services, lilliput, gulliver, gulliver_modules, improvedLinefit, rootwriter
 
 from icecube.level3_filter_muon.MuonL3TraySegment import MuonL3

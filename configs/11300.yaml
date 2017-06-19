@@ -1,4 +1,4 @@
-chain_name: muongun_floodlight
+chain_name: muongun_floodlight_2012
 seed: 1337
 dataset_number: 11300
 gcd: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2012.56063_V1.i3.gz
