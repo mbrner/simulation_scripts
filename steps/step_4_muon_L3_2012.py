@@ -1,5 +1,5 @@
-#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
-#METAPROJECT simulation/V05-01-01
+#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v1/icetray-start
+#METAPROJECT /home/mboerner/software/i3/IC2012-L3_Muon_V3/build
 import os
 
 import click
