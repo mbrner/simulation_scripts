@@ -16,7 +16,7 @@ from utils import create_random_services
 
 
 MCPE_SERIES_MAP = 'I3MCPESeriesMap'
-PHOTONICS_DIR = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables'
+SPLINE_TABLES = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables/splines'
 
 @click.command()
 @click.argument('cfg', click.Path(exists=True))
@@ -61,10 +61,10 @@ def main(cfg, run_number, scratch):
         decode=False,
         simulation=True,
         vemcal_enabled=False,
-        SplineRecoAmplitudeTable=os.path.join(os.path.join(
-            PHOTONICS_DIR,'splines','InfBareMu_mie_abs_z20a10.fits')),
-        SplineRecoTimingTable=os.path.join(os.path.join(
-            PHOTONICS_DIR,'splines','InfBareMu_mie_prob_z20a10.fits')),
+        SplineRecoAmplitudeTable=os.path.join(SPLINE_TABLES,
+                                              'InfBareMu_mie_abs_z20a10.fits'),
+        SplineRecoTimingTable=os.path.join(SPLINE_TABLES,
+                                           'InfBareMu_mie_prob_z20a10.fits'),
         hese_followup_base_GCD_filename=cfg['gcd'],
         gfu_enabled=cfg['filter_run_gfu'])
 

@@ -12,7 +12,7 @@ from utils import create_random_services
 
 
 MAX_PARALLEL_EVENTS = 1
-CSCD_TABLES = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables/splines'
+SPLINE_TABLES = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables/splines'
 
 @click.command()
 @click.argument('cfg', click.Path(exists=True))
@@ -48,7 +48,7 @@ def main(cfg, run_number, scratch):
     click.echo('IgnoreMuonLight: {}'.format(ignore_muon_light))
     if hybrid_mode:
         cascade_tables = segments.LoadCascadeTables(IceModel=options.ICEMODEL,
-                                                    TablePath=CSCD_TABLES)
+                                                    TablePath=SPLINE_TABLES)
     else:
          cascade_tables = None
 
