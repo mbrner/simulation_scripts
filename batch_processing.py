@@ -4,11 +4,12 @@ import subprocess
 
 import click
 import yaml
-
+from simulation_scripts import SafeDict
 
 def write_onejob_file(config,
                       scratch_folder):
     process_name = '{dataset_number}_{step_name}'.format(**config)
+    resources_cfg = config['resources']
 
     lines = []
     lines.append('processname = {}'.format(process_name))
@@ -24,12 +25,17 @@ def write_onejob_file(config,
     lines.append('log = {}/$(processname).log'.format(log_dir))
     lines.append('notification   = never')
     lines.append('universe       = vanilla')
-    if 'gpu_steps' in config.keys():
+    if resources_cfg['gpu_steps'] is not None:
         if config['step_number'] in config['gpu_steps'].keys():
             lines.append('request_gpus = {}'.format(
-                config['gpu_steps'][config['step_number']]))
-    if 'request_memory' in config.keys():
-        lines.append('request_memory = {}'.format(config['memory']))
+                resources_cfg['gpu_steps'][config['step_number']]))
+    if resources_cfg['memory'] is not None:
+        if config['step_number'] in config['memory'].keys():
+            lines.append('request_memory = {}'.format(config['memory']))
+    if resources_cfg['cpu_steps'] is not None:
+        if config['step_number'] in config['cpu_steps'].keys():
+            lines.append('request_cpus = {}'.format(
+                resources_cfg['cpu_steps'][config['step_number']]))
     lines.append('queue')
     onejob_file = os.path.join(scratch_folder, 'OneJob.submit')
     with open(onejob_file, 'w') as open_file:
@@ -96,8 +102,28 @@ def create_dagman_files(config,
     os.chmod(run_script, st.st_mode | stat.S_IEXEC)
 
 
-def create_pbs_files(config, script_files, scratch_folder):
-    pass
+def adjust_resouces(config, script_files, scratch_folder):
+    resources_cfg = config['resources']
+    if resources_cfg['gpu_steps'] is not None:
+        if config['step_number'] not in config['gpu_steps'].keys():
+            resources_cfg['gpu_steps'][config['step_number']] = 0
+    if resources_cfg['memory'] is not None:
+        if config['step_number'] not in config['memory'].keys():
+            resources_cfg['memory'][config['step_number']] = '1gb'
+    if resources_cfg['cpu_steps'] is not None:
+        if config['step_number'] in config['cpu_steps'].keys():
+            resources_cfg['cpu_steps'][config['step_number']] = 1
+    if resources_cfg['walltime'] is not None:
+        if config['step_number'] in config['walltime'].keys():
+            resources_cfg['walltime'][config['step_number']] = 1
+
+    config.update({
+        'memory': resources_cfg['memory'][config['step_number']],
+        'cpus': resources_cfg['memory'][config['step_number']],
+        'gpus': resources_cfg['memory'][config['step_number']],
+        'walltime': resources_cfg['walltime'][config['step_number']]})
+    return config
+
 
 
 @click.command()
@@ -107,7 +133,7 @@ def create_pbs_files(config, script_files, scratch_folder):
 def process_local(config_file, n_jobs):
     config_file = click.format_filename(config_file)
     with open(config_file, 'r') as stream:
-        config = yaml.load(stream)
+        config = SafeDict(yaml.load(stream))
     click.echo('Processing {} with max. {} parralel jobs!'.format(
         config_file, n_jobs))
     output_base = os.path.join(config['processing_folder'], 'jobs')

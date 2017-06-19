@@ -1,7 +1,10 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=1
-#PBS -l pmem=3942mb
-#PBS -l walltime=48:00:00
+#PBS -l nodes=1:ppn={cpus}
+#PBS -l pmem={memory}
+#PBS -l mem={memory}
+#PBS -l vmem={memory}
+#PBS -l pvmem={memory}
+#PBS -l walltime={walltime}
 #PBS -o {processing_folder}/logs/{step_name}_run_{run_number}_${PBS_JOBID}.out
 #PBS -e {processing_folder}/logs/{step_name}_run_{run_number}_${PBS_JOBID}.err
 #PBS -q long
