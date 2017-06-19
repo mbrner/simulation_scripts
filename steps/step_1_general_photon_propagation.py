@@ -58,7 +58,6 @@ def main(cfg, run_number, scratch):
         "PropagatePhotons",
         RandomService=random_service,
         MaxParallelEvents=MAX_PARALLEL_EVENTS,
-        HybridMode=cfg['icemodel'].lower() in ['spcie1', 'spicemie'],
         KeepIndividualMaps=cfg['clsim_keep_mcpe'],
         IceModel=cfg['icemodel'],
         UnshadowedFraction=cfg['clsim_unshadowed_fraction'],
