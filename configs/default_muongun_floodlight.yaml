@@ -13,14 +13,15 @@ output_pattern: '{step_name}.{dataset_number:6d}.{run_number}.i3.bz2'
 # sub-dict to indicate need resources
 resources:
   # Indication which steps need GPUs, default is 0
-  gpu_steps:
+  gpus:
     1: 1
   # Indication of needed memory for each step if nothing is set 1GB is assumed as default
   memory:
+    1: 3gb
   # Indication of the walltime (in hours) for each step, if nothing is set the system default for dagman and 1h for pbs are assumed
   walltime:
   # Indication of the number of cores for each step, default is 1
-  cpu:
+  cpus:
 
 
 # Options used in the steps
@@ -86,3 +87,4 @@ det_skip_noise_generation: False
 
 filter_run_gfu: True
 filter_min_bias_prescale:
+

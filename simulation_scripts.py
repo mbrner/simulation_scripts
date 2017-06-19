@@ -1,11 +1,13 @@
 import os
 import stat
+import string
 
 import click
 import yaml
 import getpass
 
 from batch_processing import create_pbs_files, create_dagman_files
+#from batch_processing import adjust_resources
 
 
 DATASET_FOLDER = '{data_folder}/{generator}/{dataset_number}'
@@ -55,7 +57,7 @@ def create_filename(cfg, input=False):
 def write_job_files(config, step):
     with open(config['job_template']) as f:
         template = f.read()
-
+    #config = adjust_resources(config)
     output_base = os.path.join(config['processing_folder'], 'jobs')
 
     if not os.path.isdir(output_base):
@@ -72,8 +74,9 @@ def write_job_files(config, step):
         scratch_out = scratch_out.replace(' ', '0')
         config['scratch_out'] = scratch_out
         config['run_number'] = i
-        file_config = template.format(**config)
-        script_name = config['script_name'].format(**config)
+        file_config = string.Formatter().vformat(template, (), config)
+        script_name = string.Formatter().vformat(
+            config['script_name'], (), config)
         script_path = os.path.join(output_base, script_name)
         with open(script_path, 'w') as f:
             f.write(file_config)

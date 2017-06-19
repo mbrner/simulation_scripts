@@ -30,17 +30,18 @@ def write_onejob_file(config,
     lines.append('log = {}/$(processname).log'.format(log_dir))
     lines.append('notification   = never')
     lines.append('universe       = vanilla')
-    if resources_cfg['gpu_steps'] is not None:
-        if config['step_number'] in config['gpu_steps'].keys():
+    if resources_cfg['gpus'] is not None:
+        if config['step'] in resources_cfg['gpus'].keys():
             lines.append('request_gpus = {}'.format(
-                resources_cfg['gpu_steps'][config['step_number']]))
+                resources_cfg['gpus'][config['step']]))
     if resources_cfg['memory'] is not None:
-        if config['step_number'] in config['memory'].keys():
-            lines.append('request_memory = {}'.format(config['memory']))
-    if resources_cfg['cpu_steps'] is not None:
-        if config['step_number'] in config['cpu_steps'].keys():
+        if config['step'] in resources_cfg['memory'].keys():
+            lines.append('request_memory = {}'.format(
+                resources_cfg['memory'][config['step']]))
+    if resources_cfg['cpus'] is not None:
+        if config['step'] in resources_cfg['cpus'].keys():
             lines.append('request_cpus = {}'.format(
-                resources_cfg['cpu_steps'][config['step_number']]))
+                resources_cfg['cpus'][config['step']]))
     lines.append('queue')
     onejob_file = os.path.join(scratch_folder, 'OneJob.submit')
     with open(onejob_file, 'w') as open_file:
