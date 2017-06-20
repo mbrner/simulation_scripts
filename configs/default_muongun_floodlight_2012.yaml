@@ -1,0 +1,94 @@
+# Number of the dataset
+dataset_number: 11300
+# Events generated for each file
+n_events_per_run: 10000
+# Number of total runs/file
+n_runs: 1000
+
+# Folder in which the different step outputs should be stored
+output_folder: '{data_folder}/{generator}/{dataset_number}/{step}'
+# Pattern for the outputfile
+output_pattern: '{step_name}.{dataset_number:6d}.{run_number}.i3.bz2'
+
+# sub-dict to indicate need resources
+resources:
+  # Indication which steps need GPUs, default is 0
+  gpus:
+    1: 1
+  # Indication of needed memory for each step if nothing is set 1GB is assumed as default
+  memory:
+    1: 3gb
+  # Indication of the walltime (in hours) for each step, if nothing is set the system default for dagman and 1h for pbs are assumed
+  walltime:
+  # Indication of the number of cores for each step, default is 1
+  cpus:
+
+
+# Options used in the steps
+# Options that are expected to be set to generate the scripts
+seed: 1337
+# Whether file after IceTray should be kept
+keep_crashed_files: False
+
+# PATH to the GCD File
+gcd: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2012.56063_V1.i3.gz
+
+# Name of the generator; only used for naming of the output folder
+generator: muongun
+# Starting Energy GeV
+e_min: 100
+# Maximal Energy GeV
+e_max: !!float 1e8
+# Used gamme for the generator (E^-gamma)
+gamma: 2.
+# Starting zenith
+zenith_min: 0.
+# End zenith
+zenith_max: 180.
+
+# Used icemodel ['SpiceLea']
+icemodel: SpiceLea
+
+# CLSIM specific options
+# Ratio of the dom not shadowed by calbes other anything else
+clsim_unshadowed_fraction: 0.9
+# whether direct light of muons should be ignored
+clsim_ignore_muon_light: False
+# Run CLSIM using GPUS
+clsim_usegpus: False
+# DOM oversize factor
+clsim_dom_oversize: 5.
+# Whether I3MCPE list should be stored
+clsim_keep_mcpe: False
+# Whether CLsim should run in hybrid mode
+clsim_hybrid_mode: False
+
+# muongun specific options
+# Energy offset `b` of power-law approximation (E + b)^{-gamma}
+muongun_e_break: !!float 1e6
+
+# Detector Simulation
+# keep MCPEs in frame
+det_keep_mc_hits: False
+# keep I3MCPulseSeriesMap in frame.
+det_keep_mc_pulses: False
+# keep MCTree with all in-ice propagated secondaries. These take a lot of space compared un propagated tree.
+det_keep_propagated_mc_tree: True
+# add beacon lauches.
+det_add_beacon_launches: True
+# reduce peak memory use by repeatedly merging hits as they are generated.  WARNING: Use of this option may slightly reduce precision and drastically increase running time. It is potentially useful for very bright events, and probably harmful for very long events.
+det_low_mem: False
+# remove events that don't pass any trigger.
+det_filter_trigger: True
+# do not run Vuvuzela.
+det_skip_noise_generation: False
+
+# Filtering Settings
+# Apply QConverter, use if file is P frame only
+L1_qify: False
+# Retrigger
+L1_retrigger: True
+# Set the Min Bias prescale to something other than default
+L1_min_bias_prescale:
+# MC is produced by DOMSimulator (default=False)
+L1_dom_simulator: False
