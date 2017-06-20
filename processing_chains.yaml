@@ -1,5 +1,5 @@
 muongun_floodlight_2012:
-  default_config: configs/default_muongun_floodlight.yaml
+  default_config: configs/default_muongun_floodlight_2012.yaml
   job_template: job_templates/muongun_general_template.sh
   steps:
     0: step_0_muongun_floodlight
