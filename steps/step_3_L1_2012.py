@@ -2,6 +2,8 @@
 #METAPROJECT /home/mboerner/software/i3/IC2012-L2_V13-01-00_IceSim04-01-10compat/build
 import os
 
+from distutils.version import LooseVersion
+
 import click
 import yaml
 
@@ -16,21 +18,26 @@ from icecube.jeb_filter_2012.filter_globals import which_split
 PHOTONICS_DIR = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables'
 
 @click.command()
-@click.argument('cfg', click.Path(exists=True))
+@click.argument('config_file', click.Path(exists=True))
 @click.argument('run_number', type=int)
 @click.option('--scratch/--no-scratch', default=True)
-def main(cfg, run_number, scratch):
-    with open(cfg, 'r') as stream:
+def main(config_file, run_number, scratch):
+    with open(config_file, 'r') as stream:
         cfg = yaml.load(stream)
+    if 'dictitems' in cfg.keys():
+        cfg = cfg['dictitems']
+    print(cfg.keys())
     cfg['run_number'] = run_number
-
+    print(cfg.keys())
     infile = cfg['infile_pattern'].format(run_number=run_number)
     infile = infile.replace(' ', '0')
 
     seed = cfg['seed'] + run_number
 
     tray = I3Tray()
-    tray.Add('I3Reader', FilenameList=[cfg['gcd'], infile],
+    tray.AddModule('I3Reader',
+                   'reader',
+                   FilenameList=[cfg['gcd'], infile],
                    SkipKeys = ['I3DST11',
                                'I3SuperDST',
                                'I3VEMCalData',
