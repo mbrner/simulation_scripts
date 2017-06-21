@@ -26,9 +26,7 @@ def main(config_file, run_number, scratch):
         cfg = yaml.load(stream)
     if 'dictitems' in cfg.keys():
         cfg = cfg['dictitems']
-    print(cfg.keys())
     cfg['run_number'] = run_number
-    print(cfg.keys())
     infile = cfg['infile_pattern'].format(run_number=run_number)
     infile = infile.replace(' ', '0')
 
@@ -55,12 +53,15 @@ def main(config_file, run_number, scratch):
                                ])
     # move that old filterMask out of the way
 
-    def check_and_driving_time(frame):
+    def check_driving_time(frame):
         if 'DrivingTime' not in frame:
             frame['DrivingTime'] = dataclasses.I3Time(
                 frame['I3EventHeader'].start_time)
         return True
 
+    tray.AddModule(check_driving_time,
+                   'DrivingTimeCheck',
+                   Streams=[icetray.I3Frame.DAQ])
     tray.AddModule("Rename",
                    "filtermaskmover",
                    Keys=["FilterMask", "OrigFilterMask"])
