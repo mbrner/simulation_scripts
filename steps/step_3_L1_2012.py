@@ -54,6 +54,13 @@ def main(config_file, run_number, scratch):
                                'PoleL2MPEFitMuE',
                                ])
     # move that old filterMask out of the way
+
+    def check_and_driving_time(frame):
+        if 'DrivingTime' not in frame:
+            frame['DrivingTime'] = dataclasses.I3Time(
+                frame['I3EventHeader'].start_time)
+        return True
+
     tray.AddModule("Rename",
                    "filtermaskmover",
                    Keys=["FilterMask", "OrigFilterMask"])
