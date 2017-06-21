@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-### The main L2 processing script ###
+#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
+#METAPROJECT icerec/V05-01-02
 import click
 import yaml
 
