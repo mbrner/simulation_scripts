@@ -53,7 +53,7 @@ def main(config_file, run_number, scratch):
                                ])
 
     class SkipSFrames(icetray.I3ConditionalModule):
-        S_stream = icetray.I3Frame.Simulation
+        S_stream = icetray.I3Frame.Stream('S')
 
         def __init__(self, context):
             icetray.I3ConditionalModule.__init__(self, context)
