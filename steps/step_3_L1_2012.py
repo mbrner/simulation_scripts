@@ -55,6 +55,23 @@ def main(config_file, run_number, scratch):
                                ])
     # move that old filterMask out of the way
 
+
+
+    class SkipIFrames(icetray.I3ConditionalModule):
+        I_stream = icetray.I3Frame.Stream('I')
+
+        def __init__(self, context):
+            icetray.I3ConditionalModule.__init__(self, context)
+
+        def Configure(self):
+            self.Register(self.I_stream, self.IFrame)
+
+        def IFrame(self, frame):
+            pass
+
+    tray.AddModule(SkipIFrames,
+                   "Skip I Frames")
+
     def check_and_driving_time(frame):
         if 'DrivingTime' not in frame:
             frame['DrivingTime'] = dataclasses.I3Time(
