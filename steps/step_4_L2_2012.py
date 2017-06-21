@@ -11,7 +11,6 @@ from icecube.filter_2012 import Globals
 from icecube.filter_2012.Globals import (which_split, deepcore_wg,
     icetop_wg_coic_inice, muon_wg, wimp_wg, cascade_wg,
     fss_wg, fss_wg_finiteReco, ehe_wg, ehe_wg_Qstream)
-from icecube.filter_2012.Rehydration import Rehydration
 #from icecube.filter_2012.Offline_Base import RepeatBaseProc
 from icecube.filter_2012.level2_IceTop_CalibrateAndExtractPulses import CalibrateAndExtractIceTop
 from icecube.filter_2012.level2_EHE_Calibration import EHECalibration
@@ -41,6 +40,8 @@ PHOTONICS_DIR = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables'
 def main(cfg, run_number, scratch):
     with open(cfg, 'r') as stream:
         cfg = yaml.load(stream)
+    if 'dictitems' in cfg.keys():
+        cfg = cfg['dictitems']
     cfg['run_number'] = run_number
 
     infile = cfg['infile_pattern'].format(run_number=run_number)
@@ -56,15 +57,6 @@ def main(cfg, run_number, scratch):
     #########  IF DATA, Rehydrate, recalibrate             ###########
     #########  FOR BOTH,  recal, resplit IT                ###########
     ##################################################################
-
-    # Rehydration includes recalibration of both II and IT pulses
-    ## Only resplit II, IT has own splitting later, nobody uses
-    ## NullSplit anymore. Give SLOP it's own split stream since
-    ## FRT sometimes merges multiple SLOPs.
-    tray.AddSegment(Rehydration,
-                    'rehydrator',
-                    dstfile=options['dstfile'],
-                    mc=True)
 
     ## relic of redoing pole fits. That got taken out.
     ## but need to keep doing SRT cleaning for all the filters
