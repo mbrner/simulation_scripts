@@ -52,19 +52,19 @@ def main(config_file, run_number, scratch):
                                'PoleL2MPEFitMuE',
                                ])
 
-    class SkipIFrames(icetray.I3ConditionalModule):
-        I_stream = icetray.I3Frame.Stream('I')
+    class SkipSFrames(icetray.I3ConditionalModule):
+        S_stream = icetray.I3Frame.Simulation
 
         def __init__(self, context):
             icetray.I3ConditionalModule.__init__(self, context)
 
         def Configure(self):
-            self.Register(self.I_stream, self.IFrame)
+            self.Register(self.S_stream, self.SFrame)
 
-        def IFrame(self, frame):
+        def SFrame(self, frame):
             pass
 
-    tray.AddModule(SkipIFrames,
+    tray.AddModule(SkipSFrames,
                    "Skip I Frames")
 
     def check_driving_time(frame):
