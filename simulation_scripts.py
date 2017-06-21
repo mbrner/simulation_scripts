@@ -169,7 +169,7 @@ def main(data_folder, config_file, processing_scratch, step, pbs, dagman):
     filled_yaml = os.path.join(config['processing_folder'], outfile)
     config['yaml_copy'] = filled_yaml
     with open(config['yaml_copy'], 'w') as yaml_copy:
-        yaml.dump(config, yaml_copy, default_flow_style=False)
+        yaml.dump(dict(config), yaml_copy, default_flow_style=False)
 
     if dagman or pbs:
         if processing_scratch is None:
