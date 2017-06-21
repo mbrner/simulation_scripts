@@ -26,9 +26,7 @@ def main(config_file, run_number, scratch):
         cfg = yaml.load(stream)
     if 'dictitems' in cfg.keys():
         cfg = cfg['dictitems']
-    print(cfg.keys())
     cfg['run_number'] = run_number
-    print(cfg.keys())
     infile = cfg['infile_pattern'].format(run_number=run_number)
     infile = infile.replace(' ', '0')
 
@@ -53,9 +51,6 @@ def main(config_file, run_number, scratch):
                                'PoleL2MPEFitFitParams',
                                'PoleL2MPEFitMuE',
                                ])
-    # move that old filterMask out of the way
-
-
 
     class SkipIFrames(icetray.I3ConditionalModule):
         I_stream = icetray.I3Frame.Stream('I')
@@ -72,12 +67,17 @@ def main(config_file, run_number, scratch):
     tray.AddModule(SkipIFrames,
                    "Skip I Frames")
 
-    def check_and_driving_time(frame):
+    def check_driving_time(frame):
         if 'DrivingTime' not in frame:
             frame['DrivingTime'] = dataclasses.I3Time(
                 frame['I3EventHeader'].start_time)
         return True
 
+    tray.AddModule(check_driving_time,
+                   'DrivingTimeCheck',
+                   Streams=[icetray.I3Frame.DAQ])
+
+    # move that old filterMask out of the way
     tray.AddModule("Rename",
                    "filtermaskmover",
                    Keys=["FilterMask", "OrigFilterMask"])
