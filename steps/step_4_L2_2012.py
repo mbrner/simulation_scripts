@@ -1,5 +1,5 @@
 #!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v1/icetray-start
-#METAPROJECT /home/mboerner/software/i3/IC2012-L2_V13-01-00_IceSim04-01-10compat/build
+#METAPROJECT /home/mboerner/software/i3/IC2012-L2_V13-01-00_IceSim04-01-10compat/build_2
 import click
 import yaml
 
@@ -58,9 +58,12 @@ def main(cfg, run_number, scratch):
         def __init__(self, context):
             icetray.I3ConditionalModule.__init__(self, context)
 
+        def Configure(self):
+            self.Register(icetray.I3Frame.DetectorStatus, self.Detector)
+
         def Detector(self, frame):
             frame['IceTopBadDOMs'] = dataclasses.I3VectorOMKey()
-            frame['IceTopBadTanks'] = dataclasses.I3VectorOMKey()
+            frame['IceTopBadTanks'] = dataclasses.TankKey.I3VectorTankKey()
             self.PushFrame(frame)
 
     ##################################################################
@@ -70,7 +73,7 @@ def main(cfg, run_number, scratch):
     #########  FOR BOTH,  recal, resplit IT                ###########
     ##################################################################
 
-    tray.AddSegment(EmptyIceTopBadLists, 'Fake Bad IceTop Lists')
+    tray.AddModule(EmptyIceTopBadLists, 'Fake Bad IceTop Lists')
 
     tray.AddSegment(Rehydration, 'rehydrator',
         dstfile=None,
