@@ -1,5 +1,5 @@
-#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
-#METAPROJECT icerec/V05-01-02
+import os
+
 import click
 
 from I3Tray import I3Tray
@@ -8,25 +8,37 @@ from icecube import icetray, dataclasses, dataio
 @click.command()
 @click.argument('gcd_file', click.Path(exists=True))
 def main(gcd_file):
+    gcd_file = str(click.format_filename(gcd_file))
     tray = I3Tray()
 
     class EmptyIceTopBadLists(icetray.I3ConditionalModule):
         def __init__(self, context):
             icetray.I3ConditionalModule.__init__(self, context)
 
-        def Detector(self, frame):
-            frame['IceTopBadDOMs'] = dataclasses.I3VectorOMKey()
-            frame['IceTopBadTanks'] = dataclasses.I3VectorOMKey()
-            self.PushFrame(frame)
-    tray.Add('I3Reader',
-             FilenameList=[gcd_file])
+        def Configure(self):
+            pass
 
-    tray.AddSegment(EmptyIceTopBadLists, 'Fake Bad IceTop Lists')
+        def DetectorStatus(self, frame):
+            frame['IceTopBadDOMs'] = dataclasses.I3VectorOMKey()
+            frame['IceTopBadTanks'] = dataclasses.I3VectorTankKey()
+            self.PushFrame(frame)
+    print(gcd_file)
+    tray.AddModule('I3Reader',
+            'reader',
+             FilenameList=[str(gcd_file)])
+
+    tray.AddModule(EmptyIceTopBadLists, 'Fake Bad IceTop Lists')
+    default = os.path.basename(gcd_file)
+    default = default.replace('i3.gz', 'IT_added.i3.gz')
     outfile = click.prompt(
             'Please enter the dir were the files should be stored:',
-            default=gcd_file)
+            default=default)
     tray.AddModule("I3Writer", "EventWriter",
-                   filename=outfile)
+                   filename=str(outfile))
     tray.AddModule("TrashCan", "the can")
     tray.Execute()
     tray.Finish()
+
+
+if __name__ == '__main__':
+    main()

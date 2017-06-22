@@ -1,5 +1,5 @@
 #!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v1/icetray-start
-#METAPROJECT /home/mboerner/software/i3/IC2012-L2_V13-01-00_IceSim04-01-10compat/build_2
+#METAPROJECT /home/mboerner/software/i3/IC2012-L2_V13-01-00_IceSim04-01-10compat/build
 import click
 import yaml
 
@@ -72,8 +72,6 @@ def main(cfg, run_number, scratch):
     #########  IF DATA, Rehydrate, recalibrate             ###########
     #########  FOR BOTH,  recal, resplit IT                ###########
     ##################################################################
-
-    tray.AddModule(EmptyIceTopBadLists, 'Fake Bad IceTop Lists')
 
     tray.AddSegment(Rehydration, 'rehydrator',
         dstfile=None,
