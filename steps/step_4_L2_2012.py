@@ -1,5 +1,5 @@
-#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
-#METAPROJECT icerec/V05-01-02
+#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v1/icetray-start
+#METAPROJECT /home/mboerner/software/i3/IC2012-L2_V13-01-00_IceSim04-01-10compat/build
 import click
 import yaml
 
@@ -48,8 +48,9 @@ def main(cfg, run_number, scratch):
     infile = infile.replace(' ', '0')
 
     tray = I3Tray()
-    tray.Add('I3Reader',
-             FilenameList=[cfg['gcd'], infile])
+    tray.AddModule('I3Reader',
+                   'i3 reader',
+                   FilenameList=[cfg['gcd'], infile])
 
     ##################################################################
     #########  Level 1                                     ###########
