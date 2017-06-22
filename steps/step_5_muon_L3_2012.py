@@ -45,8 +45,8 @@ def main(cfg, run_number, scratch):
         gcdfile=cfg['gcd'],
         infiles=infile,
         output_i3=outfile,
-        output_hd5=outfile.replace('i3.bz2', '.hdf5'),
-        output_root=outfile.replace('i3.bz2', '.root'),
+        output_hd5=None,
+        output_root=None,
         photonicsdir=photonics_dir,
         photonicsdriverdir=photonics_driver_dir,
         photonicsdriverfile=DRIVER_FILE,
@@ -60,7 +60,7 @@ def main(cfg, run_number, scratch):
                                            'ems_mie_z20_a10.prob.fits'))
 
     tray.AddModule("TrashCan", "Bye")
-
+    tray.Execute()
     tray.Finish()
 
 if __name__ == '__main__':
