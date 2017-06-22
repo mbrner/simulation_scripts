@@ -24,6 +24,7 @@ from icecube.filter_2012.level2_HitCleaning_EHE import HitCleaningEHE
 from icecube.filter_2012.level2_Reconstruction_IceTop import ReconstructIceTop
 from icecube.filter_2012.level2_Reconstruction_DeepCore import OfflineDeepCoreReco
 from icecube.filter_2012.level2_Reconstruction_WIMP import WimpReco
+from icecube.filter_2012.Rehydration import Rehydration
 #from icecube.filter_2012.level2_Reconstruction_FSS import OfflineFSSReco
 from icecube.filter_2012.level2_Reconstruction_Cascade import OfflineCascadeReco
 from icecube.filter_2012.level2_Reconstruction_SLOP import SLOPLevel2
@@ -51,12 +52,28 @@ def main(cfg, run_number, scratch):
     tray.Add('I3Reader',
              FilenameList=[cfg['gcd'], infile])
 
+
+    class EmptyIceTopBadLists(icetray.I3ConditionalModule):
+        def __init__(self, context):
+            icetray.I3ConditionalModule.__init__(self, context)
+
+        def Detector(self, frame):
+            frame['IceTopBadDOMs'] = dataclasses.I3VectorOMKey()
+            frame['IceTopBadTanks'] = dataclasses.I3VectorOMKey()
+            self.PushFrame(frame)
+
     ##################################################################
     #########  Level 1                                     ###########
     #########  IF SIM, do L1 that was done on PnF          ###########
     #########  IF DATA, Rehydrate, recalibrate             ###########
     #########  FOR BOTH,  recal, resplit IT                ###########
     ##################################################################
+
+    tray.AddSegment(EmptyIceTopBadLists, 'Fake Bad IceTop Lists')
+
+    tray.AddSegment(Rehydration, 'rehydrator',
+        dstfile=None,
+        mc=True)
 
     ## relic of redoing pole fits. That got taken out.
     ## but need to keep doing SRT cleaning for all the filters
