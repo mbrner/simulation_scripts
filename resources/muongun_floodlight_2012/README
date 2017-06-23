@@ -1,0 +1,6 @@
+# Patch for IC2012-L2_V13-01-00_IceSim04-01-10compat. It prevents L2 from sefaulting. The problem was a bad line in portia
+IC2012-L2_V13-01-00_IceSim04-01-10compat/src/portia/private/portia/I3PortiaEventOMKeyConverter.cxx
+
+# Patch for IC2012-L3_Muon_V3. Modify the output so it won't write .root/.hdf5 and not touching the I3MCTree
+IC2012-L3_Muon_V3/src/level3-filter-muon/python/level3_WriteOutput.py
+

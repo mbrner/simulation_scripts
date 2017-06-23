@@ -12,7 +12,7 @@ from utils import create_random_services
 
 
 MAX_PARALLEL_EVENTS = 1
-
+SPLINE_TABLES = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables/splines'
 
 @click.command()
 @click.argument('cfg', click.Path(exists=True))
@@ -38,16 +38,34 @@ def main(cfg, run_number, scratch):
 
     tray.Add('I3Reader', FilenameList=[cfg['gcd'], infile])
 
+
+
+    hybrid_mode = (cfg['clsim_hybrid_mode'] and
+                   cfg['icemodel'].lower() != 'spicelea')
+    ignore_muon_light = (cfg['clsim_ignore_muon_light'] and
+                         cfg['clsim_hybrid_mode'])
+    click.echo('HybridMode: {}'.format(hybrid_mode))
+    click.echo('IgnoreMuonLight: {}'.format(ignore_muon_light))
+    if hybrid_mode:
+        cascade_tables = segments.LoadCascadeTables(IceModel=options.ICEMODEL,
+                                                    TablePath=SPLINE_TABLES)
+    else:
+         cascade_tables = None
+
+
     tray.AddSegment(
         segments.PropagatePhotons,
         "PropagatePhotons",
         RandomService=random_service,
         MaxParallelEvents=MAX_PARALLEL_EVENTS,
-        KeepIndividualMaps=False,
+        KeepIndividualMaps=cfg['clsim_keep_mcpe'],
         IceModel=cfg['icemodel'],
         UnshadowedFraction=cfg['clsim_unshadowed_fraction'],
-        IgnoreMuons=cfg['ignore_muon_light'],
-        UseGPUs=cfg['clsim_usegpus'])
+        IgnoreMuons=ignore_muon_light,
+        HybridMode=hybrid_mode,
+        UseGPUs=cfg['clsim_usegpus'],
+        DOMOversizeFactor=cfg['clsim_dom_oversize'],
+        CascadeService=cascade_tables)
 
     if scratch:
         outfile = cfg['scratchfile_pattern'].format(run_number=run_number)

@@ -1,16 +1,18 @@
-chain_name: muongun_floodlight
+chain_name: muongun_floodlight_2012
 seed: 1337
 dataset_number: 11300
 gcd: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2012.56063_V1.i3.gz
 generator: muongun
 n_events_per_run: 100
-n_runs: 10
-e_min: 100
-e_max: !!float 1e8
+n_runs: 100
+e_min: !!float 5e2
+e_max: !!float 1e7
 gamma: 2.
+muongun_e_break: !!float 1e6
 icemodel: SpiceLea
 clsim_unshadowed_fraction: 0.9
-clsim_ignore_muon_light: True
+clsim_ignore_muon_light: False
 clsim_usegpus: True
-muongun_e_break: !!float 1e6
-dom_oversize: 5
+clsim_keep_mcpe: False
+clsim_dom_oversize: 5.
+clsim_hybrid_mode: False

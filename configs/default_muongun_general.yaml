@@ -1,0 +1,63 @@
+# Used Random Seed
+seed: 1337
+
+# Number of the dataset
+dataset_number: 0
+# Events generated for each file
+n_events_per_run: 10000
+# Number of total runs/file
+n_runs: 1000
+# Whether file after IceTray should be kept
+keep_crashed_files: False
+# Indication which steps require how many gpus
+gpu_steps:
+  1: 1
+
+
+
+# PATH to the GCD File
+gcd: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2012.56063_V1.i3.gz
+# Folder in which the different step outputs should be stored
+output_folder: '{data_folder}/{generator}/{dataset_number}/{step}'
+# Pattern for the outputfile
+output_pattern: '{step_name}.{dataset_number:6d}.{run_number}.i3.bz2'
+
+# Name of the generator; only used for naming of the output folder
+generator: muongun
+# Starting Energy GeV
+e_min: 100
+# Maximal Energy GeV
+e_max: !!float 1e8
+# Used gamme for the generator (E^-gamma)
+gamma: 2.
+# Used icemodel ['SpiceLea']
+icemodel: SpiceLea
+
+# CLSIM specific options
+# Ratio of the dom not shadowed by calbes other anything else
+clsim_unshadowed_fraction: 0.9
+# whether direct light of muons should be ignored
+clsim_ignore_muon_light: False
+# Run CLSIM using GPUS
+clsim_usegpus: False
+# DOM oversize factor
+clsim_dom_oversize: 5.
+# Whether I3MCPE list should be stored
+clsim_keep_mcpe: False
+# Whether CLsim should run in hybrid mode
+clsim_hybrid_mode: False
+
+
+# muongun specific options
+# Energy offset `b` of power-law approximation (E + b)^{-gamma}
+muongun_e_break: !!float 1e6
+muongun_generator: floodlight
+muongun_model: Hoerandel5_atmod12_SIBYLL
+muongun_min_multiplicity: 1
+muongun_max_multiplicity: 1
+
+# muongun floodlight specific options
+muongun_floodlight_min_cos: -1.0
+muongun_floodlight_max_cos: 1.0
+
+

@@ -84,7 +84,11 @@ det_filter_trigger: True
 det_skip_noise_generation: False
 
 # Filtering Settings
-
-filter_run_gfu: True
-filter_min_bias_prescale:
-
+# Apply QConverter, use if file is P frame only
+L1_qify: False
+# Retrigger
+L1_retrigger: True
+# Set the Min Bias prescale to something other than default
+L1_min_bias_prescale:
+# MC is produced by DOMSimulator (default=False)
+L1_dom_simulator: False

@@ -1,23 +1,30 @@
 import os
 import stat
+import string
 
 import click
 import yaml
 import getpass
 
 from batch_processing import create_pbs_files, create_dagman_files
+#from batch_processing import adjust_resources
 
 
 DATASET_FOLDER = '{data_folder}/{generator}/{dataset_number}'
 STEP_FOLDER = DATASET_FOLDER + '/{step_name}'
+PREVIOUS_STEP_FOLDER = DATASET_FOLDER + '/{previous_step_name}'
 PROCESSING_FOLDER = DATASET_FOLDER + '/processing/{step_name}'
 SCRIPT_FOLDER = os.path.dirname(os.path.abspath(__file__))
+
+class SafeDict(dict):
+    def __missing__(self, key):
+        return '{' + key + '}'
 
 
 def fetch_chain(chain_name):
     processing_chains_f = os.path.join(SCRIPT_FOLDER, 'processing_chains.yaml')
     with open(processing_chains_f, 'r') as stream:
-        processing_chains = yaml.load(stream)
+        processing_chains = SafeDict(yaml.load(stream))
     try:
         chain_definition = processing_chains[chain_name]
     except KeyError:
@@ -35,13 +42,14 @@ def fetch_chain(chain_name):
 
 def create_filename(cfg, input=False):
     if input:
-        filename = ('{previous_step_name}.{dataset_number:6d}.' +
-                    '{run_number}.i3.bz2').format(**cfg)
+        step_name = cfg['step_name']
+        cfg['step_name'] = cfg['previous_step_name']
+        filename = cfg['output_pattern'].format(**cfg)
+        full_path = os.path.join(cfg['input_folder'], filename)
+        cfg['step_name'] = step_name
     else:
-        filename = (
-            'Level{step_name}.IC86.YEAR' +
-            '{dataset_number:6d}.{run_number}.i3.bz2').format(**cfg)
-    full_path = os.path.join(cfg['output_folder'], filename)
+        filename = cfg['output_pattern'].format(**cfg)
+        full_path = os.path.join(cfg['output_folder'], filename)
     full_path = full_path.replace(' ', '0')
     return full_path
 
@@ -49,9 +57,7 @@ def create_filename(cfg, input=False):
 def write_job_files(config, step):
     with open(config['job_template']) as f:
         template = f.read()
-
-    config.update({'PBS_JOBID': '{PBS_JOBID}',
-                   'CLUSTER': '{CLUSTER}'})
+    #config = adjust_resources(config)
     output_base = os.path.join(config['processing_folder'], 'jobs')
 
     if not os.path.isdir(output_base):
@@ -68,8 +74,9 @@ def write_job_files(config, step):
         scratch_out = scratch_out.replace(' ', '0')
         config['scratch_out'] = scratch_out
         config['run_number'] = i
-        file_config = template.format(**config)
-        script_name = config['script_name'].format(**config)
+        file_config = string.Formatter().vformat(template, (), config)
+        script_name = string.Formatter().vformat(
+            config['script_name'], (), config)
         script_path = os.path.join(output_base, script_name)
         with open(script_path, 'w') as f:
             f.write(file_config)
@@ -91,12 +98,13 @@ def build_config(data_folder, custom_settings):
     if data_folder.endswith('/'):
         data_folder = data_folder[:-1]
     with open(custom_settings['default_config'], 'r') as stream:
-        config = yaml.load(stream)
+        config = SafeDict(yaml.load(stream))
     config.update(custom_settings)
 
     config.update({'data_folder': data_folder,
                    'run_number': '{run_number:6d}'})
 
+    config['input_folder'] = PREVIOUS_STEP_FOLDER.format(**config)
     config['output_folder'] = STEP_FOLDER.format(**config)
     config['dataset_folder'] = DATASET_FOLDER.format(**config)
     config['processing_folder'] = PROCESSING_FOLDER.format(**config)
@@ -123,7 +131,7 @@ def build_config(data_folder, custom_settings):
 def main(data_folder, config_file, processing_scratch, step, pbs, dagman):
     config_file = click.format_filename(config_file)
     with open(config_file, 'r') as stream:
-        custom_settings = yaml.load(stream)
+        custom_settings = SafeDict(yaml.load(stream))
     chain_name = custom_settings['chain_name']
     click.echo('Initialized {} chain!'.format(chain_name))
     step_enum, default_config, job_template = fetch_chain(chain_name)
@@ -161,7 +169,7 @@ def main(data_folder, config_file, processing_scratch, step, pbs, dagman):
     filled_yaml = os.path.join(config['processing_folder'], outfile)
     config['yaml_copy'] = filled_yaml
     with open(config['yaml_copy'], 'w') as yaml_copy:
-        yaml.dump(config, yaml_copy, default_flow_style=False)
+        yaml.dump(dict(config), yaml_copy, default_flow_style=False)
 
     if dagman or pbs:
         if processing_scratch is None:
