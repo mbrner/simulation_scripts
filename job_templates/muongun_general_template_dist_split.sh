@@ -15,7 +15,7 @@ echo $FINAL_OUT
 if [ -z ${PBS_JOBID} ] && [ -z ${CLUSTER} ]
 then
     echo 'Running Script w/o temporary scratch'
-    if [ {step_number} -eq 1 ] ; then
+    if [ {step} -eq 1 ] ; then
         echo 'Running photon propagation with different oversizings'
         {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch --oversize
         {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch --no-oversize
@@ -31,7 +31,7 @@ then
     fi
 else
     echo 'Running Script w/ temporary scratch'
-    if [ {step_number} -eq 1 ] ; then
+    if [ {step} -eq 1 ] ; then
         echo 'Running photon propagation with different oversizings'
         {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch --oversize
         {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch --no-oversize

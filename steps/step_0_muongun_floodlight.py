@@ -62,7 +62,7 @@ def main(cfg, run_number, scratch):
     if cfg['photon_propagation_dist_threshold'] is not None:
         tray.AddModule(OversizeSplitter,
                        "OversizeSplitter",
-                       treshold=50.)
+                       threshold=cfg['photon_propagation_dist_threshold'])
         outfile_no_domoversize = outfile.replace('i3.gz2',
                                                   '_no_oversize.i3.gz2')
         outfile = outfile.replace(' ', '0')
@@ -86,7 +86,7 @@ def main(cfg, run_number, scratch):
                        Streams=[icetray.I3Frame.DAQ,
                                 icetray.I3Frame.Physics,
                                 icetray.I3Frame.Stream('S'),
-                                icetray.I3Frame.Stream('M')])
+                               icetray.I3Frame.Stream('M')])
 
     tray.AddModule("TrashCan", "the can")
     tray.Execute()
