@@ -36,21 +36,21 @@ def main(config_file, run_number, scratch):
     tray.AddModule('I3Reader',
                    'reader',
                    FilenameList=[cfg['gcd'], infile],
-                   SkipKeys = ['I3DST11',
-                               'I3SuperDST',
-                               'I3VEMCalData',
-                               'PoleMuonLlhFit',
-                               'PoleMuonLlhFitCutsFirstPulseCuts',
-                               'PoleMuonLlhFitFitParams',
-                               'CramerRaoPoleL2IpdfGConvolute_2itParams',
-                               'CramerRaoPoleL2MPEFitParams',
-                               'PoleL2IpdfGConvolute_2it',
-                               'PoleL2IpdfGConvolute_2itFitParams',
-                               'PoleL2MPEFit',
-                               'PoleL2MPEFitCuts',
-                               'PoleL2MPEFitFitParams',
-                               'PoleL2MPEFitMuE',
-                               ])
+                   SkipKeys=['I3DST11',
+                             'I3SuperDST',
+                             'I3VEMCalData',
+                             'PoleMuonLlhFit',
+                             'PoleMuonLlhFitCutsFirstPulseCuts',
+                             'PoleMuonLlhFitFitParams',
+                             'CramerRaoPoleL2IpdfGConvolute_2itParams',
+                             'CramerRaoPoleL2MPEFitParams',
+                             'PoleL2IpdfGConvolute_2it',
+                             'PoleL2IpdfGConvolute_2itFitParams',
+                             'PoleL2MPEFit',
+                             'PoleL2MPEFitCuts',
+                             'PoleL2MPEFitFitParams',
+                             'PoleL2MPEFitMuE',
+                             ])
 
     class SkipSFrames(icetray.I3ConditionalModule):
         S_stream = icetray.I3Frame.Stream('S')
@@ -106,10 +106,10 @@ def main(config_file, run_number, scratch):
 
     tray.AddSegment(jeb_filter_2012.BaseProcessing,
                     "BaseProc",
-                     pulses=filter_globals.CleanedMuonPulses,
-                     decode=False,
-                     simulation=True,
-                     DomLauncher=(not cfg['L1_dom_simulator']))
+                    pulses=filter_globals.CleanedMuonPulses,
+                    decode=False,
+                    simulation=True,
+                    DomLauncher=(not cfg['L1_dom_simulator']))
 
     tray.AddSegment(jeb_filter_2012.MuonFilter,
                     "MuonFilter",
