@@ -138,7 +138,7 @@ def process_local(config_file, n_jobs):
                 del processes[pid]
                 finished += 1
                 bar.update(finished)
-        while len(processes) > 0:
+        while len(processes) > 0 and finshed < len(job_files):
             pid, exit_code = os.wait()
             if exit_code != 0:
                 job_file = processes[pid][1]
