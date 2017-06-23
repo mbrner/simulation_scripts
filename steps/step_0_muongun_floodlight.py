@@ -12,7 +12,8 @@ import os
 import sys
 file_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(file_dir + '/..')
-from utils import create_random_services
+from utils import create_random_services, OversizeSplitter
+from utils import no_oversize_stream, oversize_stream
 
 
 @click.command()
@@ -57,13 +58,35 @@ def main(cfg, run_number, scratch):
         outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
     else:
         outfile = cfg['outfile_pattern'].format(run_number=run_number)
-    outfile = outfile.replace(' ', '0')
-    tray.AddModule("I3Writer", "writer",
-                   Filename=outfile,
-                   Streams=[icetray.I3Frame.DAQ,
-                            icetray.I3Frame.Physics,
-                            icetray.I3Frame.Stream('S'),
-                            icetray.I3Frame.Stream('M')])
+
+    if cfg['photon_propagation_dist_threshold'] is not None:
+      tray.AddModule(OversizeSplitter,
+                     "OversizeSplitter",
+                     treshold=50.)
+      outfile_no_domoversize = outfile.replace('i3.gz2',
+                                                '_no_oversize.i3.gz2')
+      outfile = outfile.replace(' ', '0')
+      tray.AddModule("I3Writer", "writer",
+                     Filename=outfile_no_domoversize,
+                     Streams=[icetray.I3Frame.DAQ,
+                              icetray.I3Frame.Physics,
+                              icetray.I3Frame.Stream('S'),
+                              icetray.I3Frame.Stream('M')],
+                     If=no_oversize_stream)
+      tray.AddModule("I3Writer", "writer",
+                     Filename=outfile,
+                     Streams=[icetray.I3Frame.DAQ,
+                              icetray.I3Frame.Physics,
+                              icetray.I3Frame.Stream('S'),
+                              icetray.I3Frame.Stream('M')],
+                     If=oversize_stream)
+    else:
+      tray.AddModule("I3Writer", "writer",
+                     Filename=outfile,
+                     Streams=[icetray.I3Frame.DAQ,
+                              icetray.I3Frame.Physics,
+                              icetray.I3Frame.Stream('S'),
+                              icetray.I3Frame.Stream('M')])
 
     tray.AddModule("TrashCan", "the can")
     tray.Execute()

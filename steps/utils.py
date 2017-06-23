@@ -29,28 +29,28 @@ def create_random_services(dataset_number, run_number, seed):
         streamnum=run_number)
     return random_service, random_service_prop, int_run_number
 
-def is_low_oversize_stream(frame):
+def no_oversize_stream(frame):
     if frame.stop == icetray.I3Frame.DAQ:
-        if frame.Has('is_low_oversize_stream'):
-            if frame['is_low_oversize_stream']:
+        if frame.Has('no_oversize_stream'):
+            if frame['no_oversize_stream']:
                 return True
             else:
                 return False
         else:
-            raise KeyError('is_low_oversize_stream not found')
+            raise KeyError('no_oversize_stream not found')
     else:
         return True
 
 
-def is_high_oversize_stream(frame):
+def oversize_stream(frame):
     if frame.stop == icetray.I3Frame.DAQ:
-        if frame.Has('is_low_oversize_stream'):
-            if frame['is_low_oversize_stream']:
+        if frame.Has('no_oversize_stream'):
+            if frame['no_oversize_stream']:
                 return False
             else:
                 return True
         else:
-            raise KeyError('is_low_oversize_stream not found')
+            raise KeyError('no_oversize_stream not found')
     else:
         return True
 
@@ -100,11 +100,11 @@ class OversizeSplitter(qStreamSwitcher):
         v_pos = np.array(particle.pos)
         distances = np.linalg.norm(np.cross(v_dir, v_pos-self.dom_positions))
         if any(distances < self.treshold):
-            frame['is_low_oversize_stream'] = dataclasses.I3Bool(True)
+            frame['no_oversize_stream'] = dataclasses.I3Bool(True)
             if self.split_streams:
                 frame.stop = self.q_stream
         else:
-            frame['is_low_oversize_stream'] = dataclasses.I3Bool(False)
+            frame['no_oversize_stream'] = dataclasses.I3Bool(False)
         self.PushFrame(frame)
 
 
