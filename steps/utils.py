@@ -101,7 +101,7 @@ class OversizeSplitter(qStreamSwitcher):
         v_pos = np.array(particle.pos)
         distances = np.linalg.norm(np.cross(v_dir, v_pos-self.dom_positions),
                                    axis=1)
-         if any(distances < self.threshold):
+        if any(distances < self.threshold):
             frame['no_oversize_stream'] = dataclasses.I3Bool(True)
             if self.split_streams:
                 frame.stop = self.q_stream

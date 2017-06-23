@@ -25,6 +25,8 @@ def main(cfg, run_number, scratch, oversize):
     cfg['run_number'] = run_number
     infile = cfg['infile_pattern'].format(run_number=run_number)
     infile = infile.replace(' ', '0')
+    if not oversize:
+        infile = infile.replace('i3.gz2', 'no_oversize.i3.gz2')
 
     tray = I3Tray()
 
@@ -46,7 +48,7 @@ def main(cfg, run_number, scratch, oversize):
     click.echo('HybridMode: {}'.format(hybrid_mode))
     click.echo('IgnoreMuonLight: {}'.format(ignore_muon_light))
     if hybrid_mode:
-        cascade_tables = segments.LoadCascadeTables(IceModel=options.ICEMODEL,
+        cascade_tables = segments.LoadCascadeTables(IceModel=cfg['icemodel'],
                                                     TablePath=SPLINE_TABLES)
     else:
          cascade_tables = None

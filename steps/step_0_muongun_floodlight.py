@@ -60,33 +60,33 @@ def main(cfg, run_number, scratch):
         outfile = cfg['outfile_pattern'].format(run_number=run_number)
 
     if cfg['photon_propagation_dist_threshold'] is not None:
-      tray.AddModule(OversizeSplitter,
-                     "OversizeSplitter",
-                     treshold=50.)
-      outfile_no_domoversize = outfile.replace('i3.gz2',
-                                                '_no_oversize.i3.gz2')
-      outfile = outfile.replace(' ', '0')
-      tray.AddModule("I3Writer", "writer",
-                     Filename=outfile_no_domoversize,
-                     Streams=[icetray.I3Frame.DAQ,
-                              icetray.I3Frame.Physics,
-                              icetray.I3Frame.Stream('S'),
-                              icetray.I3Frame.Stream('M')],
-                     If=no_oversize_stream)
-      tray.AddModule("I3Writer", "writer",
-                     Filename=outfile,
-                     Streams=[icetray.I3Frame.DAQ,
-                              icetray.I3Frame.Physics,
-                              icetray.I3Frame.Stream('S'),
-                              icetray.I3Frame.Stream('M')],
-                     If=oversize_stream)
+        tray.AddModule(OversizeSplitter,
+                       "OversizeSplitter",
+                       treshold=50.)
+        outfile_no_domoversize = outfile.replace('i3.gz2',
+                                                  '_no_oversize.i3.gz2')
+        outfile = outfile.replace(' ', '0')
+        tray.AddModule("I3Writer", "writer",
+                       Filename=outfile_no_domoversize,
+                       Streams=[icetray.I3Frame.DAQ,
+                                icetray.I3Frame.Physics,
+                                icetray.I3Frame.Stream('S'),
+                                icetray.I3Frame.Stream('M')],
+                       If=no_oversize_stream)
+        tray.AddModule("I3Writer", "writer",
+                       Filename=outfile,
+                       Streams=[icetray.I3Frame.DAQ,
+                                icetray.I3Frame.Physics,
+                                icetray.I3Frame.Stream('S'),
+                                icetray.I3Frame.Stream('M')],
+                       If=oversize_stream)
     else:
-      tray.AddModule("I3Writer", "writer",
-                     Filename=outfile,
-                     Streams=[icetray.I3Frame.DAQ,
-                              icetray.I3Frame.Physics,
-                              icetray.I3Frame.Stream('S'),
-                              icetray.I3Frame.Stream('M')])
+        tray.AddModule("I3Writer", "writer",
+                       Filename=outfile,
+                       Streams=[icetray.I3Frame.DAQ,
+                                icetray.I3Frame.Physics,
+                                icetray.I3Frame.Stream('S'),
+                                icetray.I3Frame.Stream('M')])
 
     tray.AddModule("TrashCan", "the can")
     tray.Execute()
