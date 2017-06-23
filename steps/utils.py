@@ -1,4 +1,6 @@
-from icecube import phys_services
+import numpy as np
+
+from icecube import phys_services, icetray, dataclasses
 
 MAX_DATASET_NUMBER = 100000
 MAX_RUN_NUMBER = 100000
@@ -26,3 +28,83 @@ def create_random_services(dataset_number, run_number, seed):
         nstreams=MAX_RUN_NUMBER * 2,
         streamnum=run_number)
     return random_service, random_service_prop, int_run_number
+
+def is_low_oversize_stream(frame):
+    if frame.stop == icetray.I3Frame.DAQ:
+        if frame.Has('is_low_oversize_stream'):
+            if frame['is_low_oversize_stream']:
+                return True
+            else:
+                return False
+        else:
+            raise KeyError('is_low_oversize_stream not found')
+    else:
+        return True
+
+
+def is_high_oversize_stream(frame):
+    if frame.stop == icetray.I3Frame.DAQ:
+        if frame.Has('is_low_oversize_stream'):
+            if frame['is_low_oversize_stream']:
+                return False
+            else:
+                return True
+        else:
+            raise KeyError('is_low_oversize_stream not found')
+    else:
+        return True
+
+
+class qStreamSwitcher(icetray.I3ConditionalModule):
+    q_stream = icetray.I3Frame.Stream('q')
+
+    def __init__(self, context):
+        icetray.I3ConditionalModule.__init__(self, context)
+
+    def Configure(self):
+        self.Register(self.q_stream, self.qFrame)
+        self.switch = True
+
+    def qFrame(self, frame):
+        if self.switch:
+            frame.stop = icetray.I3Frame.DAQ
+        self.PushFrame(frame)
+
+
+class OversizeSplitter(qStreamSwitcher):
+    def __init__(self, context):
+        icetray.I3ConditionalModule.__init__(self, context)
+        self.AddParameter('threshold',                 # name
+                          'Cut distance',       # doc
+                          10)                           # default
+        self.AddParameter('split_streams',
+                          'Split into DAQ-frames for large oversize and q-'
+                          'frames.',
+                          False)
+    def Configure(self):
+        super(qStreamSwitcher, self).Configure()
+        self.min_dist = self.GetParameter('threshold')
+        self.split_streams = self.GetParameter('split_streams')
+        self.switch = False
+
+    def Geometry(self, frame):
+        omgeo = frame['I3Geometry'].omgeo
+        self.dom_positions = np.zeros((len(omgeo), 3))
+        for i, (_, om) in enumerate(omgeo.iteritems()):
+            self.dom_positions[i, :] = np.array(om.position)
+        self.PushFrame(frame)
+
+    def DAQ(self, frame):
+        particle = frame['MCMuon']
+        v_dir = np.array([particle.dir.x, particle.dir.y, particle.dir.z])
+        v_pos = np.array(particle.pos)
+        distances = np.linalg.norm(np.cross(v_dir, v_pos-self.dom_positions))
+        if any(distances < self.treshold):
+            frame['is_low_oversize_stream'] = dataclasses.I3Bool(True)
+            if self.split_streams:
+                frame.stop = self.q_stream
+        else:
+            frame['is_low_oversize_stream'] = dataclasses.I3Bool(False)
+        self.PushFrame(frame)
+
+
