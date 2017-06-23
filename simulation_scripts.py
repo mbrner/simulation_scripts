@@ -60,6 +60,8 @@ def write_job_files(config, step):
     #config = adjust_resources(config)
     output_base = os.path.join(config['processing_folder'], 'jobs')
 
+    if 'name_additon' not in config.keys():
+        config['name_addition'] = ''
     if not os.path.isdir(output_base):
         os.makedirs(output_base)
     log_dir = os.path.join(config['processing_folder'], 'logs')
@@ -161,7 +163,7 @@ def main(data_folder, config_file, processing_scratch, step, pbs, dagman):
     config['processing_folder'] = PROCESSING_FOLDER.format(**config)
     config['outfile_pattern'] = create_filename(config)
     config['scratchfile_pattern'] = os.path.basename(config['outfile_pattern'])
-    config['script_name'] = '{step_name}_{run_number}.sh'
+    config['script_name'] = '{step_name}{name_addition}_{run_number}.sh'
     if not os.path.isdir(config['processing_folder']):
         os.makedirs(config['processing_folder'])
 
