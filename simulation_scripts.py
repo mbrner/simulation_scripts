@@ -60,7 +60,7 @@ def write_job_files(config, step):
     #config = adjust_resources(config)
     output_base = os.path.join(config['processing_folder'], 'jobs')
 
-    if 'name_additon' not in config.keys():
+    if 'name_addition' not in config.keys():
         config['name_addition'] = ''
     if not os.path.isdir(output_base):
         os.makedirs(output_base)
