@@ -28,7 +28,7 @@ def main(cfg, run_number, scratch):
 
     tray.context['I3FileStager'] = dataio.get_stagers()
 
-    random_service, _, run_number = create_random_services(
+    random_service, _, run_id = create_random_services(
         dataset_number=cfg['run_number'],
         run_number=cfg['dataset_number'],
         seed=cfg['seed'])
@@ -38,7 +38,7 @@ def main(cfg, run_number, scratch):
     tray.Add('I3Reader', FilenameList=[cfg['gcd'], infile])
     tray.AddSegment(segments.DetectorSim, "DetectorSim",
         RandomService='I3RandomService',
-        RunID=run_number,
+        RunID=run_id,
         GCDFile=cfg['gcd'],
         KeepMCHits=cfg['det_keep_mc_hits'],
         KeepPropagatedMCTree=cfg['det_keep_propagated_mc_tree'],
@@ -54,6 +54,9 @@ def main(cfg, run_number, scratch):
     else:
         outfile = cfg['outfile_pattern'].format(run_number=run_number)
     outfile = outfile.replace(' ', '0')
+
+    print(outfile)
+    print(cfg['outfile_pattern'])
     tray.AddModule("I3Writer", "EventWriter",
                    filename=outfile,
                    Streams=[icetray.I3Frame.DAQ,

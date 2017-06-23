@@ -51,7 +51,7 @@ icemodel: SpiceLea
 
 # CLSIM specific options
 # Ratio of the dom not shadowed by calbes other anything else
-clsim_unshadowed_fraction: 0.9
+clsim_unshadowed_fraction: 0.99
 # whether direct light of muons should be ignored
 clsim_ignore_muon_light: False
 # Run CLSIM using GPUS
@@ -59,7 +59,7 @@ clsim_usegpus: False
 # DOM oversize factor
 clsim_dom_oversize: 5.
 # Whether I3MCPE list should be stored
-clsim_keep_mcpe: False
+clsim_keep_mcpe: True
 # Whether CLsim should run in hybrid mode
 clsim_hybrid_mode: False
 

@@ -30,7 +30,7 @@ def create_random_services(dataset_number, run_number, seed):
     return random_service, random_service_prop, int_run_number
 
 def is_low_oversize_stream(frame):
-    if frame.stop == icetray.I3Frame.DAQ:
+    if frame.Stop == icetray.I3Frame.DAQ:
         if frame.Has('is_low_oversize_stream'):
             if frame['is_low_oversize_stream']:
                 return True
@@ -43,7 +43,7 @@ def is_low_oversize_stream(frame):
 
 
 def is_high_oversize_stream(frame):
-    if frame.stop == icetray.I3Frame.DAQ:
+    if frame.Stop == icetray.I3Frame.DAQ:
         if frame.Has('is_low_oversize_stream'):
             if frame['is_low_oversize_stream']:
                 return False
@@ -83,7 +83,7 @@ class OversizeSplitter(qStreamSwitcher):
                           False)
     def Configure(self):
         super(qStreamSwitcher, self).Configure()
-        self.min_dist = self.GetParameter('threshold')
+        self.threshold = self.GetParameter('threshold')
         self.split_streams = self.GetParameter('split_streams')
         self.switch = False
 
@@ -98,13 +98,14 @@ class OversizeSplitter(qStreamSwitcher):
         particle = frame['MCMuon']
         v_dir = np.array([particle.dir.x, particle.dir.y, particle.dir.z])
         v_pos = np.array(particle.pos)
-        distances = np.linalg.norm(np.cross(v_dir, v_pos-self.dom_positions))
-        if any(distances < self.treshold):
-            frame['is_low_oversize_stream'] = dataclasses.I3Bool(True)
+        distances = np.linalg.norm(np.cross(v_dir, v_pos-self.dom_positions),
+                                   axis=1)
+        if any(distances < self.threshold):
+            frame['is_low_oversize_stream'] = icetray.I3Bool(True)
             if self.split_streams:
                 frame.stop = self.q_stream
         else:
-            frame['is_low_oversize_stream'] = dataclasses.I3Bool(False)
+            frame['is_low_oversize_stream'] = icetray.I3Bool(False)
         self.PushFrame(frame)
 
 

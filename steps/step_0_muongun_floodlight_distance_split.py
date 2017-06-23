@@ -61,20 +61,19 @@ def main(cfg, run_number, scratch):
 
     tray.AddModule(OversizeSplitter,
                    "OversizeSplitter",
-                   treshold=50.)
-
-    outfile_low_domoversize = outfile.replace('i3.gz2', '_low_oversize.i3.gz2')
-    outfile_high_domoversize = outfile.replace('i3.gz2',
-                                               '_high_oversize.i3.gz2')
+                   threshold=50.)
     outfile = outfile.replace(' ', '0')
-    tray.AddModule("I3Writer", "writer",
+    outfile_low_domoversize = outfile.replace('i3.bz2', '_low_oversize.i3.bz2')
+    outfile_high_domoversize = outfile.replace('i3.bz2',
+                                               '_high_oversize.i3.bz2')
+    tray.AddModule("I3Writer", "writer_low_oversize",
                    Filename=outfile_low_domoversize,
                    Streams=[icetray.I3Frame.DAQ,
                             icetray.I3Frame.Physics,
                             icetray.I3Frame.Stream('S'),
                             icetray.I3Frame.Stream('M')],
                    If=is_low_oversize_stream)
-    tray.AddModule("I3Writer", "writer",
+    tray.AddModule("I3Writer", "writer_high_oversize",
                    Filename=outfile_high_domoversize,
                    Streams=[icetray.I3Frame.DAQ,
                             icetray.I3Frame.Physics,
