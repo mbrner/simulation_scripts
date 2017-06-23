@@ -18,7 +18,8 @@ SPLINE_TABLES = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables/splines'
 @click.argument('cfg', click.Path(exists=True))
 @click.argument('run_number', type=int)
 @click.option('--scratch/--no-scratch', default=True)
-def main(cfg, run_number, scratch):
+@click.option('--oversize/--no-oversize', default=True)
+def main(cfg, run_number, scratch, oversize):
     with open(cfg, 'r') as stream:
         cfg = yaml.load(stream)
     cfg['run_number'] = run_number
@@ -38,8 +39,6 @@ def main(cfg, run_number, scratch):
 
     tray.Add('I3Reader', FilenameList=[cfg['gcd'], infile])
 
-
-
     hybrid_mode = (cfg['clsim_hybrid_mode'] and
                    cfg['icemodel'].lower() != 'spicelea')
     ignore_muon_light = (cfg['clsim_ignore_muon_light'] and
@@ -52,7 +51,10 @@ def main(cfg, run_number, scratch):
     else:
          cascade_tables = None
 
-
+    if oversize:
+        dom_oversize = cfg['clsim_dom_oversize']
+    else:
+        dom_oversize = cfg['clsim_no_dom_oversize']
     tray.AddSegment(
         segments.PropagatePhotons,
         "PropagatePhotons",
@@ -64,7 +66,7 @@ def main(cfg, run_number, scratch):
         IgnoreMuons=ignore_muon_light,
         HybridMode=hybrid_mode,
         UseGPUs=cfg['clsim_usegpus'],
-        DOMOversizeFactor=cfg['clsim_dom_oversize'],
+        DOMOversizeFactor=dom_oversize,
         CascadeService=cascade_tables)
 
     if scratch:

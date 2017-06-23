@@ -58,10 +58,14 @@ clsim_ignore_muon_light: False
 clsim_usegpus: False
 # DOM oversize factor
 clsim_dom_oversize: 5.
+clsim_no_dom_oversize: 1.
 # Whether I3MCPE list should be stored
 clsim_keep_mcpe: True
 # Whether CLsim should run in hybrid mode
 clsim_hybrid_mode: False
+
+
+photon_propagation_dist_threshold: 15.
 
 # muongun specific options
 # Energy offset `b` of power-law approximation (E + b)^{-gamma}
