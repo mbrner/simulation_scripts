@@ -21,26 +21,25 @@ def main(cfg, run_number, scratch):
     cfg['run_number'] = run_number
     infile = cfg['infile_pattern'].format(run_number=run_number)
     infile = infile.replace(' ', '0')
-    infile_no_oversize = infile.replace('i3.gz2', 'no_oversize.i3.gz2')
-    infile_oversize = infile.replace('i3.gz2', 'oversize.i3.gz2')
+    infile_low_oversize = infile.replace('i3.bz2', 'low_oversize.i3.bz2')
+    infile_high_oversize = infile.replace('i3.bz2', 'high_oversize.i3.bz2')
     tray = I3Tray()
 
     tray.context['I3FileStager'] = dataio.get_stagers()
 
-    tray.Add('I3Reader', FilenameList=[infile_no_oversize,
-                                       infile_oversize])
+    tray.Add('I3Reader', FilenameList=[infile_low_oversize,
+                                       infile_high_oversize])
 
     if scratch:
         outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
     else:
         outfile = cfg['outfile_pattern'].format(run_number=run_number)
-    tray.AddModule("I3Writer","writer",
-        Filename=outfile,
-        Streams=[icetray.I3Frame.DAQ,
-                 icetray.I3Frame.Physics,
-                 icetray.I3Frame.Stream('S'),
-                 icetray.I3Frame.Stream('M')],
-        )
+    tray.AddModule("I3Writer", "writer",
+                   Filename=outfile,
+                   Streams=[icetray.I3Frame.DAQ,
+                            icetray.I3Frame.Physics,
+                            icetray.I3Frame.Stream('S'),
+                            icetray.I3Frame.Stream('M')])
     tray.AddModule("TrashCan", "the can")
     tray.Execute()
     tray.Finish()

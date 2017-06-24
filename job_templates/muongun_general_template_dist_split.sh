@@ -37,7 +37,7 @@ else
         {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --scratch --high_oversize
         {script_folder}steps/step_1_merge_after_clsim.py {yaml_copy} {run_number} --scratch
     else
-        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch
+        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --scratch
     fi
     echo 'IceTray finished with Exit Code: ' $?
     ICETRAY_RC=$?
