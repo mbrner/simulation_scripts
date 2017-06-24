@@ -22,12 +22,13 @@ def main(cfg, run_number, scratch):
     infile = cfg['infile_pattern'].format(run_number=run_number)
     infile = infile.replace(' ', '0')
     infile_no_oversize = infile.replace('i3.gz2', 'no_oversize.i3.gz2')
-
+    infile_oversize = infile.replace('i3.gz2', 'oversize.i3.gz2')
     tray = I3Tray()
 
     tray.context['I3FileStager'] = dataio.get_stagers()
 
-    tray.Add('I3Reader', FilenameList=[infile_no_oversize, infile])
+    tray.Add('I3Reader', FilenameList=[infile_no_oversize,
+                                       infile_oversize])
 
     if scratch:
         outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
