@@ -8,10 +8,10 @@ from icecube.simprod import segments
 from I3Tray import I3Tray
 from icecube import icetray, dataclasses
 from icecube import sim_services, MuonGun
-import os
-import sys
-from utils import create_random_services, OversizeSplitter
-from utils import low_oversize_stream, high_oversize_stream
+
+from utils import create_random_services
+from dom_distance_cut import low_oversize_stream, high_oversize_stream
+from dom_distance_cut import OversizeSplitter
 
 
 @click.command()
