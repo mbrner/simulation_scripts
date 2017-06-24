@@ -17,9 +17,9 @@ then
     echo 'Running Script w/o temporary scratch'
     if [ {step} -eq 1 ] ; then
         echo 'Running photon propagation with different oversizings'
-        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch --oversize
-        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch --no-oversize
-        {script_folder}steps/step_1_merge_after_clsim.py {yaml_copy} {run_number}
+        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch --low_oversize
+        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch --high_oversize
+        {script_folder}steps/step_1_merge_after_clsim.py {yaml_copy} {run_number} --no-scratch
     else
         {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch
     fi
@@ -33,9 +33,9 @@ else
     echo 'Running Script w/ temporary scratch'
     if [ {step} -eq 1 ] ; then
         echo 'Running photon propagation with different oversizings'
-        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch --oversize
-        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch --no-oversize
-        {script_folder}steps/step_1_merge_after_clsim.py {yaml_copy} {run_number}
+        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --scratch --low_oversize
+        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --scratch --high_oversize
+        {script_folder}steps/step_1_merge_after_clsim.py {yaml_copy} {run_number} --scratch
     else
         {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch
     fi

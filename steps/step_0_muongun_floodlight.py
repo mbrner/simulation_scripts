@@ -25,6 +25,21 @@ def main(cfg, run_number, scratch):
         cfg = yaml.load(stream)
     cfg['run_number'] = run_number
 
+    if scratch:
+        outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
+    else:
+        outfile = cfg['outfile_pattern'].format(run_number=run_number)
+
+    click.echo('SplittingDistance: {}'.format(
+               cfg['photon_propagation_dist_threshold']))
+    click.echo('NEvents: {}'.format(cfg['n_events_per_run']))
+    click.echo('EMin: {}'.format(cfg['e_min']))
+    click.echo('EMax: {}'.format(cfg['e_max']))
+    click.echo('EBreak: {}'.format(cfg['muongun_e_break']))
+    click.echo('Gamma: {}'.foromat(cfg['gamma']))
+    click.echo('ZenithMin: {}'.format(cfg['zenith_min']))
+    click.echo('ZenithMax: {}'.format(cfg['zenith_max']))
+
     tray = I3Tray()
 
     random_service, random_service_prop, _ = create_random_services(
@@ -58,36 +73,42 @@ def main(cfg, run_number, scratch):
         outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
     else:
         outfile = cfg['outfile_pattern'].format(run_number=run_number)
-
+    outfile = outfile.replace(' ', '0')
     if cfg['photon_propagation_dist_threshold'] is not None:
+        click.echo('SplittingDistance: {}'.format(
+            cfg['photon_propagation_dist_threshold']))
         tray.AddModule(OversizeSplitter,
                        "OversizeSplitter",
                        threshold=cfg['photon_propagation_dist_threshold'])
-        outfile_no_domoversize = outfile.replace('i3.gz2',
-                                                  '_no_oversize.i3.gz2')
-        outfile = outfile.replace(' ', '0')
+        outfile_low_oversize = outfile.replace('i3.gz2',
+                                               'low_oversize.i3.gz2')
+        outfile_high_oversize = outfile.replace('i3.gz2',
+                                                'high_oversize.i3.gz2')
         tray.AddModule("I3Writer", "writer",
-                       Filename=outfile_no_domoversize,
+                       Filename=outfile_low_oversize,
                        Streams=[icetray.I3Frame.DAQ,
                                 icetray.I3Frame.Physics,
                                 icetray.I3Frame.Stream('S'),
                                 icetray.I3Frame.Stream('M')],
                        If=no_oversize_stream)
         tray.AddModule("I3Writer", "writer",
-                       Filename=outfile,
+                       Filename=outfile_high_oversize,
                        Streams=[icetray.I3Frame.DAQ,
                                 icetray.I3Frame.Physics,
                                 icetray.I3Frame.Stream('S'),
                                 icetray.I3Frame.Stream('M')],
                        If=oversize_stream)
+        click.echo('Output1: {}'.format(outfile_low_oversize))
+        click.echo('Output2: {}'.format(outfile_high_oversize))
     else:
+        click.echo('Output: {}'.format(outfile))
         tray.AddModule("I3Writer", "writer",
                        Filename=outfile,
                        Streams=[icetray.I3Frame.DAQ,
                                 icetray.I3Frame.Physics,
                                 icetray.I3Frame.Stream('S'),
-                               icetray.I3Frame.Stream('M')])
-
+                                icetray.I3Frame.Stream('M')])
+    click.echo('Scratch: {}'.format(scratch))
     tray.AddModule("TrashCan", "the can")
     tray.Execute()
     tray.Finish()
