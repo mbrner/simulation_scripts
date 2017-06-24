@@ -19,7 +19,7 @@ def main(cfg, run_number, scratch):
     with open(cfg, 'r') as stream:
         cfg = yaml.load(stream)
     cfg['run_number'] = run_number
-    infile = cfg['infile_pattern'].format(run_number=run_number)
+    infile = cfg['scratchfile_pattern'].format(run_number=run_number)
     infile = infile.replace(' ', '0')
     infile_low_oversize = infile.replace('i3.bz2', 'low_oversize.i3.bz2')
     infile_high_oversize = infile.replace('i3.bz2', 'high_oversize.i3.bz2')

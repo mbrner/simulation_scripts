@@ -85,19 +85,30 @@ class OversizeSplitter(qStreamSwitcher):
         self.AddParameter('threshold_doms'
                           'Treshold for too many close DOMs',
                           1)
+        self.AddParameter('check_containment',
+                          'Check if contained (computing intensiv)',
+                          False)
+        self.AddParameter('containment_padding',
+                          'Distance added to all doms to define the detector '
+                          'volume',
+                          60.)
 
     def Configure(self):
         super(qStreamSwitcher, self).Configure()
         self.threshold = self.GetParameter('threshold')
         self.split_streams = self.GetParameter('split_streams')
-        self.switch = False
         self.threshold_doms = self.GetParameter('threshold_doms')
+        self.check_containment = self.GetParameter('check_containment')
+        self.containment_padding = self.GetParameter('containment_padding')
+        self.switch = False
 
     def Geometry(self, frame):
         omgeo = frame['I3Geometry'].omgeo
         self.dom_positions = np.zeros((len(omgeo), 3))
         for i, (_, om) in enumerate(omgeo.iteritems()):
             self.dom_positions[i, :] = np.array(om.position)
+        if self.check_containment:
+            self.setup_convex_hull(frame)
         self.PushFrame(frame)
 
     def DAQ(self, frame):
@@ -111,10 +122,13 @@ class OversizeSplitter(qStreamSwitcher):
 
         frame['n_close_doms'] = dataclasses.I3Int(n_close_doms)
         frame['min_distance'] = dataclasses.I3Float(np.min(distances))
-        if n_close_doms > self.threshold_doms:
+        if n_close_doms > self.threshold_domss:
             frame['no_oversize_stream'] = icetray.I3Bool(True)
             if self.split_streams:
                 frame.stop = self.q_stream
         else:
             frame['no_oversize_stream'] = icetray.I3Bool(False)
+        if self.check_containment:
+            is_contained = self.track_inside(particle)
+            frame['is_contained'] = is_contained
         self.PushFrame(frame)
