@@ -127,26 +127,23 @@ class qStreamSwitcher(icetray.I3ConditionalModule):
 class OversizeSplitter(qStreamSwitcher):
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
-        self.AddParameter('threshold',                 # name
-                          'Cut distance',       # doc
-                          10)                           # default
+        self.AddParameter('threshold',
+                          'Cut distance',
+                          10)
         self.AddParameter('split_streams',
-                          'Split into DAQ-frames for large oversize and q-'
-                          'frames.',
+                          'Split into DAQ-frames and q-frames.',
                           False)
-        self.AddParameter('threshold_doms'
+        self.AddParameter('threshold_doms',
                           'Treshold for too many close DOMs',
                           1)
         self.AddParameter('relevance_dist',
-                          'Maximal distance in which a DOM is considered '
-                          'relevant',
+                          'Max distance to cosinder a DOM as relevant',
                           200.)
         self.AddParameter('check_containment',
                           'Check if contained (computing intensiv)',
-                          False)
+                          True)
         self.AddParameter('containment_padding',
-                          'Distance added to all doms to define the detector '
-                          'volume',
+                          'Padding used to define the detector volume',
                           60.)
 
     def Configure(self):
@@ -168,11 +165,11 @@ class OversizeSplitter(qStreamSwitcher):
             self.setup_convex_hull()
         self.PushFrame(frame)
 
-    def setup_convex_hull(self, frame):
+    def setup_convex_hull(self):
         points_for_convex_hull = np.zeros_like(self.dom_positions)
         if self.containment_padding > 0.:
             mean_pos = np.mean(self.dom_positions, axis=0)
-            for i, pos in enumerate(points_for_convex_hull):
+            for i, pos in enumerate(self.dom_positions):
                 v_dir = (pos - mean_pos)
                 len_pos = np.sqrt(np.sum(v_dir**2))
                 v_dir /= len_pos
@@ -188,14 +185,14 @@ class OversizeSplitter(qStreamSwitcher):
                                    axis=1)
         n_close_doms = np.sum(distances < self.threshold)
         n_relevant_doms = np.sum(distances < self.relevance_dist)
-        frame['MCNCloseDoms'] = dataclasses.I3Int(n_close_doms)
-        frame['MCNRelevantDoms'] = dataclasses.I3Int()
-        frame['MCDistanceNearestDOM'] = dataclasses.I3Float(np.min(distances))
+        frame['MCNCloseDoms'] = icetray.I3Int(n_close_doms)
+        frame['MCNRelevantDoms'] = icetray.I3Int(n_relevant_doms)
+        frame['MCDistanceNearestDOM'] = dataclasses.I3Double(np.min(distances))
         if self.threshold_doms < 1.:
             threshold_doms = n_relevant_doms * self.threshold_doms
         else:
             threshold_doms = self.threshold_doms
-        if n_close_doms > threshold_doms:
+        if n_close_doms <= threshold_doms:
             frame['MCLowOversizeStream'] = icetray.I3Bool(True)
             if self.split_streams:
                 frame.stop = self.q_stream
