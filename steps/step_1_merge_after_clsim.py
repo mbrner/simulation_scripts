@@ -19,22 +19,19 @@ def main(cfg, run_number, scratch):
     with open(cfg, 'r') as stream:
         cfg = yaml.load(stream)
     cfg['run_number'] = run_number
-    infile = cfg['scratchfile_pattern'].format(run_number=run_number)
-    infile = infile.replace(' ', '0')
-    infile_low_oversize = infile.replace('i3.bz2', 'low_oversize.i3.bz2')
-    infile_high_oversize = infile.replace('i3.bz2', 'high_oversize.i3.bz2')
+    if scratch:
+        outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
+    else:
+        outfile = cfg['outfile_pattern'].format(run_number=run_number)
+    outfile = outfile.replace(' ', '0')
+    infile_low_oversize = outfile.replace('i3.bz2', 'low_oversize.i3.bz2')
+    infile_high_oversize = outfile.replace('i3.bz2', 'high_oversize.i3.bz2')
     tray = I3Tray()
 
     tray.context['I3FileStager'] = dataio.get_stagers()
 
     tray.Add('I3Reader', FilenameList=[infile_low_oversize,
                                        infile_high_oversize])
-
-    if scratch:
-        outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
-    else:
-        outfile = cfg['outfile_pattern'].format(run_number=run_number)
-
     outfile = outfile.replace(' ', '0')
     tray.AddModule("I3Writer", "writer",
                    Filename=outfile,
