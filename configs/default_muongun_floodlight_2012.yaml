@@ -58,7 +58,8 @@ clsim_ignore_muon_light: False
 clsim_usegpus: False
 # DOM oversize factor
 clsim_dom_oversize: 5.
-clsim_no_dom_oversize: 1.
+clsim_low_dom_oversize: 1.
+clsim_high_dom_oversize: 5.
 # Whether I3MCPE list should be stored
 clsim_keep_mcpe: True
 # Whether CLsim should run in hybrid mode
