@@ -111,6 +111,12 @@ class OversizeSplitter(qStreamSwitcher):
             self.setup_convex_hull(frame)
         self.PushFrame(frame)
 
+    def setup_convex_hull(self, frame):
+        pass
+
+    def track_inside(self, particle):
+        pass
+
     def DAQ(self, frame):
         particle = frame['MCMuon']
         v_dir = np.array([particle.dir.x, particle.dir.y, particle.dir.z])
