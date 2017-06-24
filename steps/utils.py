@@ -30,28 +30,28 @@ def create_random_services(dataset_number, run_number, seed):
     return random_service, random_service_prop, int_run_number
 
 
-def no_oversize_stream(frame):
+def low_oversize_stream(frame):
     if frame.Stop == icetray.I3Frame.DAQ:
-        if frame.Has('no_oversize_stream'):
-            if frame['no_oversize_stream']:
+        if frame.Has('MCLowOversizeStream'):
+            if frame['MCLowOversizeStream']:
                 return True
             else:
                 return False
         else:
-            raise KeyError('no_oversize_stream not found')
+            raise KeyError('MCLowOversizeStream not found')
     else:
         return True
 
 
-def oversize_stream(frame):
+def high_oversize_stream(frame):
     if frame.Stop == icetray.I3Frame.DAQ:
-        if frame.Has('no_oversize_stream'):
-            if frame['no_oversize_stream']:
+        if frame.Has('MCLowOversizeStream'):
+            if frame['MCLowOversizeStream']:
                 return False
             else:
                 return True
         else:
-            raise KeyError('no_oversize_stream not found')
+            raise KeyError('MCLowOversizeStream not found')
     else:
         return True
 
@@ -126,15 +126,15 @@ class OversizeSplitter(qStreamSwitcher):
 
         n_close_doms = np.sum(distances < self.threshold)
 
-        frame['n_close_doms'] = dataclasses.I3Int(n_close_doms)
-        frame['min_distance'] = dataclasses.I3Float(np.min(distances))
+        frame['MCNCloseDoms'] = dataclasses.I3Int(n_close_doms)
+        frame['MCDistanceNearestDOM'] = dataclasses.I3Float(np.min(distances))
         if n_close_doms > self.threshold_domss:
-            frame['no_oversize_stream'] = icetray.I3Bool(True)
+            frame['MCLowOversizeStream'] = icetray.I3Bool(True)
             if self.split_streams:
                 frame.stop = self.q_stream
         else:
-            frame['no_oversize_stream'] = icetray.I3Bool(False)
+            frame['MCLowOversizeStream'] = icetray.I3Bool(False)
         if self.check_containment:
             is_contained = self.track_inside(particle)
-            frame['is_contained'] = is_contained
+            frame['MCMuonIsContained'] = is_contained
         self.PushFrame(frame)

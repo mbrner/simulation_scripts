@@ -10,10 +10,8 @@ from icecube import icetray, dataclasses
 from icecube import sim_services, MuonGun
 import os
 import sys
-file_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(file_dir + '/..')
 from utils import create_random_services, OversizeSplitter
-from utils import no_oversize_stream, oversize_stream
+from utils import low_oversize_stream, high_oversize_stream
 
 
 @click.command()
@@ -90,14 +88,14 @@ def main(cfg, run_number, scratch):
                                 icetray.I3Frame.Physics,
                                 icetray.I3Frame.Stream('S'),
                                 icetray.I3Frame.Stream('M')],
-                       If=no_oversize_stream)
+                       If=high_oversize_stream)
         tray.AddModule("I3Writer", "writer_high_oversize",
                        Filename=outfile_high_oversize,
                        Streams=[icetray.I3Frame.DAQ,
                                 icetray.I3Frame.Physics,
                                 icetray.I3Frame.Stream('S'),
                                 icetray.I3Frame.Stream('M')],
-                       If=oversize_stream)
+                       If=low_oversize_stream)
         click.echo('Output1: {}'.format(outfile_low_oversize))
         click.echo('Output2: {}'.format(outfile_high_oversize))
     else:
