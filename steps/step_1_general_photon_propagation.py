@@ -35,12 +35,12 @@ def main(cfg, run_number, scratch, low_oversize, high_oversize):
     outfile = outfile.replace(' ', '0')
     if low_oversize:
         dom_oversize = cfg['clsim_low_dom_oversize']
-        infile = infile.replace('i3.gz2', 'low_oversize.i3.gz2')
-        outfile = infile.replace('i3.gz2', 'low_oversize.i3.gz2')
+        infile = infile.replace('i3.bz2', 'low_oversize.i3.bz2')
+        outfile = infile.replace('i3.bz2', 'low_oversize.i3.bz2')
     elif high_oversize:
         dom_oversize = cfg['clsim_high_dom_oversize']
-        infile = infile.replace('i3.gz2', 'high_oversize.i3.gz2')
-        outfile = infile.replace('i3.gz2', 'high_oversize.i3.gz2')
+        infile = infile.replace('i3.bz2', 'high_oversize.i3.bz2')
+        outfile = infile.replace('i3.bz2', 'high_oversize.i3.bz2')
     else:
         dom_oversize = cfg['clsim_dom_oversize']
 
