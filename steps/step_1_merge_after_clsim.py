@@ -11,6 +11,16 @@ from icecube import icetray, dataclasses, dataio, phys_services
 from utils import create_random_services
 
 
+def filter_S_frame(frame):
+    if not filert_S_frame.already_added:
+        filter_S_frame.already_added = True
+        return True
+    else:
+        return False
+
+filter_S_frame.already_added = False
+
+
 @click.command()
 @click.argument('cfg', click.Path(exists=True))
 @click.argument('run_number', type=int)
@@ -33,6 +43,10 @@ def main(cfg, run_number, scratch):
     tray.Add('I3Reader', FilenameList=[infile_low_oversize,
                                        infile_high_oversize])
     outfile = outfile.replace(' ', '0')
+    tray.AddModule(filter_S_frame,
+                   'S Frame Filter',
+                   Streams=[icetray.I3Frame.Stream('S')])
+
     tray.AddModule("I3Writer", "writer",
                    Filename=outfile,
                    Streams=[icetray.I3Frame.DAQ,
