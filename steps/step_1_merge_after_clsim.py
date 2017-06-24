@@ -12,7 +12,7 @@ from utils import create_random_services
 
 
 def filter_S_frame(frame):
-    if not filert_S_frame.already_added:
+    if not filter_S_frame.already_added:
         filter_S_frame.already_added = True
         return True
     else:
