@@ -36,7 +36,7 @@ def main(cfg, run_number, scratch):
     click.echo('EMin: {}'.format(cfg['e_min']))
     click.echo('EMax: {}'.format(cfg['e_max']))
     click.echo('EBreak: {}'.format(cfg['muongun_e_break']))
-    click.echo('Gamma: {}'.foromat(cfg['gamma']))
+    click.echo('Gamma: {}'.format(cfg['gamma']))
     click.echo('ZenithMin: {}'.format(cfg['zenith_min']))
     click.echo('ZenithMax: {}'.format(cfg['zenith_max']))
 
@@ -80,18 +80,18 @@ def main(cfg, run_number, scratch):
         tray.AddModule(OversizeSplitter,
                        "OversizeSplitter",
                        threshold=cfg['photon_propagation_dist_threshold'])
-        outfile_low_oversize = outfile.replace('i3.gz2',
-                                               'low_oversize.i3.gz2')
-        outfile_high_oversize = outfile.replace('i3.gz2',
-                                                'high_oversize.i3.gz2')
-        tray.AddModule("I3Writer", "writer",
+        outfile_low_oversize = outfile.replace('i3.bz2',
+                                               'low_oversize.i3.bz2')
+        outfile_high_oversize = outfile.replace('i3.bz2',
+                                                'high_oversize.i3.bz2')
+        tray.AddModule("I3Writer", "writer_low_oversize",
                        Filename=outfile_low_oversize,
                        Streams=[icetray.I3Frame.DAQ,
                                 icetray.I3Frame.Physics,
                                 icetray.I3Frame.Stream('S'),
                                 icetray.I3Frame.Stream('M')],
                        If=no_oversize_stream)
-        tray.AddModule("I3Writer", "writer",
+        tray.AddModule("I3Writer", "writer_high_oversize",
                        Filename=outfile_high_oversize,
                        Streams=[icetray.I3Frame.DAQ,
                                 icetray.I3Frame.Physics,
