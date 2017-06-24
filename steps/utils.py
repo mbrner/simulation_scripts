@@ -82,11 +82,16 @@ class OversizeSplitter(qStreamSwitcher):
                           'Split into DAQ-frames for large oversize and q-'
                           'frames.',
                           False)
+        self.AddParameter('threshold_doms'
+                          'Treshold for too many close DOMs',
+                          1)
+
     def Configure(self):
         super(qStreamSwitcher, self).Configure()
         self.threshold = self.GetParameter('threshold')
         self.split_streams = self.GetParameter('split_streams')
         self.switch = False
+        self.threshold_doms = self.GetParameter('threshold_doms')
 
     def Geometry(self, frame):
         omgeo = frame['I3Geometry'].omgeo
@@ -99,9 +104,14 @@ class OversizeSplitter(qStreamSwitcher):
         particle = frame['MCMuon']
         v_dir = np.array([particle.dir.x, particle.dir.y, particle.dir.z])
         v_pos = np.array(particle.pos)
-        distances = np.linalg.norm(np.cross(v_dir, v_pos-self.dom_positions),
+        distances = np.linalg.norm(np.cross(v_dir, v_pos - self.dom_positions),
                                    axis=1)
-        if any(distances < self.threshold):
+
+        n_close_doms = np.sum(distances < self.threshold)
+
+        frame['n_close_doms'] = dataclasses.I3Int(n_close_doms)
+        frame['min_distance'] = dataclasses.I3Float(np.min(distances))
+        if n_close_doms > self.threshold_doms:
             frame['no_oversize_stream'] = icetray.I3Bool(True)
             if self.split_streams:
                 frame.stop = self.q_stream
