@@ -36,11 +36,11 @@ def main(cfg, run_number, scratch, low_oversize, high_oversize):
     if low_oversize:
         dom_oversize = cfg['clsim_low_dom_oversize']
         infile = infile.replace('i3.bz2', 'low_oversize.i3.bz2')
-        outfile = infile.replace('i3.bz2', 'low_oversize.i3.bz2')
+        outfile = outfile.replace('i3.bz2', 'low_oversize.i3.bz2')
     elif high_oversize:
         dom_oversize = cfg['clsim_high_dom_oversize']
         infile = infile.replace('i3.bz2', 'high_oversize.i3.bz2')
-        outfile = infile.replace('i3.bz2', 'high_oversize.i3.bz2')
+        outfile = outfile.replace('i3.bz2', 'high_oversize.i3.bz2')
     else:
         dom_oversize = cfg['clsim_dom_oversize']
 
@@ -50,7 +50,7 @@ def main(cfg, run_number, scratch, low_oversize, high_oversize):
                    cfg['icemodel'].lower() != 'spicelea')
     ignore_muon_light = (cfg['clsim_ignore_muon_light'] and
                          cfg['clsim_hybrid_mode'])
-    click.echo('UseGPUs: {}'.clg['clsim_usegpus'])
+    click.echo('UseGPUs: {}'.format(cfg['clsim_usegpus']))
     click.echo('IceModel: {}'.format(cfg['icemodel']))
     click.echo('DomOversize {}'.format(dom_oversize))
     click.echo('LowOversize: {}'.format(low_oversize))
@@ -95,10 +95,6 @@ def main(cfg, run_number, scratch, low_oversize, high_oversize):
         DOMOversizeFactor=dom_oversize,
         CascadeService=cascade_tables)
 
-    if scratch:
-        outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
-    else:
-        outfile = cfg['outfile_pattern'].format(run_number=run_number)
     outfile = outfile.replace(' ', '0')
     tray.AddModule("I3Writer", "writer",
                    Filename=outfile,

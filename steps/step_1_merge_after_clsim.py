@@ -34,6 +34,8 @@ def main(cfg, run_number, scratch):
         outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
     else:
         outfile = cfg['outfile_pattern'].format(run_number=run_number)
+
+    outfile = outfile.replace(' ', '0')
     tray.AddModule("I3Writer", "writer",
                    Filename=outfile,
                    Streams=[icetray.I3Frame.DAQ,
