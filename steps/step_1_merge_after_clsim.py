@@ -1,14 +1,10 @@
 #!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
 #METAPROJECT simulation/V05-01-01
-
 import click
 import yaml
 
-from icecube.simprod import segments
-
 from I3Tray import I3Tray
 from icecube import icetray, dataclasses, dataio, phys_services
-from utils import create_random_services
 
 
 def filter_S_frame(frame):
