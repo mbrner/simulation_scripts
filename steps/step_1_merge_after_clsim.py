@@ -1,5 +1,7 @@
 #!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
 #METAPROJECT simulation/V05-01-01
+import os
+
 import click
 import yaml
 
@@ -52,6 +54,10 @@ def main(cfg, run_number, scratch):
     tray.AddModule("TrashCan", "the can")
     tray.Execute()
     tray.Finish()
+    click.echo('Remvoing {}:'.format(infile_low_oversize))
+    os.remove(infile_low_oversize)
+    click.echo('Remvoing {}:'.format(infile_high_oversize))
+    os.remove(infile_high_oversize)
 
 
 if __name__ == '__main__':
