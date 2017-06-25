@@ -208,5 +208,5 @@ class OversizeSplitter(qStreamSwitcher):
             n_close_doms[i] = np.sum(distances < dist_i)
 
         vec = dataclasses.I3VectorInt(n_close_doms)
-        n_close_doms['MCNCloseDomsMultipleDistances'] = vec
+        frame['MCNCloseDomsMultipleDistances'] = vec
         self.PushFrame(frame)
