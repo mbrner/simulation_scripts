@@ -50,7 +50,7 @@ else
     if [ "$?" = "0" ] || [ $KEEP_CRASHED_FILES = "1" ]; then
         cp *.i3.bz2 {output_folder}
     else
-        rm {scratch_out}
+        rm *.i3.bz2
     fi
 fi
 exit $ICETRAY_RC
