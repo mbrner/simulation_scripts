@@ -204,4 +204,12 @@ class OversizeSplitter(qStreamSwitcher):
         if self.check_containment:
             is_contained = particle_is_inside(self._convex_hull, particle)
             frame['MCMuonIsContained'] = icetray.I3Bool(is_contained)
+        multiple_distances = [2, 4, 6, 8, 10, 15, 20, 25,
+                              30, 35, 40, 45, 50, 55, 60]
+        n_close_doms = np.zeros(len(multiple_distances), dtype=int)
+        for i, dist_i in enumerate(multiple_distances):
+            n_close_doms[i] = np.sum(distances < dist_i)
+
+        vec = dataclasses.I3VectorInt(n_close_doms)
+        n_close_doms['MCNCloseDomsMultipleDistances'] = vec
         self.PushFrame(frame)
