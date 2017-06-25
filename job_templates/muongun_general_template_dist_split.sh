@@ -48,7 +48,7 @@ else
     echo 'IceTray finished with Exit Code: ' $?
     ICETRAY_RC=$?
     if [ "$?" = "0" ] || [ $KEEP_CRASHED_FILES = "1" ]; then
-        cp {scratch_out} $FINAL_OUT
+        cp *.i3.bz2 {output_folder}
     else
         rm {scratch_out}
     fi
