@@ -81,6 +81,13 @@ def main(cfg, run_number, scratch, low_oversize, high_oversize):
     else:
         cascade_tables = None
 
+    if cfg['clsim_usegpus']:
+        use_gpus = True
+        use_cpus = False
+    else:
+        use_gpus = True
+        use_cpus = False
+
     tray.AddSegment(
         segments.PropagatePhotons,
         "PropagatePhotons",
@@ -91,7 +98,8 @@ def main(cfg, run_number, scratch, low_oversize, high_oversize):
         UnshadowedFraction=cfg['clsim_unshadowed_fraction'],
         IgnoreMuons=ignore_muon_light,
         HybridMode=hybrid_mode,
-        UseGPUs=cfg['clsim_usegpus'],
+        UseGPUs=use_gpus,
+        UseCPUs=use_cpus,
         DOMOversizeFactor=dom_oversize,
         CascadeService=cascade_tables)
 
