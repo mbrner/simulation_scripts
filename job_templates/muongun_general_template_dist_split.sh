@@ -12,14 +12,14 @@
 FINAL_OUT={final_out}
 KEEP_CRASHED_FILES={keep_crashed_files:d}
 echo $FINAL_OUT
-if [ -z ${PBS_JOBID} ] && [ -z ${CLUSTER} ]
+if [ -z ${PBS_JOBID} ] && [ -z ${_CONDOR_SCRATCH_DIR} ]
 then
     echo 'Running Script w/o temporary scratch'
     if [ {step} -eq 1 ] ; then
         echo 'Running photon propagation with different oversizings'
-        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch --oversize
-        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch --no-oversize
-        {script_folder}steps/step_1_merge_after_clsim.py {yaml_copy} {run_number}
+        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch --low_oversize
+        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch --high_oversize
+        {script_folder}/steps/step_1_merge_after_clsim.py {yaml_copy} {run_number} --no-scratch
     else
         {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch
     fi
@@ -31,21 +31,26 @@ then
     fi
 else
     echo 'Running Script w/ temporary scratch'
+    if [ -z ${_CONDOR_SCRATCH_DIR} ]
+    then
+        cd /scratch/mboerner
+    else
+        cd ${_CONDOR_SCRATCH_DIR}
+    fi
     if [ {step} -eq 1 ] ; then
         echo 'Running photon propagation with different oversizings'
-        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch --oversize
-        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch --no-oversize
-        {script_folder}steps/step_1_merge_after_clsim.py {yaml_copy} {run_number}
+        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --scratch --low_oversize
+        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --scratch --high_oversize
+        {script_folder}/steps/step_1_merge_after_clsim.py {yaml_copy} {run_number} --scratch
     else
-        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch
+        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --scratch
     fi
     echo 'IceTray finished with Exit Code: ' $?
     ICETRAY_RC=$?
     if [ "$?" = "0" ] || [ $KEEP_CRASHED_FILES = "1" ]; then
-        cp {scratch_out} $FINAL_OUT
-    else
-        rm {scratch_out}
+        cp *.i3.bz2 {output_folder}
     fi
+    rm *.i3.bz2
 fi
 exit $ICETRAY_RC
 
