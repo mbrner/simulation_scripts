@@ -76,13 +76,14 @@ def main(cfg, run_number, scratch):
             cfg['distance_splits']))
         tray.AddModule(OversizeSplitterNSplits,
                        "OversizeSplitterNSplits",
-                       threshold=cfg['distance_splits'],
+                       thresholds=cfg['distance_splits'],
                        thresholds_doms=1,
                        oversize_factors=cfg['oversize_factors'])
         for i in list(range(len(cfg['distance_splits']))) + [None]:
             out_stream = oversize_stream(i)
             outfile_i = out_stream.transform_outfile(outfile)
-            tray.AddModule("I3Writer", "writer_low_oversize",
+            tray.AddModule("I3Writer",
+                           "writer_{}".format(out_stream.stream_name),
                            Filename=outfile_i,
                            Streams=[icetray.I3Frame.DAQ,
                                     icetray.I3Frame.Physics,

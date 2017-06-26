@@ -225,8 +225,15 @@ class OversizeSplitterNSplits(icetray.I3ConditionalModule):
             else:
                 if limit_i < 1.:
                     limit_i = n_relevant_doms * limit_i
-                is_in_stream = np.sum(distances < threshold_i) <= limit_i
+                is_in_stream = np.sum(distances < threshold_i) >= limit_i
+            print('===')
+            print(threshold_i)
+            print(np.sum(distances < threshold_i))
+            print(np.min(distances))
+            print('===')
             frame[stream_name] = icetray.I3Bool(is_in_stream)
+            if is_in_stream:
+                already_added = True
         if already_added:
             frame['MCOversizeStreamDefault'] = icetray.I3Bool(False)
         else:
