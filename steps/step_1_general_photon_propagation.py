@@ -11,7 +11,7 @@ from icecube import icetray, dataclasses, dataio, phys_services
 from utils import create_random_services
 
 
-MAX_PARALLEL_EVENTS = 1
+MAX_PARALLEL_EVENTS = 100
 SPLINE_TABLES = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables/splines'
 
 
