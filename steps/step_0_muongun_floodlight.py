@@ -26,9 +26,9 @@ def main(cfg, run_number, scratch):
         outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
     else:
         outfile = cfg['outfile_pattern'].format(run_number=run_number)
-
-    click.echo('SplittingDistance: {}'.format(
-               cfg['photon_propagation_dist_threshold']))
+    if cfg['distance_splits'] is not None:
+        click.echo('SplittingDistances: {}'.format(cfg['distance_splits']))
+        click.echo('Oversizefactors: {}'.format(cfg['oversize_factors']))
     click.echo('NEvents: {}'.format(cfg['n_events_per_run']))
     click.echo('EMin: {}'.format(cfg['e_min']))
     click.echo('EMax: {}'.format(cfg['e_max']))
@@ -77,7 +77,7 @@ def main(cfg, run_number, scratch):
         tray.AddModule(OversizeSplitterNSplits,
                        "OversizeSplitterNSplits",
                        threshold=cfg['distance_splits'],
-                       thresholds_doms=cfg['distance_splits'],
+                       thresholds_doms=1,
                        oversize_factors=cfg['oversize_factors'])
         for i in list(range(len(cfg['distance_splits']))) + [None]:
             out_stream = oversize_stream(i)
