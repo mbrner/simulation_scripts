@@ -49,9 +49,8 @@ else
     ICETRAY_RC=$?
     if [ "$?" = "0" ] || [ $KEEP_CRASHED_FILES = "1" ]; then
         cp *.i3.bz2 {output_folder}
-    else
-        rm *.i3.bz2
     fi
+    rm *.i3.bz2
 fi
 exit $ICETRAY_RC
 
