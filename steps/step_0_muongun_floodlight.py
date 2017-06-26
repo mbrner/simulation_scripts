@@ -10,7 +10,7 @@ from icecube import icetray, dataclasses
 from icecube import sim_services, MuonGun
 
 from utils import create_random_services
-from dom_distance_cut import low_oversize_stream, high_oversize_stream
+from dom_distance_cut import low_oversize_stream, high_oversize_stream, medium_oversize_stream
 from dom_distance_cut import OversizeSplitter
 
 
@@ -80,6 +80,8 @@ def main(cfg, run_number, scratch):
                        threshold=cfg['photon_propagation_dist_threshold'])
         outfile_low_oversize = outfile.replace('i3.bz2',
                                                'low_oversize.i3.bz2')
+        outfile_medium_oversize = outfile.replace('i3.bz2',
+                                                  'medium_oversize.i3.bz2')
         outfile_high_oversize = outfile.replace('i3.bz2',
                                                 'high_oversize.i3.bz2')
         tray.AddModule("I3Writer", "writer_low_oversize",
@@ -89,6 +91,13 @@ def main(cfg, run_number, scratch):
                                 icetray.I3Frame.Stream('S'),
                                 icetray.I3Frame.Stream('M')],
                        If=high_oversize_stream)
+        tray.AddModule("I3Writer", "writer_medium_oversize",
+                       Filename=outfile_medium_oversize,
+                       Streams=[icetray.I3Frame.DAQ,
+                                icetray.I3Frame.Physics,
+                                icetray.I3Frame.Stream('S'),
+                                icetray.I3Frame.Stream('M')],
+                       If=medium_oversize_stream)
         tray.AddModule("I3Writer", "writer_high_oversize",
                        Filename=outfile_high_oversize,
                        Streams=[icetray.I3Frame.DAQ,

@@ -1,3 +1,4 @@
+import warnings
 import numpy as np
 from scipy.spatial import ConvexHull
 
@@ -94,18 +95,134 @@ def low_oversize_stream(frame):
     else:
         return True
 
-
 def high_oversize_stream(frame):
     if frame.Stop == icetray.I3Frame.DAQ:
-        if frame.Has('MCLowOversizeStream'):
-            if frame['MCLowOversizeStream']:
-                return False
-            else:
+        if frame.Has('MCHighOversizeStream'):
+            if frame['MCHighOversizeStream']:
                 return True
+            else:
+                return False
         else:
-            raise KeyError('MCLowOversizeStream not found')
+            raise KeyError('MCHighOversizeStream not found')
     else:
         return True
+
+class oversize_stream(object):
+    def __init__(self, stream_id=None):
+        if stream_id is None:
+            self.stream_name = 'MCOversizeStreamDefault'
+        elif isinstance(stream_id, int):
+            self.stream_name = 'MCOversizeStream{}'.format(stream_id)
+        else:
+            raise TypeError('stream_id must be int or None')
+
+    def __call__(self, frame):
+        if frame.Stop == icetray.I3Frame.DAQ:
+            if frame.Has(self.stream_name):
+                if frame[self.stream_name]:
+                    return True
+                else:
+                    return False
+            else:
+                raise KeyError('MCHighOversizeStream not found')
+        else:
+            return True
+
+
+class OversizeSplitterNSplits(icetray.I3ConditionalModule):
+    S_stream = icetray.I3Frame.Stream('S')
+
+    def __init__(self, context):
+        icetray.I3ConditionalModule.__init__(self, context)
+        self.AddParameter('thresholds',
+                          'Cut distance',
+                          [10])
+        self.AddParameter('thresholds_doms',
+                          'Treshold for too many close DOMs',
+                          1)
+        self.AddParameter('oversize_factors',
+                          'Treshold for too many close DOMs',
+                          None)
+        self.AddParameter('relevance_dist',
+                          'Max distance to cosinder a DOM as relevant',
+                          200.)
+
+    def Configure(self):
+        self.thresholds = np.atleast_1d(self.GetParameter('thresholds'))
+        self.lim_doms = np.atleast_1d(self.GetParameter('thresholds_doms'))
+        if len(self.thresholds) != len(self.lim_doms):
+            if len(self.lim_doms) == 1:
+                self.lim_doms = np.ones_like(self.thresholds) * self.lim_doms
+            else:
+                raise ValueError('Provide either a DOM limit for each distance'
+                                 ' or one for all!')
+        if self.GetParameter('oversize_factors') is None:
+            warnings.warn('No OversizeFactors Provided! You better document '
+                          'your settings!')
+        else:
+            self.oversize_factors = self.GetParameter('oversize_factors')
+            if isinstance(self.oversize_factors, list):
+                for i, factor_i in enumerate(self.oversize_factors):
+                    if isinstance(factor_i, str):
+                        if factor_i.lower() == 'dima':
+                            self.oversize_factors = 16.
+            self.oversize_factors = np.atleast_1d(self.oversize_factors)
+            if not len(self.oversize_factors) == len(self.thresholds) + 1:
+                raise ValueError('You should provide n_thresholds + 1 '
+                                 'oversize factors. The last should be the '
+                                 'default!')
+        order = np.argsort(self.thresholds)
+        self.thresholds = self.thresholds[order]
+        self.lim_doms = self.lim_doms[order]
+        if any(self.lim_doms) < 1.:
+            self.relevance_dist = self.GetParameter('relevance_dist')
+        else:
+            self.relevance_dist = None
+
+        self.Register(self.S_stream, self.SFrame)
+
+    def Geometry(self, frame):
+        omgeo = frame['I3Geometry'].omgeo
+        self.dom_positions = np.zeros((len(omgeo), 3))
+        self.PushFrame(frame)
+
+    def SFrame(self, frame):
+        frame['MCDistanceCuts'] = dataclasses.I3VectorDouble(self.thresholds)
+        frame['MCDomThresholds'] = dataclasses.I3VectorDouble(self.lim_doms)
+        if self.relevance_dist is not None:
+            frame['MCRelevanceDist'] = dataclasses.I3Double(
+                self.relevance_dist)
+        if self.oversize_factors is not None:
+            frame['MCOversizing'] = dataclasses.I3VectorDouble(
+                self.oversize_factors)
+        self.PushFrame(frame)
+
+    def DAQ(self, frame):
+        particle = frame['MCMuon']
+        v_dir = np.array([particle.dir.x, particle.dir.y, particle.dir.z])
+        v_pos = np.array(particle.pos)
+        distances = np.linalg.norm(np.cross(v_dir, v_pos - self.dom_positions),
+                                   axis=1)
+        if self.relevance_dist is not None:
+            n_relevant_doms = distances < self.relevance_dist
+
+        already_added = False
+        for i, [threshold_i, limit_i] in enumerate(
+                zip(self.thresholds, self.lim_doms)):
+            stream_name = 'MCOversizeStream{}'.format(i)
+            if already_added:
+                is_in_stream = False
+            else:
+                if limit_i < 1.:
+                    limit_i = n_relevant_doms * limit_i
+                is_in_stream = np.sum(distances < threshold_i) <= limit_i
+            frame[stream_name] = icetray.I3Bool(is_in_stream)
+        if already_added:
+            frame['MCOversizeStreamDefault'] = icetray.I3Bool(False)
+        else:
+            frame['MCOversizeStreamDefault'] = icetray.I3Bool(True)
+        self.PushFrame(frame)
+
 
 
 class qStreamSwitcher(icetray.I3ConditionalModule):
