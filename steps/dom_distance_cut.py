@@ -147,10 +147,10 @@ class OversizeSplitter(qStreamSwitcher):
         self.AddParameter('containment_padding',
                           'Padding used to define the detector volume',
                           60.)
-        self.AddParameter('containment_padding',
+        self.AddParameter('cut_distances',
                           'Padding used to define the detector volume',
-                          [2, 4, 6, 8, 10, 15, 20, 25,
-                           30, 35, 40, 45, 50, 55, 60])
+                          [2., 4., 6., 8., 10., 15., 20., 25.,
+                           30., 35., 40., 45., 50., 55., 60.])
 
     def Configure(self):
         super(qStreamSwitcher, self).Configure()
@@ -160,7 +160,7 @@ class OversizeSplitter(qStreamSwitcher):
         self.threshold_doms = self.GetParameter('threshold_doms')
         self.check_containment = self.GetParameter('check_containment')
         self.containment_padding = self.GetParameter('containment_padding')
-        self.multiple_distance = self.GetParameter('CutDistances')
+        self.multiple_distance = self.GetParameter('cut_distances')
         self.switch = False
         self.Register(self.S_stream, self.SFrame)
 
@@ -189,7 +189,7 @@ class OversizeSplitter(qStreamSwitcher):
         if self.multiple_distance is not None:
             frame['MCMultipleDistanceCutValues'] = dataclasses.I3VectorDouble(
                 self.multiple_distance)
-        frame.PushFrame(frame)
+        self.PushFrame(frame)
 
     def DAQ(self, frame):
         particle = frame['MCMuon']
