@@ -115,6 +115,7 @@ class oversize_stream(object):
             self.stream_name = 'MCOversizeStream{}'.format(stream_id)
         else:
             raise TypeError('stream_id must be int or None')
+        self.stream_id = stream_id
 
     def __call__(self, frame):
         if frame.Stop == icetray.I3Frame.DAQ:
@@ -127,6 +128,15 @@ class oversize_stream(object):
                 raise KeyError('MCHighOversizeStream not found')
         else:
             return True
+
+    def transform_outfile(self, file_path):
+        if self.stream_id is None:
+            self.stream_name = 'MCOversizeStreamDefault'
+            addition = 'OversizeStreamDefault'
+        else:
+            addition = 'OversizeStream{}'.format(self.stream_id)
+        return file_path.replace('i3.bz2', '{}.i3.bz2'.format(addition))
+
 
 
 class OversizeSplitterNSplits(icetray.I3ConditionalModule):

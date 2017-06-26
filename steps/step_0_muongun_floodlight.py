@@ -10,8 +10,7 @@ from icecube import icetray, dataclasses
 from icecube import sim_services, MuonGun
 
 from utils import create_random_services
-from dom_distance_cut import low_oversize_stream, high_oversize_stream, medium_oversize_stream
-from dom_distance_cut import OversizeSplitter
+from dom_distance_cut import OversizeSplitterNSplits, oversize_stream
 
 
 @click.command()
@@ -72,41 +71,26 @@ def main(cfg, run_number, scratch):
     else:
         outfile = cfg['outfile_pattern'].format(run_number=run_number)
     outfile = outfile.replace(' ', '0')
-    if cfg['photon_propagation_dist_threshold'] is not None:
+    if cfg['distance_splits'] is not None:
         click.echo('SplittingDistance: {}'.format(
-            cfg['photon_propagation_dist_threshold']))
-        tray.AddModule(OversizeSplitter,
-                       "OversizeSplitter",
-                       threshold=cfg['photon_propagation_dist_threshold'])
-        outfile_low_oversize = outfile.replace('i3.bz2',
-                                               'low_oversize.i3.bz2')
-        outfile_medium_oversize = outfile.replace('i3.bz2',
-                                                  'medium_oversize.i3.bz2')
-        outfile_high_oversize = outfile.replace('i3.bz2',
-                                                'high_oversize.i3.bz2')
-        tray.AddModule("I3Writer", "writer_low_oversize",
-                       Filename=outfile_low_oversize,
-                       Streams=[icetray.I3Frame.DAQ,
-                                icetray.I3Frame.Physics,
-                                icetray.I3Frame.Stream('S'),
-                                icetray.I3Frame.Stream('M')],
-                       If=high_oversize_stream)
-        tray.AddModule("I3Writer", "writer_medium_oversize",
-                       Filename=outfile_medium_oversize,
-                       Streams=[icetray.I3Frame.DAQ,
-                                icetray.I3Frame.Physics,
-                                icetray.I3Frame.Stream('S'),
-                                icetray.I3Frame.Stream('M')],
-                       If=medium_oversize_stream)
-        tray.AddModule("I3Writer", "writer_high_oversize",
-                       Filename=outfile_high_oversize,
-                       Streams=[icetray.I3Frame.DAQ,
-                                icetray.I3Frame.Physics,
-                                icetray.I3Frame.Stream('S'),
-                                icetray.I3Frame.Stream('M')],
-                       If=low_oversize_stream)
-        click.echo('Output1: {}'.format(outfile_low_oversize))
-        click.echo('Output2: {}'.format(outfile_high_oversize))
+            cfg['distance_splits']))
+        tray.AddModule(OversizeSplitterNSplits,
+                       "OversizeSplitterNSplits",
+                       threshold=cfg['distance_splits'],
+                       thresholds_doms=cfg['distance_splits'],
+                       oversize_factors=cfg['oversize_factors'])
+        for i in list(range(len(cfg['distance_splits']))) + [None]:
+            out_stream = oversize_stream(i)
+            outfile_i = out_stream.transform_outfile(outfile)
+            tray.AddModule("I3Writer", "writer_low_oversize",
+                           Filename=outfile_i,
+                           Streams=[icetray.I3Frame.DAQ,
+                                    icetray.I3Frame.Physics,
+                                    icetray.I3Frame.Stream('S'),
+                                    icetray.I3Frame.Stream('M')],
+                           If=out_stream)
+            click.echo('Output ({}): {}'.format(out_stream.stream_name,
+                                                outfile_i))
     else:
         click.echo('Output: {}'.format(outfile))
         tray.AddModule("I3Writer", "writer",

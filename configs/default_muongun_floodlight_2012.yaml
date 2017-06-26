@@ -66,7 +66,9 @@ clsim_keep_mcpe: True
 clsim_hybrid_mode: False
 
 
-photon_propagation_dist_threshold: 25.
+distance_splits: None
+thresholds_doms: 1
+oversize_factors: None
 
 # muongun specific options
 # Energy offset `b` of power-law approximation (E + b)^{-gamma}
