@@ -36,7 +36,7 @@ class JobLogBook(object):
             job_file, exit_code))
         self.n_finished += 1
         self.__clear_job__(pid)
-        progressbar.update(self.n_finished)
+        progressbar.update(1)
 
     def __start_subprocess__(self, job):
         job_name = os.path.splitext(job)[0]
@@ -51,7 +51,7 @@ class JobLogBook(object):
         self.logbook[sub_process.pid] = [sub_process,
                                          job,
                                          log_file]
-        self.n_started += 1
+        self.n_running += 1
         return sub_process.pid
 
     def __clear_job__(self, pid):
