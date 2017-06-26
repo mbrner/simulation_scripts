@@ -125,6 +125,8 @@ class qStreamSwitcher(icetray.I3ConditionalModule):
 
 
 class OversizeSplitter(qStreamSwitcher):
+    S_stream = icetray.I3Frame.Stream('S')
+
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
         self.AddParameter('threshold',
@@ -145,6 +147,10 @@ class OversizeSplitter(qStreamSwitcher):
         self.AddParameter('containment_padding',
                           'Padding used to define the detector volume',
                           60.)
+        self.AddParameter('containment_padding',
+                          'Padding used to define the detector volume',
+                          [2, 4, 6, 8, 10, 15, 20, 25,
+                           30, 35, 40, 45, 50, 55, 60])
 
     def Configure(self):
         super(qStreamSwitcher, self).Configure()
@@ -154,7 +160,9 @@ class OversizeSplitter(qStreamSwitcher):
         self.threshold_doms = self.GetParameter('threshold_doms')
         self.check_containment = self.GetParameter('check_containment')
         self.containment_padding = self.GetParameter('containment_padding')
+        self.multiple_distance = self.GetParameter('CutDistances')
         self.switch = False
+        self.Register(self.S_stream, self.SFrame)
 
     def Geometry(self, frame):
         omgeo = frame['I3Geometry'].omgeo
@@ -176,6 +184,12 @@ class OversizeSplitter(qStreamSwitcher):
                 new_pos = pos + v_dir * self.containment_padding
                 points_for_convex_hull[i] = new_pos
         self._convex_hull = ConvexHull(points_for_convex_hull)
+
+    def SFrame(self, frame):
+        if self.multiple_distance is not None:
+            frame['MCMultipleDistanceCutValues'] = dataclasses.I3VectorDouble(
+                self.multiple_distance)
+        frame.PushFrame(frame)
 
     def DAQ(self, frame):
         particle = frame['MCMuon']
@@ -201,12 +215,9 @@ class OversizeSplitter(qStreamSwitcher):
         if self.check_containment:
             is_contained = particle_is_inside(self._convex_hull, particle)
             frame['MCMuonIsContained'] = icetray.I3Bool(is_contained)
-        multiple_distances = [2, 4, 6, 8, 10, 15, 20, 25,
-                              30, 35, 40, 45, 50, 55, 60]
-        n_close_doms = np.zeros(len(multiple_distances), dtype=int)
-        for i, dist_i in enumerate(multiple_distances):
-            n_close_doms[i] = np.sum(distances < dist_i)
-
-        vec = dataclasses.I3VectorInt(n_close_doms)
-        frame['MCNCloseDomsMultipleDistances'] = vec
+        if self.multiple_distance is not None:
+            n_close_doms = [np.sum(distances < dist_i)
+                            for dist_i in self.multiple_distance]
+            frame['MCNCloseDomsMultipleDistances'] = dataclasses.I3VectorInt(
+                n_close_doms)
         self.PushFrame(frame)
