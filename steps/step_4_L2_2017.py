@@ -32,7 +32,7 @@ def main(cfg, run_number, scratch):
 
 
     tray.AddSegment(OfflineFilter, "OfflineFilter",
-        dstfile=cfg['dstfile'],
+        dstfile=None,#cfg['dstfile'],
         mc=True,#cfg['L2_mc'],
         doNotQify=True,#cfg['L2_mc'],
         photonicsdir=PHOTONICS_DIR
