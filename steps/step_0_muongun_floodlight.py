@@ -3,6 +3,8 @@
 import click
 import yaml
 
+import numpy as np
+
 from icecube.simprod import segments
 
 from I3Tray import I3Tray
@@ -10,7 +12,7 @@ from icecube import icetray, dataclasses
 from icecube import sim_services, MuonGun
 
 from utils import create_random_services
-from dom_distance_cut import OversizeSplitterNSplits, oversize_stream
+from dom_distance_cut import OversizeSplitterNSplits, OversizeStream
 
 
 @click.command()
@@ -79,9 +81,11 @@ def main(cfg, run_number, scratch):
                        thresholds=cfg['distance_splits'],
                        thresholds_doms=1,
                        oversize_factors=cfg['oversize_factors'])
-        for i in list(range(len(cfg['distance_splits']))) + [None]:
-            out_stream = oversize_stream(i)
-            outfile_i = out_stream.transform_outfile(outfile)
+        distance_splits = np.atleast_1d(cfg['distance_splits'])
+        distance_splits = np.sort(distance_splits)
+        for dist_i in distance_splits:
+            out_stream = OversizeStream(dist_i)
+            outfile_i = out_stream.transform_filepath(outfile)
             tray.AddModule("I3Writer",
                            "writer_{}".format(out_stream.stream_name),
                            Filename=outfile_i,
