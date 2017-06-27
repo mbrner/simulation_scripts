@@ -1,6 +1,6 @@
 #!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
 #METAPROJECT simulation/V05-01-01
-
+import threading
 import click
 import yaml
 import os
@@ -115,6 +115,17 @@ def merge(infiles, outfile):
         os.remove(file_i)
 
 
+class TrayThread(threading.Thread):
+    def __init__(self, cfg, infile, outfile):
+        self.cfg = cfg
+        self.infile = infile
+        self.outfile = outfile
+        threading.Thread.__init__(self)
+
+    def run(self):
+        process_single_stream(self.cfg, self.infile, self.outfile)
+
+
 @click.command()
 @click.argument('cfg', click.Path(exists=True))
 @click.argument('run_number', type=int)
@@ -132,23 +143,24 @@ def main(cfg, run_number, scratch):
         outfile = cfg['outfile_pattern'].format(run_number=run_number)
     outfile = outfile.replace(' ', '0')
     if cfg.get('distance_splits', False):
-        process_single_stream(cfg, scratch, infile, outfile)
+        from multiprocessing import Process
         distance_splits = np.atleast_1d(cfg['distance_splits'])
-        dom_limits = np.atleast_1d(cfg['thresholds_doms'])
+        dom_limits = np.atleast_1d(cfg['threshold_doms'])
         if len(dom_limits) == 1:
-            dom_limits = np.ones_like(distance_splits) * cfg['thresholds_doms']
+            dom_limits = np.ones_like(distance_splits) * cfg['threshold_doms']
         oversize_factors = np.atleast_1d(cfg['oversize_factors'])
         order = np.argsort(distance_splits)
         stream_objects = generate_stream_object(distance_splits[order],
                                                 dom_limits[order],
                                                 oversize_factors[order])
-        for stream_i, oversize_i in stream_objects:
+        for stream_i in stream_objects:
             infile_i = stream_i.transform_filepath(infile)
             outfile_i = stream_i.transform_filepath(outfile)
             cfg['clsim_dom_oversize'] = stream_i.oversize_factor
-            process_single_stream(cfg, infile_i, outfile_i)
-
-        infiles = [stream_i.transform_filepath(infile)
+            thread = Process(target=process_single_stream, args=(cfg, infile_i, outfile_i))
+            thread.start()
+            thread.join()
+        infiles = [stream_i.transform_filepath(outfile)
                    for stream_i in stream_objects]
         merge(infiles, outfile)
 
