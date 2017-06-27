@@ -120,7 +120,7 @@ class OversizeStream(object):
             self.stream_name = 'MCOversizeStream{}'.format(self.stream_id)
             self.file_addition = 'OversizeStreamDefault{}'.format(
                 self.stream_id)
-            self.stream_counter += 1
+            OversizeStream.stream_counter += 1
         self.cut_dist = cut_dist
 
     def __call__(self, frame):
@@ -131,7 +131,7 @@ class OversizeStream(object):
                 else:
                     return False
             else:
-                raise KeyError('MCHighOversizeStream not found')
+                raise KeyError('{} not found'.format(self.stream_name))
         else:
             return True
 
@@ -184,7 +184,7 @@ class OversizeSplitterNSplits(icetray.I3ConditionalModule):
             self.default_idx = np.where(self.thresholds == -1.)[0][0]
         else:
             self.default_idx = None
-        relevance_dist_needed = any([x < 1. for i, x in enumerate(self.lim_dim)
+        relevance_dist_needed = any([x < 1. for i, x in enumerate(self.lim_doms)
                                      if i != self.default_idx])
         if relevance_dist_needed:
             self.relevance_dist = self.GetParameter('relevance_dist')
@@ -220,6 +220,7 @@ class OversizeSplitterNSplits(icetray.I3ConditionalModule):
         already_added = False
         for i, [stream_i, limit_i] in enumerate(
                 zip(self.stream_objects, self.lim_doms)):
+            print(stream_i.stream_name)
             if i == self.default_idx:
                 continue
             if already_added:
