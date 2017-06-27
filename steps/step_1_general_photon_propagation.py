@@ -99,7 +99,7 @@ def main(cfg, run_number, scratch, low_oversize, high_oversize):
         IgnoreMuons=ignore_muon_light,
         HybridMode=hybrid_mode,
         UseGPUs=use_gpus,
-        UseCPUs=use_cpus,
+        UseAllCPUCores=use_cpus,
         DOMOversizeFactor=dom_oversize,
         CascadeService=cascade_tables)
 
