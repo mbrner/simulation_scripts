@@ -19,7 +19,7 @@ class JobLogBook(object):
                 if os.path.isfile(job) and os.access(job, os.X_OK):
                     self.__start_subprocess__(job)
                 else:
-                    click.echo('{} is not executable! (Skipped)')
+                    click.echo('{} is not executable! (Skipped)'.format(job))
                     self.n_finished += 1
                 if self.n_running >= self.n_jobs:
                     self.__wait__(bar)
@@ -39,7 +39,7 @@ class JobLogBook(object):
         progressbar.update(1)
 
     def __start_subprocess__(self, job):
-        job_name = os.path.splitext(job)[0]
+        job_name = os.path.basename(os.path.splitext(job)[0])
         if self.log_dir is not None:
             log_path = os.path.join(self.log_dir, '{}.log'.format(job_name))
             log_file = open(log_path, 'w')
@@ -63,14 +63,16 @@ class JobLogBook(object):
 
 
 @click.command()
-@click.argument('path', click.Path(exists=True))
+@click.argument('path', click.Path(exists=True, resolve_path=True))
 @click.option('-j', '--n_jobs', default=1,
               help='Number of parallel jobs')
 @click.option('-p', '--binary_pattern', default='*.sh',
               help='Pattern of the binaries')
 @click.option('-l', '--log_path', default=None,
+              type=click.Path(resolve_path=True),
               help='Path to a dir where the stdout/stderr should be saved')
 def main(path, binary_pattern, n_jobs, log_path):
+    path = os.path.abspath(path)
     binaries = list(glob.glob(os.path.join(path, binary_pattern)))
     click.echo('Processing {} with max. {} parralel jobs!'.format(
         len(binaries), n_jobs))

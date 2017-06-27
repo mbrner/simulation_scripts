@@ -3,13 +3,15 @@ seed: 1337
 dataset_number: 11301
 gcd: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2012.56063_V1.i3.gz
 generator: muongun
-n_events_per_run: 2000
-n_runs: 3000
+n_events_per_run: 100
+n_runs: 10
 e_min: !!float 5e1
 e_max: !!float 1e7
 gamma: 2.
 muongun_e_break: !!float 1e6
 icemodel: SpiceLea
+distance_splits: [10., 20., 30., 100]
+oversize_factors: [1.,  2.,  3.,   5., 16.]
 clsim_unshadowed_fraction: 0.99
 clsim_ignore_muon_light: False
 clsim_usegpus: True
