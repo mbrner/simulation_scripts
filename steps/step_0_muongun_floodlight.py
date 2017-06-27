@@ -12,7 +12,7 @@ from icecube import icetray, dataclasses
 from icecube import sim_services, MuonGun
 
 from utils import create_random_services
-from dom_distance_cut import OversizeSplitterNSplits, OversizeStream
+from dom_distance_cut import OversizeSplitterNSplits, generate_stream_object
 
 
 @click.command()
@@ -82,19 +82,25 @@ def main(cfg, run_number, scratch):
                        thresholds_doms=1,
                        oversize_factors=cfg['oversize_factors'])
         distance_splits = np.atleast_1d(cfg['distance_splits'])
-        distance_splits = np.sort(distance_splits)
-        for dist_i in distance_splits:
-            out_stream = OversizeStream(dist_i)
-            outfile_i = out_stream.transform_filepath(outfile)
+        dom_limits = np.atleast_1d(cfg['thresholds_doms'])
+        if len(dom_limits) == 1:
+            dom_limits = np.ones_like(distance_splits) * cfg['thresholds_doms']
+        oversize_factors = np.atleast_1d(cfg['oversize_factors'])
+        order = np.argsort(distance_splits)
+        stream_objects = generate_stream_object(distance_splits[order],
+                                                dom_limits[order],
+                                                oversize_factors[order])
+        for stream_i in stream_objects:
+            outfile_i = stream_i.transform_filepath(outfile)
             tray.AddModule("I3Writer",
-                           "writer_{}".format(out_stream.stream_name),
+                           "writer_{}".format(stream_i.stream_name),
                            Filename=outfile_i,
                            Streams=[icetray.I3Frame.DAQ,
                                     icetray.I3Frame.Physics,
                                     icetray.I3Frame.Stream('S'),
                                     icetray.I3Frame.Stream('M')],
-                           If=out_stream)
-            click.echo('Output ({}): {}'.format(out_stream.stream_name,
+                           If=stream_i)
+            click.echo('Output ({}): {}'.format(stream_i.stream_name,
                                                 outfile_i))
     else:
         click.echo('Output: {}'.format(outfile))

@@ -12,7 +12,7 @@ from icecube.simprod import segments
 from I3Tray import I3Tray
 from icecube import icetray, dataclasses, dataio, phys_services
 from utils import create_random_services
-from dom_distance_cut import OversizeStream
+from dom_distance_cut import generate_stream_object
 
 
 MAX_PARALLEL_EVENTS = 100
@@ -68,13 +68,8 @@ def process_single_stream(cfg, infile, outfile):
         IgnoreMuons=ignore_muon_light,
         HybridMode=hybrid_mode,
         UseGPUs=use_gpus,
-<<<<<<< HEAD
-        UseCPUs=use_cpus,
-        DOMOversizeFactor=cfg['clsim_dom_oversize'],
-=======
         UseAllCPUCores=use_cpus,
-        DOMOversizeFactor=dom_oversize,
->>>>>>> 3726000a31beaa16b905424ffeee88360436fcd8
+        DOMOversizeFactor=cfg['clsim_dom_oversize'],
         CascadeService=cascade_tables)
 
     outfile = outfile.replace(' ', '0')
@@ -138,16 +133,19 @@ def main(cfg, run_number, scratch):
     outfile = outfile.replace(' ', '0')
     if cfg.get('distance_splits', False):
         process_single_stream(cfg, scratch, infile, outfile)
-    else:
         distance_splits = np.atleast_1d(cfg['distance_splits'])
-        distance_splits = np.sort(distance_splits)
+        dom_limits = np.atleast_1d(cfg['thresholds_doms'])
+        if len(dom_limits) == 1:
+            dom_limits = np.ones_like(distance_splits) * cfg['thresholds_doms']
         oversize_factors = np.atleast_1d(cfg['oversize_factors'])
-        stream_objects = [OversizeStream(dist_i)
-                          for dist_i in distance_splits]
-        for stream_i, oversize_i in zip(stream_objects, oversize_factors):
+        order = np.argsort(distance_splits)
+        stream_objects = generate_stream_object(distance_splits[order],
+                                                dom_limits[order],
+                                                oversize_factors[order])
+        for stream_i, oversize_i in stream_objects:
             infile_i = stream_i.transform_filepath(infile)
             outfile_i = stream_i.transform_filepath(outfile)
-            cfg['clsim_dom_oversize'] = oversize_i
+            cfg['clsim_dom_oversize'] = stream_i.oversize_factor
             process_single_stream(cfg, infile_i, outfile_i)
 
         infiles = [stream_i.transform_filepath(infile)
