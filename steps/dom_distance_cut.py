@@ -168,7 +168,7 @@ def generate_stream_object(cut_distances, dom_limits, oversize_factors):
                            dom_limit=lim_i,
                            oversize_factor=factor_i))
         stream_id += 1
-
+    return stream_objects
 
 
 class OversizeSplitterNSplits(icetray.I3ConditionalModule):
@@ -210,8 +210,6 @@ class OversizeSplitterNSplits(icetray.I3ConditionalModule):
         order = np.argsort(self.thresholds)
         self.thresholds = self.thresholds[order]
         self.lim_doms = self.lim_doms[order]
-        self.stream_objects = [OversizeStream(dist_i)
-                               for dist_i in self.thresholds]
         if any(self.thresholds == -1.):
             self.default_idx = np.where(self.thresholds == -1.)[0][0]
         else:
@@ -264,7 +262,7 @@ class OversizeSplitterNSplits(icetray.I3ConditionalModule):
                     limit_i = n_relevant_doms * stream_i.dom_limit
                 else:
                     limit_i = stream_i.dom_limit
-                is_in_stream = np.sum(distances < stream_i.cut_dist) >= limit_i
+                is_in_stream = np.sum(distances < stream_i.distance_cut) >= limit_i
             frame[stream_i.stream_name] = icetray.I3Bool(is_in_stream)
             if is_in_stream:
                 already_added = True

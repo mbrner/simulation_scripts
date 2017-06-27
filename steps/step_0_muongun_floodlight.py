@@ -76,20 +76,25 @@ def main(cfg, run_number, scratch):
     if cfg['distance_splits'] is not None:
         click.echo('SplittingDistance: {}'.format(
             cfg['distance_splits']))
-        tray.AddModule(OversizeSplitterNSplits,
-                       "OversizeSplitterNSplits",
-                       thresholds=cfg['distance_splits'],
-                       thresholds_doms=1,
-                       oversize_factors=cfg['oversize_factors'])
         distance_splits = np.atleast_1d(cfg['distance_splits'])
-        dom_limits = np.atleast_1d(cfg['thresholds_doms'])
+        dom_limits = np.atleast_1d(cfg['threshold_doms'])
         if len(dom_limits) == 1:
-            dom_limits = np.ones_like(distance_splits) * cfg['thresholds_doms']
+            dom_limits = np.ones_like(distance_splits) * cfg['threshold_doms']
         oversize_factors = np.atleast_1d(cfg['oversize_factors'])
         order = np.argsort(distance_splits)
-        stream_objects = generate_stream_object(distance_splits[order],
-                                                dom_limits[order],
-                                                oversize_factors[order])
+
+        distance_splits = distance_splits[order]
+        dom_limits=dom_limits[order]
+        oversize_factors = oversize_factors[order]
+
+        stream_objects = generate_stream_object(distance_splits,
+                                                dom_limits,
+                                                oversize_factors)
+        tray.AddModule(OversizeSplitterNSplits,
+                       "OversizeSplitterNSplits",
+                       thresholds=distance_splits,
+                       thresholds_doms=dom_limits,
+                       oversize_factors=oversize_factors)
         for stream_i in stream_objects:
             outfile_i = stream_i.transform_filepath(outfile)
             tray.AddModule("I3Writer",

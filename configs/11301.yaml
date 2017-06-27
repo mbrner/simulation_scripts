@@ -12,6 +12,7 @@ gamma: 2.
 muongun_e_break: !!float 1e6
 icemodel: SpiceLea
 distance_splits:  [-1., 10., 20., 30., 100.]
+threshold_doms: 1
 oversize_factors: [16.,  1.,  2.,  3.,   5.]
 clsim_unshadowed_fraction: 0.99
 clsim_ignore_muon_light: False
