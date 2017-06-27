@@ -68,8 +68,13 @@ def process_single_stream(cfg, infile, outfile):
         IgnoreMuons=ignore_muon_light,
         HybridMode=hybrid_mode,
         UseGPUs=use_gpus,
+<<<<<<< HEAD
         UseCPUs=use_cpus,
         DOMOversizeFactor=cfg['clsim_dom_oversize'],
+=======
+        UseAllCPUCores=use_cpus,
+        DOMOversizeFactor=dom_oversize,
+>>>>>>> 3726000a31beaa16b905424ffeee88360436fcd8
         CascadeService=cascade_tables)
 
     outfile = outfile.replace(' ', '0')
