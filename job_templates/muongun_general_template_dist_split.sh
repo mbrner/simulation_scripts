@@ -15,14 +15,7 @@ echo $FINAL_OUT
 if [ -z ${PBS_JOBID} ] && [ -z ${_CONDOR_SCRATCH_DIR} ]
 then
     echo 'Running Script w/o temporary scratch'
-    if [ {step} -eq 1 ] ; then
-        echo 'Running photon propagation with different oversizings'
-        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch --low_oversize
-        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch --high_oversize
-        {script_folder}/steps/step_1_merge_after_clsim.py {yaml_copy} {run_number} --no-scratch
-    else
-        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch
-    fi
+    {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch
     echo 'IceTray finished with Exit Code: ' $?
     ICETRAY_RC=$?
     if [ "$?" != "0" ] && [ $KEEP_CRASHED_FILES != "0" ] ; then
@@ -37,14 +30,7 @@ else
     else
         cd ${_CONDOR_SCRATCH_DIR}
     fi
-    if [ {step} -eq 1 ] ; then
-        echo 'Running photon propagation with different oversizings'
-        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --scratch --low_oversize
-        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --scratch --high_oversize
-        {script_folder}/steps/step_1_merge_after_clsim.py {yaml_copy} {run_number} --scratch
-    else
-        {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --scratch
-    fi
+    {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --scratch
     echo 'IceTray finished with Exit Code: ' $?
     ICETRAY_RC=$?
     if [ "$?" = "0" ] || [ $KEEP_CRASHED_FILES = "1" ]; then

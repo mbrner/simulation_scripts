@@ -3,76 +3,45 @@
 
 import click
 import yaml
+import os
+
+import numpy as np
 
 from icecube.simprod import segments
 
 from I3Tray import I3Tray
 from icecube import icetray, dataclasses, dataio, phys_services
 from utils import create_random_services
+from dom_distance_cut import OversizeStream
 
 
 MAX_PARALLEL_EVENTS = 100
 SPLINE_TABLES = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables/splines'
 
 
-@click.command()
-@click.argument('cfg', click.Path(exists=True))
-@click.argument('run_number', type=int)
-@click.option('--scratch/--no-scratch', default=True)
-@click.option('--low_oversize/--no-low_oversize', default=False)
-@click.option('--high_oversize/--no-high_oversize', default=False)
-def main(cfg, run_number, scratch, low_oversize, high_oversize):
-    with open(cfg, 'r') as stream:
-        cfg = yaml.load(stream)
-    cfg['run_number'] = run_number
-    infile = cfg['infile_pattern'].format(run_number=run_number)
-    infile = infile.replace(' ', '0')
-
-    if scratch:
-        outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
-    else:
-        outfile = cfg['outfile_pattern'].format(run_number=run_number)
-    outfile = outfile.replace(' ', '0')
-    if low_oversize:
-        dom_oversize = cfg['clsim_low_dom_oversize']
-        infile = infile.replace('i3.bz2', 'low_oversize.i3.bz2')
-        outfile = outfile.replace('i3.bz2', 'low_oversize.i3.bz2')
-    elif high_oversize:
-        dom_oversize = cfg['clsim_high_dom_oversize']
-        infile = infile.replace('i3.bz2', 'high_oversize.i3.bz2')
-        outfile = outfile.replace('i3.bz2', 'high_oversize.i3.bz2')
-    else:
-        dom_oversize = cfg['clsim_dom_oversize']
-
+def process_single_stream(cfg, infile, outfile):
     click.echo('Input: {}'.format(infile))
-
     hybrid_mode = (cfg['clsim_hybrid_mode'] and
                    cfg['icemodel'].lower() != 'spicelea')
     ignore_muon_light = (cfg['clsim_ignore_muon_light'] and
                          cfg['clsim_hybrid_mode'])
     click.echo('UseGPUs: {}'.format(cfg['clsim_usegpus']))
     click.echo('IceModel: {}'.format(cfg['icemodel']))
-    click.echo('DomOversize {}'.format(dom_oversize))
-    click.echo('LowOversize: {}'.format(low_oversize))
-    click.echo('HighOversize: {}'.format(high_oversize))
+    click.echo('DomOversize {}'.format(cfg['clsim_dom_oversize']))
     click.echo('UnshadowedFraction: {0:.2f}'.format(
         cfg['clsim_unshadowed_fraction']))
     click.echo('HybridMode: {}'.format(hybrid_mode))
     click.echo('IgnoreMuonLight: {}'.format(ignore_muon_light))
     click.echo('KeepMCPE: {}'.format(cfg['clsim_keep_mcpe']))
     click.echo('Output: {}'.format(outfile))
-    click.echo('Scratch: {}'.format(scratch))
+
     tray = I3Tray()
-
     tray.context['I3FileStager'] = dataio.get_stagers()
-
     random_service, _, _ = create_random_services(
         dataset_number=cfg['run_number'],
         run_number=cfg['dataset_number'],
         seed=cfg['seed'])
-
     tray.context['I3RandomService'] = random_service
-
     tray.Add('I3Reader', FilenameList=[cfg['gcd'], infile])
 
     if hybrid_mode:
@@ -100,7 +69,7 @@ def main(cfg, run_number, scratch, low_oversize, high_oversize):
         HybridMode=hybrid_mode,
         UseGPUs=use_gpus,
         UseCPUs=use_cpus,
-        DOMOversizeFactor=dom_oversize,
+        DOMOversizeFactor=cfg['clsim_dom_oversize'],
         CascadeService=cascade_tables)
 
     outfile = outfile.replace(' ', '0')
@@ -114,6 +83,71 @@ def main(cfg, run_number, scratch, low_oversize, high_oversize):
     tray.Execute()
     tray.Finish()
 
+
+def filter_S_frame(frame):
+    if not filter_S_frame.already_added:
+        filter_S_frame.already_added = True
+        return True
+    else:
+        return False
+
+filter_S_frame.already_added = False
+
+
+def merge(infiles, outfile):
+    tray = I3Tray()
+    tray.context['I3FileStager'] = dataio.get_stagers()
+    tray.Add('I3Reader', FilenameList=infiles)
+    tray.AddModule(filter_S_frame,
+                   'S Frame Filter',
+                   Streams=[icetray.I3Frame.Stream('S')])
+    tray.AddModule("I3Writer", "writer",
+                   Filename=outfile,
+                   Streams=[icetray.I3Frame.DAQ,
+                            icetray.I3Frame.Physics,
+                            icetray.I3Frame.Stream('S'),
+                            icetray.I3Frame.Stream('M')])
+    tray.AddModule("TrashCan", "the can")
+    tray.Execute()
+    tray.Finish()
+    for file_i in infiles:
+        click.echo('Remvoing {}:'.format(file_i))
+        os.remove(file_i)
+
+
+@click.command()
+@click.argument('cfg', click.Path(exists=True))
+@click.argument('run_number', type=int)
+@click.option('--scratch/--no-scratch', default=True)
+def main(cfg, run_number, scratch):
+    with open(cfg, 'r') as stream:
+        cfg = yaml.load(stream)
+    cfg['run_number'] = run_number
+    infile = cfg['infile_pattern'].format(run_number=run_number)
+    infile = infile.replace(' ', '0')
+
+    if scratch:
+        outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
+    else:
+        outfile = cfg['outfile_pattern'].format(run_number=run_number)
+    outfile = outfile.replace(' ', '0')
+    if cfg.get('distance_splits', False):
+        process_single_stream(cfg, scratch, infile, outfile)
+    else:
+        distance_splits = np.atleast_1d(cfg['distance_splits'])
+        distance_splits = np.sort(distance_splits)
+        oversize_factors = np.atleast_1d(cfg['oversize_factors'])
+        stream_objects = [OversizeStream(dist_i)
+                          for dist_i in distance_splits]
+        for stream_i, oversize_i in zip(stream_objects, oversize_factors):
+            infile_i = stream_i.transform_filepath(infile)
+            outfile_i = stream_i.transform_filepath(outfile)
+            cfg['clsim_dom_oversize'] = oversize_i
+            process_single_stream(cfg, infile_i, outfile_i)
+
+        infiles = [stream_i.transform_filepath(infile)
+                   for stream_i in stream_objects]
+        merge(infiles, outfile)
 
 if __name__ == '__main__':
     main()

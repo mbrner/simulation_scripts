@@ -107,15 +107,21 @@ def high_oversize_stream(frame):
     else:
         return True
 
-class oversize_stream(object):
-    def __init__(self, stream_id=None):
-        if stream_id is None:
+class OversizeStream(object):
+    stream_counter = 0
+
+    def __init__(self, cut_dist=None):
+        if cut_dist is None or cut_dist < 0:
+            self.stream_id = -1
             self.stream_name = 'MCOversizeStreamDefault'
-        elif isinstance(stream_id, int):
-            self.stream_name = 'MCOversizeStream{}'.format(stream_id)
+            self.file_addition = 'OversizeStreamDefault'
         else:
-            raise TypeError('stream_id must be int or None')
-        self.stream_id = stream_id
+            self.stream_id = int(self.stream_counter)
+            self.stream_name = 'MCOversizeStream{}'.format(self.stream_id)
+            self.file_addition = 'OversizeStreamDefault{}'.format(
+                self.stream_id)
+            self.stream_counter += 1
+        self.cut_dist = cut_dist
 
     def __call__(self, frame):
         if frame.Stop == icetray.I3Frame.DAQ:
@@ -129,15 +135,9 @@ class oversize_stream(object):
         else:
             return True
 
-    def transform_outfile(self, file_path):
-        if self.stream_id is None:
-            self.stream_name = 'MCOversizeStreamDefault'
-            addition = 'OversizeStreamDefault'
-        else:
-            addition = 'OversizeStream{}'.format(self.stream_id)
-        return file_path.replace('i3.bz2', '{}.i3.bz2'.format(addition))
-
-
+    def transform_filepath(self, filepath):
+        return filepath.replace('i3.bz2',
+                                '{}.i3.bz2'.format(self.file_addition))
 
 class OversizeSplitterNSplits(icetray.I3ConditionalModule):
     S_stream = icetray.I3Frame.Stream('S')
@@ -170,25 +170,26 @@ class OversizeSplitterNSplits(icetray.I3ConditionalModule):
             warnings.warn('No OversizeFactors Provided! You better document '
                           'your settings!')
         else:
-            self.oversize_factors = self.GetParameter('oversize_factors')
-            if isinstance(self.oversize_factors, list):
-                for i, factor_i in enumerate(self.oversize_factors):
-                    if isinstance(factor_i, str):
-                        if factor_i.lower() == 'dima':
-                            self.oversize_factors = 16.
-            self.oversize_factors = np.atleast_1d(self.oversize_factors)
-            if not len(self.oversize_factors) == len(self.thresholds) + 1:
-                raise ValueError('You should provide n_thresholds + 1 '
-                                 'oversize factors. The last should be the '
-                                 'default!')
+            self.oversize_factors = np.atleast_1d(
+                self.GetParameter('oversize_factors'))
+            if not len(self.oversize_factors) == len(self.thresholds):
+                raise ValueError('You should provide a single or for each '
+                                 'distance cut a dom limit.')
         order = np.argsort(self.thresholds)
         self.thresholds = self.thresholds[order]
         self.lim_doms = self.lim_doms[order]
-        if any(self.lim_doms) < 1.:
+        self.stream_objects = [OversizeStream(dist_i)
+                               for dist_i in self.thresholds]
+        if any(self.thresholds == -1.):
+            self.default_idx = np.where(self.thresholds == -1.)[0][0]
+        else:
+            self.default_idx = None
+        relevance_dist_needed = any([x < 1. for i, x in enumerate(self.lim_dim)
+                                     if i != self.default_idx])
+        if relevance_dist_needed:
             self.relevance_dist = self.GetParameter('relevance_dist')
         else:
             self.relevance_dist = None
-
         self.Register(self.S_stream, self.SFrame)
 
     def Geometry(self, frame):
@@ -217,27 +218,24 @@ class OversizeSplitterNSplits(icetray.I3ConditionalModule):
             n_relevant_doms = distances < self.relevance_dist
 
         already_added = False
-        for i, [threshold_i, limit_i] in enumerate(
-                zip(self.thresholds, self.lim_doms)):
-            stream_name = 'MCOversizeStream{}'.format(i)
+        for i, [stream_i, limit_i] in enumerate(
+                zip(self.stream_objects, self.lim_doms)):
+            if i == self.default_idx:
+                continue
             if already_added:
                 is_in_stream = False
             else:
                 if limit_i < 1.:
                     limit_i = n_relevant_doms * limit_i
-                is_in_stream = np.sum(distances < threshold_i) >= limit_i
-            print('===')
-            print(threshold_i)
-            print(np.sum(distances < threshold_i))
-            print(np.min(distances))
-            print('===')
-            frame[stream_name] = icetray.I3Bool(is_in_stream)
+                is_in_stream = np.sum(distances < stream_i.cut_dist) >= limit_i
+            frame[stream_i.stream_name] = icetray.I3Bool(is_in_stream)
             if is_in_stream:
                 already_added = True
-        if already_added:
-            frame['MCOversizeStreamDefault'] = icetray.I3Bool(False)
-        else:
-            frame['MCOversizeStreamDefault'] = icetray.I3Bool(True)
+        if self.default_idx is not None:
+            if already_added and self.default_idx is not None:
+                frame['MCOversizeStreamDefault'] = icetray.I3Bool(False)
+            else:
+                frame['MCOversizeStreamDefault'] = icetray.I3Bool(True)
         self.PushFrame(frame)
 
 
