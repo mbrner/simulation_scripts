@@ -125,7 +125,7 @@ class OversizeStream(object):
             self.file_addition = 'OversizeStreamDefault'
         else:
             self.stream_name = 'MCOversizeStream{}'.format(self.stream_id)
-            self.file_addition = 'OversizeStreamDefault{}'.format(
+            self.file_addition = 'OversizeStream{}'.format(
                 self.stream_id)
 
 
@@ -162,12 +162,13 @@ def generate_stream_object(cut_distances, dom_limits, oversize_factors):
             id_ = -1
         else:
             id_ = stream_id
+            stream_id += 1
         stream_objects.append(
             OversizeStream(id_,
                            distance_cut=dist_i,
                            dom_limit=lim_i,
                            oversize_factor=factor_i))
-        stream_id += 1
+
     return stream_objects
 
 
@@ -223,6 +224,8 @@ class OversizeSplitterNSplits(icetray.I3ConditionalModule):
         self.stream_objects = generate_stream_object(self.thresholds,
                                                      self.lim_doms,
                                                      self.oversize_factors)
+        self.hist = np.zeros(len(self.stream_objects), dtype=int)
+        self.min_distances = []
         self.Register(self.S_stream, self.SFrame)
 
     def Geometry(self, frame):
@@ -265,11 +268,13 @@ class OversizeSplitterNSplits(icetray.I3ConditionalModule):
                 is_in_stream = np.sum(distances < stream_i.distance_cut) >= limit_i
             frame[stream_i.stream_name] = icetray.I3Bool(is_in_stream)
             if is_in_stream:
+                self.hist[i] += 1
                 already_added = True
         if self.default_idx is not None:
             if already_added and self.default_idx is not None:
                 frame['MCOversizeStreamDefault'] = icetray.I3Bool(False)
             else:
+                self.hist[self.default_idx] += 1
                 frame['MCOversizeStreamDefault'] = icetray.I3Bool(True)
         self.PushFrame(frame)
 
@@ -358,12 +363,17 @@ class OversizeSplitter(qStreamSwitcher):
                 self.multiple_distance)
         self.PushFrame(frame)
 
+    def Finish(self):
+        print(self.hist)
+        print(np.sort(self.min_distances))
+
     def DAQ(self, frame):
         particle = frame['MCMuon']
         v_dir = np.array([particle.dir.x, particle.dir.y, particle.dir.z])
         v_pos = np.array(particle.pos)
         distances = np.linalg.norm(np.cross(v_dir, v_pos - self.dom_positions),
                                    axis=1)
+        self.min_distances.append(np.min(distances))
         n_close_doms = np.sum(distances < self.threshold)
         n_relevant_doms = np.sum(distances < self.relevance_dist)
         frame['MCNCloseDoms'] = icetray.I3Int(n_close_doms)
