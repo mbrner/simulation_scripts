@@ -127,6 +127,8 @@ class OversizeSplitterNSplits(icetray.I3ConditionalModule):
     def Geometry(self, frame):
         omgeo = frame['I3Geometry'].omgeo
         self.dom_positions = np.zeros((len(omgeo), 3))
+        for i, (_, om) in enumerate(omgeo.iteritems()):
+            self.dom_positions[i, :] = np.array(om.position)
         self.PushFrame(frame)
 
     def SFrame(self, frame):
@@ -146,6 +148,7 @@ class OversizeSplitterNSplits(icetray.I3ConditionalModule):
         v_pos = np.array(particle.pos)
         distances = np.linalg.norm(np.cross(v_dir, v_pos - self.dom_positions),
                                    axis=1)
+        self.min_distances.append(min(distances))
         if self.relevance_dist is not None:
             n_relevant_doms = distances < self.relevance_dist
 
@@ -174,6 +177,3 @@ class OversizeSplitterNSplits(icetray.I3ConditionalModule):
                 frame['MCOversizeStreamDefault'] = icetray.I3Bool(True)
         self.PushFrame(frame)
 
-    def Finish(self):
-        print(self.hist)
-        print(np.sort(self.min_distances))
