@@ -13,7 +13,7 @@ class JobLogBook(object):
         self.log_dir = log_dir
         self.logbook = {}
         self.n_jobs = n_jobs
-        self.n_running = 0
+        self.running_pid = 0
         self.n_finished = 0
         self.log = []
         self._original_sigint = None
@@ -30,10 +30,10 @@ class JobLogBook(object):
                     self.n_finished += 1
                     self.log.append([job, 'not_executable'])
                     del self.__binaries[i]
-                if self.n_running >= self.n_jobs:
+                if len(self.running_pid) >= self.n_jobs:
                     self.__wait__(bar)
             click.echo('All Jobs started. Wait for last jobs to finish!')
-            while self.n_running > 0:
+            while len(self.running_pid) > 0:
                 self.__wait__(bar)
             bar.update(self.n_finished)
         click.echo('Finished!')
@@ -110,12 +110,12 @@ class JobLogBook(object):
         self.logbook[sub_process.pid] = [sub_process,
                                          job,
                                          log_file]
-        self.n_running += 1
+        self.running_pid.append(sub_process.pid)
         return sub_process.pid
 
     def __clear_job__(self, pid):
         sub_process, job, log_file = self.logbook[pid]
-        self.n_running -= 1
+        self.running_pid.reomve(pid)
         if self.log_dir is not None:
             log_file.close()
         del self.logbook[pid]
@@ -125,11 +125,15 @@ class JobLogBook(object):
             self._original_sigint = signal.getsignal(signal.SIGINT)
 
         def exit_gracefully(signum, frame):
-
+            for pid in self.running_pid:
+                os.kill(pid, signal.SIGSTOP)
             signal.signal(signal.SIGINT, self._original_sigint)
             if click.confirm('Really want to quit?'):
                 self.__wait_rest__(self.log_dir is not None)
                 sys.exit(0)
+            else:
+                for pid in self.running_pid:
+                    os.kill(pid, signal.SIGCONT)
             self.register_sigint()
 
         signal.signal(signal.SIGINT, exit_gracefully)
