@@ -20,6 +20,9 @@ class JobLogBook(object):
 
     def process(self, binaries):
         self.__binaries = copy.copy(binaries)
+        click.echo('Processing {} with max. {} parralel jobs!'.format(
+            len(binaries), self.n_jobs))
+
         with click.progressbar(length=len(binaries)) as bar:
             bar.update(self.n_finished)
             for i, job in enumerate(binaries):
@@ -172,9 +175,7 @@ def main(path, binary_pattern, n_jobs, log_path, resume):
         log_book.resume(path)
     else:
         binaries = list(glob.glob(os.path.join(path, binary_pattern)))
-        click.echo('Processing {} with max. {} parralel jobs!'.format(
-            len(binaries), n_jobs))
-    log_book.process(binaries)
+        log_book.process(binaries)
 
 
 if __name__ == '__main__':
