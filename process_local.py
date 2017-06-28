@@ -41,7 +41,10 @@ class JobLogBook(object):
             self.__store__()
 
     def __wait__(self, progressbar=None):
-        pid, exit_code = os.wait()
+        try:
+            pid, exit_code = os.wait()
+        except OSError:
+            pid, exit_code = os.wait()
         job_file = self.logbook[pid][1]
         click.echo('{} finished with exit code {}'.format(
             job_file, exit_code))
@@ -53,8 +56,11 @@ class JobLogBook(object):
 
     def __wait_rest__(self, save=False):
         click.echo('waiting for all subprocesses to finish')
-        while self.n_running > 0:
-            self.__wait__()
+        while True:
+            try:
+                self.__wait__()
+            except OSError:
+                break
         if save:
             self.__store__()
 
@@ -119,17 +125,11 @@ class JobLogBook(object):
             self._original_sigint = signal.getsignal(signal.SIGINT)
 
         def exit_gracefully(signum, frame):
+
             signal.signal(signal.SIGINT, self._original_sigint)
-            try:
-                if click.confirm('Really want to quit?'):
-                    if self.log_dir is not None:
-                        save = click.confirm('Store progress?')
-                    else:
-                        save = False
-                    self.__wait_rest__(save)
-            except KeyboardInterrupt:
-                click.echo("Ok ok, quitting")
-                sys.exit(1)
+            if click.confirm('Really want to quit?'):
+                self.__wait_rest__(self.log_dir is not None)
+                sys.exit(0)
             self.register_sigint()
 
         signal.signal(signal.SIGINT, exit_gracefully)
@@ -144,7 +144,7 @@ class JobLogBook(object):
 @click.option('-l', '--log_path', default=None,
               type=click.Path(resolve_path=True),
               help='Path to a dir where the stdout/stderr should be saved')
-@click.options('--resume/--no-resume')
+@click.option('--resume/--no-resume', default=False)
 def main(path, binary_pattern, n_jobs, log_path, resume):
     path = os.path.abspath(path)
 
