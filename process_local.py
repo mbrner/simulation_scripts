@@ -142,10 +142,15 @@ class JobLogBook(object):
             for pid in self.running_pid:
                 os.kill(pid, signal.SIGSTOP)
             signal.signal(signal.SIGINT, self._original_sigint)
-            if click.confirm('\nReally want to quit?'):
+            try:
+                quit = click.confirm('\nReally want to quit?')
+            except click.Abort:
+                quit = False
+            if quit:
                 self.__wait_rest__(self.log_dir is not None)
                 sys.exit(0)
             else:
+                click.echo('\nContinuing!')
                 for pid in self.running_pid:
                     os.kill(pid, signal.SIGCONT)
             self.register_sigint()
