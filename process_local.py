@@ -13,7 +13,7 @@ class JobLogBook(object):
         self.log_dir = log_dir
         self.logbook = {}
         self.n_jobs = n_jobs
-        self.running_pid = 0
+        self.running_pid = []
         self.n_finished = 0
         self.log = []
         self._original_sigint = None
@@ -32,7 +32,7 @@ class JobLogBook(object):
                     del self.__binaries[i]
                 if len(self.running_pid) >= self.n_jobs:
                     self.__wait__(bar)
-            click.echo('All Jobs started. Wait for last jobs to finish!')
+            click.echo('\nAll Jobs started. Wait for last jobs to finish!')
             while len(self.running_pid) > 0:
                 self.__wait__(bar)
             bar.update(self.n_finished)
@@ -46,7 +46,7 @@ class JobLogBook(object):
         except OSError:
             pid, exit_code = os.wait()
         job_file = self.logbook[pid][1]
-        click.echo('{} finished with exit code {}'.format(
+        click.echo('\n{} finished with exit code {}'.format(
             job_file, exit_code))
         self.log.append([job_file, exit_code])
         self.n_finished += 1
@@ -56,6 +56,8 @@ class JobLogBook(object):
 
     def __wait_rest__(self, save=False):
         click.echo('waiting for all subprocesses to finish')
+        for pid in self.running_pid:
+            os.kill(pid, signal.SIGCONT)
         while True:
             try:
                 self.__wait__()
@@ -115,7 +117,7 @@ class JobLogBook(object):
 
     def __clear_job__(self, pid):
         sub_process, job, log_file = self.logbook[pid]
-        self.running_pid.reomve(pid)
+        self.running_pid.remove(pid)
         if self.log_dir is not None:
             log_file.close()
         del self.logbook[pid]
@@ -128,7 +130,7 @@ class JobLogBook(object):
             for pid in self.running_pid:
                 os.kill(pid, signal.SIGSTOP)
             signal.signal(signal.SIGINT, self._original_sigint)
-            if click.confirm('Really want to quit?'):
+            if click.confirm('\nReally want to quit?'):
                 self.__wait_rest__(self.log_dir is not None)
                 sys.exit(0)
             else:
