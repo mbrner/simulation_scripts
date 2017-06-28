@@ -56,6 +56,14 @@ class JobLogBook(object):
 
     def __wait_rest__(self, save=False):
         click.echo('waiting for all subprocesses to finish')
+
+        def exit_with_pid_term(signum, frame):
+            for pid in self.running_pid:
+                os.kill(pid, signal.SIGTERM)
+            sys.exit(1)
+
+        signal.signal(signal.SIGINT, exit_with_pid_term)
+
         for pid in self.running_pid:
             os.kill(pid, signal.SIGCONT)
         while True:
@@ -106,9 +114,12 @@ class JobLogBook(object):
             log_file = open(log_path, 'w')
         else:
             log_file = open(os.devnull, 'w')
+        signal.signal(signal.SIGINT, signal.SIGSTOP)
         sub_process = subprocess.Popen([job],
                                        stdout=log_file,
                                        stderr=subprocess.STDOUT)
+        self.register_sigint()
+        signal.signal(signal.SIGINT, self._original_sigint)
         self.logbook[sub_process.pid] = [sub_process,
                                          job,
                                          log_file]
@@ -123,13 +134,13 @@ class JobLogBook(object):
         del self.logbook[pid]
 
     def register_sigint(self):
-        if self._original_sigint is None:
-            self._original_sigint = signal.getsignal(signal.SIGINT)
+        # if self._original_sigint is None:
+        #     self._original_sigint = signal.getsignal(signal.SIGINT)
 
         def exit_gracefully(signum, frame):
-            for pid in self.running_pid:
-                os.kill(pid, signal.SIGSTOP)
-            signal.signal(signal.SIGINT, self._original_sigint)
+            # for pid in self.running_pid:
+            #     os.kill(pid, signal.SIGSTOP)
+            # signal.signal(signal.SIGINT, self._original_sigint)
             if click.confirm('\nReally want to quit?'):
                 self.__wait_rest__(self.log_dir is not None)
                 sys.exit(0)
