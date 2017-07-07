@@ -157,12 +157,14 @@ def main(cfg, run_number, scratch):
             infile_i = stream_i.transform_filepath(infile)
             outfile_i = stream_i.transform_filepath(outfile)
             cfg['clsim_dom_oversize'] = stream_i.oversize_factor
-            thread = Process(target=process_single_stream, args=(cfg, infile_i, outfile_i))
+            thread = Process(target=process_single_stream,
+                             args=(cfg, infile_i, outfile_i))
             thread.start()
             thread.join()
         infiles = [stream_i.transform_filepath(outfile)
                    for stream_i in stream_objects]
         merge(infiles, outfile)
+
 
 if __name__ == '__main__':
     main()

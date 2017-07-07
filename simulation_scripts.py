@@ -16,6 +16,7 @@ PREVIOUS_STEP_FOLDER = DATASET_FOLDER + '/{previous_step_name}'
 PROCESSING_FOLDER = DATASET_FOLDER + '/processing/{step_name}'
 SCRIPT_FOLDER = os.path.dirname(os.path.abspath(__file__))
 
+
 class SafeDict(dict):
     def __missing__(self, key):
         return '{' + key + '}'

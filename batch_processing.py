@@ -19,7 +19,7 @@ def write_onejob_file(config,
     lines = []
     lines.append('processname = {}'.format(process_name))
     lines.append('executable = $(script_file)')
-    lines.append('getenv         = true')
+    lines.append('getenv         = false')
     log_dir = os.path.join(scratch_folder, 'logs')
     if not os.path.isdir(log_dir):
         os.makedirs(log_dir)

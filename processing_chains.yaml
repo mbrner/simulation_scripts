@@ -11,17 +11,18 @@ muongun_floodlight_2012:
 
 muongun_floodlight_2012_2017_distance_split:
   default_config: configs/default_muongun_floodlight_2012_2017.yaml
-  job_template: job_templates/muongun_general_template_dist_split.sh
+  job_template: job_templates/muongun_general_template.sh
   steps:
     0: step_0_muongun_floodlight
     1: step_1_general_photon_propagation
     2: step_2_general_detector_simulation
-    3: step_3_L1_2012
-    4: step_4_L2_2012
-    5: step_5_muon_L3_2012
+    3: step_3_L1_2017
+    4: step_4_L2_2017
+    5: step_4_L2_2017
     12: step_2_general_detector_simulation
-    13: step_3_L1_2017
-    14: step_4_L2_2017
+    13: step_3_L1_2012
+    14: step_4_L2_2012
+    15: step_5_muon_L3_2012
 
 muongun_floodlight:
   default_config: configs/default_muongun_floodlight.yaml

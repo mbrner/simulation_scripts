@@ -10,9 +10,23 @@
 #PBS -q long
 #PBS -S /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
 FINAL_OUT={final_out}
-KEEP_CRASHED_FILES={keep_crashed_files:d}
+KEEP_CRASHED_FILES={keep_crashed_files}
+if [ {step} < 10 ] ; then
+    echo 'Loading py2-v2'
+    eval `/cvmfs/icecube.opensciencegrid.org/py2-v2/setup.sh`
+    export PYTHONUSERBASE=/home/mboerner/software/python_libs
+else
+    echo 'Loading py2-v1'
+    eval `/cvmfs/icecube.opensciencegrid.org/py2-v1/setup.sh`
+    export PYTHONUSERBASE=/home/mboerner/software/python_libs_py2_v1
+fi
+
+export PATH=$PYTHONUSERBASE/bin:$PATH
+export PYTHONPATH=$PYTHONUSERBASE/lib/python2.7/site-packages:$PYTHONPATH
+
+
 echo $FINAL_OUT
-if [ -z ${PBS_JOBID} ] && [ -z ${CLUSTER} ]
+if [ -z ${PBS_JOBID} ] && [ -z ${_CONDOR_SCRATCH_DIR} ]
 then
     echo 'Running Script w/o temporary scratch'
     {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch
@@ -24,14 +38,19 @@ then
     fi
 else
     echo 'Running Script w/ temporary scratch'
+    if [ -z ${_CONDOR_SCRATCH_DIR} ]
+    then
+        cd /scratch/mboerner
+    else
+        cd ${_CONDOR_SCRATCH_DIR}
+    fi
     {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --scratch
     echo 'IceTray finished with Exit Code: ' $?
     ICETRAY_RC=$?
     if [ "$?" = "0" ] || [ $KEEP_CRASHED_FILES = "1" ]; then
-        cp {scratch_out} $FINAL_OUT
-    else
-        rm {scratch_out}
+        cp *.i3.bz2 {output_folder}
     fi
+    rm *.i3.bz2
 fi
 exit $ICETRAY_RC
 
