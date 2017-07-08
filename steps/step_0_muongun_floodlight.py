@@ -25,9 +25,9 @@ def main(cfg, run_number, scratch):
     cfg['run_number'] = run_number
     cfg['run_folder'] = get_run_folder(run_number)
     if scratch:
-        outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
+        outfile = cfg['scratchfile_pattern'].format(**cfg)
     else:
-        outfile = cfg['outfile_pattern'].format(run_number=run_number)
+        outfile = cfg['outfile_pattern'].format(**cfg)
     if cfg['distance_splits'] is not None:
         click.echo('SplittingDistances: {}'.format(cfg['distance_splits']))
         click.echo('Oversizefactors: {}'.format(cfg['oversize_factors']))
@@ -69,9 +69,9 @@ def main(cfg, run_number, scratch):
         "PropagateMuons",
         RandomService=random_service_prop)
     if scratch:
-        outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
+        outfile = cfg['scratchfile_pattern'].format(**cfg)
     else:
-        outfile = cfg['outfile_pattern'].format(run_number=run_number)
+        outfile = cfg['outfile_pattern'].format(**cfg)
     outfile = outfile.replace(' ', '0')
     if cfg['distance_splits'] is not None:
         click.echo('SplittingDistance: {}'.format(
@@ -84,7 +84,7 @@ def main(cfg, run_number, scratch):
         order = np.argsort(distance_splits)
 
         distance_splits = distance_splits[order]
-        dom_limits=dom_limits[order]
+        dom_limits = dom_limits[order]
         oversize_factors = oversize_factors[order]
 
         stream_objects = generate_stream_object(distance_splits,
