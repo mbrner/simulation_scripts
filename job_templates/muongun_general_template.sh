@@ -30,9 +30,9 @@ if [ -z ${PBS_JOBID} ] && [ -z ${_CONDOR_SCRATCH_DIR} ]
 then
     echo 'Running Script w/o temporary scratch'
     {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch
-    echo 'IceTray finished with Exit Code: ' $?
     ICETRAY_RC=$?
-    if [ "$?" != "0" ] && [ $KEEP_CRASHED_FILES != "0" ] ; then
+    echo 'IceTray finished with Exit Code: ' $ICETRAY_RC
+    if [ "ICETRAY_RC" != "0" ] && [ $KEEP_CRASHED_FILES != "0" ] ; then
         echo 'Deleting partially processed file!'
         rm $FINAL_OUT
     fi
@@ -45,9 +45,9 @@ else
         cd ${_CONDOR_SCRATCH_DIR}
     fi
     {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --scratch
-    echo 'IceTray finished with Exit Code: ' $?
     ICETRAY_RC=$?
-    if [ "$?" = "0" ] || [ $KEEP_CRASHED_FILES = "1" ]; then
+    echo 'IceTray finished with Exit Code: ' $ICETRAY_RC
+    if [ "ICETRAY_RC" = "0" ] || [ $KEEP_CRASHED_FILES = "1" ]; then
         cp *.i3.bz2 {output_folder}
     fi
     rm *.i3.bz2
