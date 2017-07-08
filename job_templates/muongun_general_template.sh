@@ -32,7 +32,7 @@ then
     {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch
     ICETRAY_RC=$?
     echo 'IceTray finished with Exit Code: ' $ICETRAY_RC
-    if [ "ICETRAY_RC" != "0" ] && [ $KEEP_CRASHED_FILES != "0" ] ; then
+    if [ $ICETRAY_RC -ne 0 ] && [ $KEEP_CRASHED_FILES != "0" ] ; then
         echo 'Deleting partially processed file!'
         rm $FINAL_OUT
     fi
@@ -47,7 +47,7 @@ else
     {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --scratch
     ICETRAY_RC=$?
     echo 'IceTray finished with Exit Code: ' $ICETRAY_RC
-    if [ "ICETRAY_RC" = "0" ] || [ $KEEP_CRASHED_FILES = "1" ]; then
+    if [ $ICETRAY_RC -ne 0 ] || [ $KEEP_CRASHED_FILES = "1" ]; then
         cp *.i3.bz2 {output_folder}
     fi
     rm *.i3.bz2
