@@ -72,10 +72,13 @@ def write_job_files(config, step):
     for i in range(config['n_runs']):
         config['run_number'] = i
         config['run_folder'] = get_run_folder(i)
-        outfolder = os.path.dirname(config['outfile_pattern'].format(**config))
-        outfolder = outfolder.replace(' ', '0')
-        if not os.path.isdir(outfolder):
-            os.makedirs(outfolder)
+        final_out = config['outfile_pattern'].format(**config)
+        final_out = final_out.replace(' ', '0')
+        config['final_out'] = final_out
+        output_folder = os.path.dirname(final_out)
+        if not os.path.isdir(output_folder):
+            os.makedirs(output_folder)
+        config['output_folder'] = output_folder
         file_config = string.Formatter().vformat(template, (), config)
         script_name = string.Formatter().vformat(
             config['script_name'], (), config)
