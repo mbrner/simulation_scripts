@@ -1,8 +1,8 @@
-chain_name: muongun_floodlight_2012_2017_distance_split
+chain_name: muongun_floodlight_2012_pass2_distance_split
 seed: 1337
 dataset_number: 11301
 gcd_2012: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2012.56063_V1.i3.gz
-gcd_2017: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2012.56063_V1.i3.gz
+gcd_pass2: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2015.57161_V0.i3.gz
 generator: muongun
 n_events_per_run: 100
 n_runs: 10

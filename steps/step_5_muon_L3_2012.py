@@ -5,6 +5,8 @@ import os
 import click
 import yaml
 
+from utils import get_run_folder
+
 from I3Tray import I3Tray
 from icecube import icetray, dataio, dataclasses, hdfwriter, phys_services
 from icecube import lilliput, gulliver, gulliver_modules
@@ -26,13 +28,16 @@ def main(cfg, run_number, scratch):
         cfg = yaml.load(stream)
     icetray.logging.set_level("WARN")
 
-    infile = cfg['infile_pattern'].format(run_number=run_number)
+    cfg['run_number'] = run_number
+    cfg['run_folder'] = get_run_folder(run_number)
+
+    infile = cfg['infile_pattern'].format(**cfg)
     infile = infile.replace(' ', '0')
 
     if scratch:
-        outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
+        outfile = cfg['scratchfile_pattern'].format(**cfg)
     else:
-        outfile = cfg['outfile_pattern'].format(run_number=run_number)
+        outfile = cfg['outfile_pattern'].format(**cfg)
     outfile = outfile.replace(' ', '0')
 
     tray = I3Tray()

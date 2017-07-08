@@ -3,6 +3,8 @@
 import click
 import yaml
 
+from utils import get_run_folder
+
 from I3Tray import I3Tray
 from icecube import icetray, dataclasses, dataio
 from icecube.icetray import I3PacketModule
@@ -44,8 +46,9 @@ def main(cfg, run_number, scratch):
     if 'dictitems' in cfg.keys():
         cfg = cfg['dictitems']
     cfg['run_number'] = run_number
+    cfg['run_folder'] = get_run_folder(run_number)
 
-    infile = cfg['infile_pattern'].format(run_number=run_number)
+    infile = cfg['infile_pattern'].format(**cfg)
     infile = infile.replace(' ', '0')
 
     tray = I3Tray()
@@ -205,9 +208,9 @@ def main(cfg, run_number, scratch):
     )
 
     if scratch:
-        outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
+        outfile = cfg['scratchfile_pattern'].format(**cfg)
     else:
-        outfile = cfg['outfile_pattern'].format(run_number=run_number)
+        outfile = cfg['outfile_pattern'].format(**cfg)
     outfile = outfile.replace(' ', '0')
 
     tray.AddModule("I3Writer", "EventWriter",

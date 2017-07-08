@@ -10,7 +10,7 @@ from batch_processing import create_pbs_files, create_dagman_files
 #from batch_processing import adjust_resources
 
 
-DATASET_FOLDER = '{data_folder}/{generator}/{dataset_number}'
+DATASET_FOLDER = '{data_folder}/{dataset_number}'
 STEP_FOLDER = DATASET_FOLDER + '/{step_name}'
 PREVIOUS_STEP_FOLDER = DATASET_FOLDER + '/{previous_step_name}'
 PROCESSING_FOLDER = DATASET_FOLDER + '/processing/{step_name}'
@@ -58,9 +58,7 @@ def create_filename(cfg, input=False):
 def write_job_files(config, step):
     with open(config['job_template']) as f:
         template = f.read()
-    #config = adjust_resources(config)
     output_base = os.path.join(config['processing_folder'], 'jobs')
-
     if 'name_addition' not in config.keys():
         config['name_addition'] = ''
     if not os.path.isdir(output_base):
@@ -105,7 +103,8 @@ def build_config(data_folder, custom_settings):
     config.update(custom_settings)
 
     config.update({'data_folder': data_folder,
-                   'run_number': '{run_number:6d}'})
+                   'run_number': '{run_number:6d}',
+                   'run_folder': '{run_folder}'})
 
     config['input_folder'] = PREVIOUS_STEP_FOLDER.format(**config)
     config['output_folder'] = STEP_FOLDER.format(**config)

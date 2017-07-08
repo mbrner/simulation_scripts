@@ -12,7 +12,7 @@ import os
 import sys
 file_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(file_dir + '/..')
-from utils import create_random_services
+from utils import create_random_services, get_run_folder
 
 
 @click.command()
@@ -23,6 +23,7 @@ def main(cfg, run_number, scratch):
     with open(cfg, 'r') as stream:
         cfg = yaml.load(stream)
     cfg['run_number'] = run_number
+    cfg['run_folder'] = get_run_folder(run_number)
 
     tray = I3Tray()
 
@@ -80,9 +81,9 @@ def main(cfg, run_number, scratch):
         "PropagateMuons",
         RandomService=random_service_prop)
     if scratch:
-        outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
+        outfile = cfg['scratchfile_pattern'].format(**cfg)
     else:
-        outfile = cfg['outfile_pattern'].format(run_number=run_number)
+        outfile = cfg['outfile_pattern'].format(**cfg)
     outfile = outfile.replace(' ', '0')
     outfile = outfile.replace('.bz2', '')
     tray.AddModule("I3Writer", "writer",

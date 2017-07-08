@@ -2,10 +2,10 @@
 #METAPROJECT /home/mboerner/software/i3/IC2012-L2_V13-01-00_IceSim04-01-10compat/build
 import os
 
-from distutils.version import LooseVersion
-
 import click
 import yaml
+
+from utils import get_run_folder
 
 from I3Tray import I3Tray
 from icecube import icetray, dataclasses, dataio, jeb_filter_2012
@@ -27,7 +27,8 @@ def main(config_file, run_number, scratch):
     if 'dictitems' in cfg.keys():
         cfg = cfg['dictitems']
     cfg['run_number'] = run_number
-    infile = cfg['infile_pattern'].format(run_number=run_number)
+    cfg['run_folder'] = get_run_folder(run_number)
+    infile = cfg['infile_pattern'].format(**cfg)
     infile = infile.replace(' ', '0')
 
     seed = cfg['seed'] + run_number
@@ -388,9 +389,9 @@ def main(config_file, run_number, scratch):
                    Streams=[icetray.I3Frame.DAQ])
 
     if scratch:
-        outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
+        outfile = cfg['scratchfile_pattern'].format(**cfg)
     else:
-        outfile = cfg['outfile_pattern'].format(run_number=run_number)
+        outfile = cfg['outfile_pattern'].format(**cfg)
     outfile = outfile.replace(' ', '0')
     tray.AddModule("I3Writer", "EventWriter",
                    filename=outfile,

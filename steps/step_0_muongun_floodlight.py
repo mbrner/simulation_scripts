@@ -11,7 +11,7 @@ from I3Tray import I3Tray
 from icecube import icetray, dataclasses
 from icecube import sim_services, MuonGun
 
-from utils import create_random_services
+from utils import create_random_services, get_run_folder
 from dom_distance_cut import OversizeSplitterNSplits, generate_stream_object
 
 
@@ -23,7 +23,7 @@ def main(cfg, run_number, scratch):
     with open(cfg, 'r') as stream:
         cfg = yaml.load(stream)
     cfg['run_number'] = run_number
-
+    cfg['run_folder'] = get_run_folder(run_number)
     if scratch:
         outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
     else:

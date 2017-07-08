@@ -6,7 +6,7 @@ import yaml
 from icecube.simprod import segments
 from I3Tray import I3Tray
 from icecube import icetray, dataclasses, dataio, phys_services
-from utils import create_random_services
+from utils import create_random_services, get_run_folder
 
 
 MCPE_SERIES_MAP = 'I3MCPESeriesMap'
@@ -20,8 +20,9 @@ def main(cfg, run_number, scratch):
     with open(cfg, 'r') as stream:
         cfg = yaml.load(stream)
     cfg['run_number'] = run_number
+    cfg['run_folder'] = get_run_folder(run_number)
 
-    infile = cfg['infile_pattern'].format(run_number=run_number)
+    infile = cfg['infile_pattern'].format(**cfg)
     infile = infile.replace(' ', '0')
 
     tray = I3Tray()
@@ -50,9 +51,9 @@ def main(cfg, run_number, scratch):
         FilterTrigger=cfg['det_filter_trigger'])
 
     if scratch:
-        outfile = cfg['scratchfile_pattern'].format(run_number=run_number)
+        outfile = cfg['scratchfile_pattern'].format(**cfg)
     else:
-        outfile = cfg['outfile_pattern'].format(run_number=run_number)
+        outfile = cfg['outfile_pattern'].format(**cfg)
     outfile = outfile.replace(' ', '0')
 
     print(outfile)
