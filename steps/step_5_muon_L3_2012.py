@@ -38,6 +38,7 @@ def main(cfg, run_number, scratch):
         outfile = cfg['scratchfile_pattern'].format(**cfg)
     else:
         outfile = cfg['outfile_pattern'].format(**cfg)
+
     outfile = outfile.replace(' ', '0')
 
     tray = I3Tray()

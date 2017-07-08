@@ -28,6 +28,7 @@ def main(config_file, run_number, scratch):
         cfg = cfg['dictitems']
     cfg['run_number'] = run_number
     cfg['run_folder'] = get_run_folder(run_number)
+
     infile = cfg['infile_pattern'].format(**cfg)
     infile = infile.replace(' ', '0')
 

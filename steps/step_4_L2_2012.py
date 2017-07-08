@@ -36,6 +36,7 @@ icetray.load("SeededRTCleaning", False)
 
 PHOTONICS_DIR = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables'
 
+
 @click.command()
 @click.argument('cfg', click.Path(exists=True))
 @click.argument('run_number', type=int)
