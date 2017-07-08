@@ -1,9 +1,13 @@
 #!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
 #METAPROJECT simulation/V05-01-01
-import threading
+import os
+import sys
+
+import multiprocessing
+import traceback
+
 import click
 import yaml
-import os
 
 import numpy as np
 
@@ -91,6 +95,7 @@ def filter_S_frame(frame):
     else:
         return False
 
+
 filter_S_frame.already_added = False
 
 
@@ -115,15 +120,26 @@ def merge(infiles, outfile):
         os.remove(file_i)
 
 
-class TrayThread(threading.Thread):
-    def __init__(self, cfg, infile, outfile):
-        self.cfg = cfg
-        self.infile = infile
-        self.outfile = outfile
-        threading.Thread.__init__(self)
+class ExecProcess(multiprocessing.Process):
+    def __init__(self, *args, **kwargs):
+        multiprocessing.Process.__init__(self, *args, **kwargs)
+        self._pconn, self._cconn = multiprocessing.Pipe()
+        self._exception = None
 
     def run(self):
-        process_single_stream(self.cfg, self.infile, self.outfile)
+        try:
+            multiprocessing.Process.run(self)
+            self._cconn.send(None)
+        except Exception as e:
+            tb = traceback.format_exc()
+            self._cconn.send((e, tb))
+            # raise e  # You can still rise this exception if you need to
+
+    @property
+    def exception(self):
+        if self._pconn.poll():
+            self._exception = self._pconn.recv()
+        return self._exception
 
 
 @click.command()
@@ -145,7 +161,7 @@ def main(cfg, run_number, scratch):
         outfile = cfg['outfile_pattern'].format(**cfg)
     outfile = outfile.replace(' ', '0')
     if cfg.get('distance_splits', False):
-        from multiprocessing import Process
+
         distance_splits = np.atleast_1d(cfg['distance_splits'])
         dom_limits = np.atleast_1d(cfg['threshold_doms'])
         if len(dom_limits) == 1:
@@ -159,10 +175,15 @@ def main(cfg, run_number, scratch):
             infile_i = stream_i.transform_filepath(infile)
             outfile_i = stream_i.transform_filepath(outfile)
             cfg['clsim_dom_oversize'] = stream_i.oversize_factor
-            thread = Process(target=process_single_stream,
-                             args=(cfg, infile_i, outfile_i))
-            thread.start()
-            thread.join()
+            proc = ExecProcess(target=process_single_stream,
+                               args=(cfg, infile_i, outfile_i))
+            proc.start()
+            proc.join()
+        if proc.exception:
+            error, traceback = proc.exception
+            print(traceback)
+            print(error)
+            sys.exit(1)
         infiles = [stream_i.transform_filepath(outfile)
                    for stream_i in stream_objects]
         merge(infiles, outfile)
