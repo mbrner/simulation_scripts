@@ -17,7 +17,7 @@ def write_onejob_file(config,
     resources_cfg = config['resources']
 
     lines = []
-    lines.append('processname = {}'.format(process_name))
+    lines.append('processname = $(run).{}'.format(process_name))
     lines.append('executable = $(script_file)')
     lines.append('getenv         = false')
     log_dir = os.path.join(scratch_folder, 'logs')
@@ -25,8 +25,8 @@ def write_onejob_file(config,
         os.makedirs(log_dir)
     lines.append('should_transfer_files = YES')
     lines.append('when_to_transfer_output = ON_EXIT')
-    lines.append('output = {}/$(processname).$(Cluster).out'.format(log_dir))
-    lines.append('error = {}/$(processname).$(Cluster).err'.format(log_dir))
+    lines.append('output = {}/$(processname).$(run).out'.format(log_dir))
+    lines.append('error = {}/$(processname).$(run).err'.format(log_dir))
     lines.append('log = {}/$(processname).log'.format(log_dir))
     lines.append('notification   = never')
     lines.append('universe       = vanilla')
@@ -81,7 +81,8 @@ def write_option_file(config,
     for i, script_i in enumerate(script_files):
         job_name = '{}_{}'.format(process_name, i)
         lines.append('JOB {} {}'.format(job_name, job_file))
-        lines.append('VARS {} script_file="{}"'.format(job_name, script_i))
+        lines.append('VARS {} script_file="{}" run="{}"'.format(
+            job_name, i))
 
     option_file = os.path.join(scratch_folder, 'dagman.options')
     with open(option_file, 'w') as open_file:
