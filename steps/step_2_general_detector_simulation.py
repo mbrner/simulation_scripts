@@ -38,8 +38,8 @@ def main(cfg, run_number, scratch):
 
     tray.context['I3RandomService'] = random_service
 
-    tray.Add('I3Reader', FilenameList=[cfg['gcd'], infile])
-    tray.AddSegment(segments.DetectorSim, "DetectorSim",
+    tray.Add('I3Reader', FilenameList=[cfg['gcd_pass2'], infile])
+    tray.AddSegment(segments.DetectorSim, "Detector5Sim",
         RandomService='I3RandomService',
         RunID=run_id,
         GCDFile=cfg['gcd'],
