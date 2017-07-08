@@ -1,12 +1,11 @@
 import numpy as np
 
-from icecube import phys_services, icetray, dataclasses
-
 MAX_DATASET_NUMBER = 100000
 MAX_RUN_NUMBER = 100000
 
 
 def create_random_services(dataset_number, run_number, seed):
+    from icecube import phys_services, icetray, dataclasses
     if run_number < 0:
         raise RuntimeError("negative run numbers are not supported")
     elif run_number >= MAX_RUN_NUMBER:
