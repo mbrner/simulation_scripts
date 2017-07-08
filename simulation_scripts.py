@@ -70,27 +70,20 @@ def write_job_files(config, step):
         os.makedirs(log_dir)
     scripts = []
     for i in range(config['n_runs']):
-        final_out = config['outfile_pattern'].format(run_number=i)
-        final_out = final_out.replace(' ', '0')
-        config['final_out'] = final_out
-        scratch_out = config['scratchfile_pattern'].format(run_number=i)
-        scratch_out = scratch_out.replace(' ', '0')
-        config['scratch_out'] = scratch_out
         config['run_number'] = i
         config['run_folder'] = get_run_folder(i)
+        outfolder = os.path.dirname(config['outfile_pattern'].format(**config))
+        outfolder = outfolder.replace(' ', '0')
+        if not os.path.isdir(outfolder):
+            os.makedirs(outfolder)
         file_config = string.Formatter().vformat(template, (), config)
         script_name = string.Formatter().vformat(
             config['script_name'], (), config)
         script_path = os.path.join(output_base, script_name)
-        outfolder = os.path.dirname(config['outfile_pattern'].format(**config))
-        if not os.path.isdir(outfolder):
-            os.makedirs(outfolder)
         with open(script_path, 'w') as f:
             f.write(file_config)
-
         st = os.stat(script_path)
         os.chmod(script_path, st.st_mode | stat.S_IEXEC)
-
         scripts.append(script_path)
     return scripts
 
