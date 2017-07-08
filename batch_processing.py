@@ -25,8 +25,8 @@ def write_onejob_file(config,
         os.makedirs(log_dir)
     lines.append('should_transfer_files = YES')
     lines.append('when_to_transfer_output = ON_EXIT')
-    lines.append('output = {}/$(processname).$(run).out'.format(log_dir))
-    lines.append('error = {}/$(processname).$(run).err'.format(log_dir))
+    lines.append('output = {}/$(processname).out'.format(log_dir))
+    lines.append('error = {}/$(processname).err'.format(log_dir))
     lines.append('log = {}/$(processname).log'.format(log_dir))
     lines.append('notification   = never')
     lines.append('universe       = vanilla')
@@ -82,7 +82,7 @@ def write_option_file(config,
         job_name = '{}_{}'.format(process_name, i)
         lines.append('JOB {} {}'.format(job_name, job_file))
         lines.append('VARS {} script_file="{}" run="{}"'.format(
-            job_name, i))
+            job_name, script_i, i))
 
     option_file = os.path.join(scratch_folder, 'dagman.options')
     with open(option_file, 'w') as open_file:
