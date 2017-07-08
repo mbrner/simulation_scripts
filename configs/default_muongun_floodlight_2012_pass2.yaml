@@ -26,7 +26,7 @@ resources:
 # Options that are expected to be set to generate the scripts
 seed: 1337
 # Whether file after IceTray should be kept
-keep_crashed_files: False
+keep_crashed_files: 0
 
 # PATH to the GCD File
 gcd: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_IC86_Merged.i3.gz
