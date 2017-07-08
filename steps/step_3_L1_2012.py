@@ -17,6 +17,7 @@ from icecube.jeb_filter_2012.filter_globals import which_split
 
 PHOTONICS_DIR = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables'
 
+
 @click.command()
 @click.argument('config_file', click.Path(exists=True))
 @click.argument('run_number', type=int)
