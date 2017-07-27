@@ -1,11 +1,10 @@
 #!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
-#METAPROJECT icerec/V05-01-02
+#METAPROJECT icerec/V05-01-06
 import os
 
 import click
 import yaml
 
-from icecube.simprod import segments
 from icecube.filterscripts import filter_globals
 from icecube.filterscripts.all_filters import OnlineFilter
 from icecube.phys_services.which_split import which_split
@@ -46,7 +45,7 @@ def main(cfg, run_number, scratch):
         SplineRecoTimingTable=os.path.join(SPLINE_TABLES,
                                            'InfBareMu_mie_prob_z20a10.fits'),
         hese_followup_base_GCD_filename=cfg['gcd_pass2'],
-        gfu_enabled=cfg['filter_run_gfu'])
+        gfu_enabled=cfg['l1_run_gfu'])
 
     filter_mask_randoms = phys_services.I3GSLRandomService(
         cfg['seed'] + run_number)
