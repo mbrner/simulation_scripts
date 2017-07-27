@@ -1,11 +1,10 @@
 #!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
-#METAPROJECT icerec/V05-01-02
+#METAPROJECT icerec/V05-01-06
 import os
 
 import click
 import yaml
 
-from icecube.simprod import segments
 from icecube.filterscripts import filter_globals
 from icecube.filterscripts.all_filters import OnlineFilter
 from icecube.phys_services.which_split import which_split
