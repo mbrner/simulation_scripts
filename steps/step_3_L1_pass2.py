@@ -46,18 +46,18 @@ def main(cfg, run_number, scratch):
         SplineRecoTimingTable=os.path.join(SPLINE_TABLES,
                                            'InfBareMu_mie_prob_z20a10.fits'),
         hese_followup_base_GCD_filename=cfg['gcd_pass2'],
-        gfu_enabled=cfg['filter_run_gfu'])
+        gfu_enabled=cfg['l1_run_gfu'])
 
     filter_mask_randoms = phys_services.I3GSLRandomService(
         cfg['seed'] + run_number)
     # override MinBias Prescale
     filterconfigs = filter_globals.filter_pairs + filter_globals.sdst_pairs
-    if cfg['filter_min_bias_prescale']:
+    if cfg['l1_min_bias_prescale']:
         for i, filtertuple in enumerate(filterconfigs):
             if filtertuple[0] == filter_globals.FilterMinBias:
                 del filterconfigs[i]
                 filterconfigs.append((filtertuple[0],
-                                      cfg['filter_min_bias_prescale']))
+                                      cfg['l1_min_bias_prescale']))
                 break
     click.echo('filter_configs: {}'.format(filterconfigs))
 

@@ -64,6 +64,10 @@ clsim_keep_mcpe: False
 # Whether CLsim should run in hybrid mode
 clsim_hybrid_mode: False
 
+
+l1_run_gfu: true
+l1_min_bias_prescale: None
+
 # muongun specific options
 # Energy offset `b` of power-law approximation (E + b)^{-gamma}
 muongun_e_break: !!float 1e6
