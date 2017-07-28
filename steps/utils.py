@@ -34,3 +34,15 @@ def get_run_folder(run_number, runs_per_folder=1000):
     start = (run_number // runs_per_folder) * runs_per_folder
     stop = start + runs_per_folder - 1
     return '{}-{}'.format(str(start).zfill(fill), str(stop).zfill(fill))
+
+
+muongun_keys = ['MCOversizeStream0',
+                'MCOversizeStream1',
+                'MCOversizeStream2',
+                'MCOversizeStream3',
+                'MCMuon',
+                'MuonEffectiveArea',
+                'MCOversizing',
+                'GenerateCosmicRayMuons',
+                'MCDomThresholds',
+                'MCDistanceCuts']

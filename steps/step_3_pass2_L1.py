@@ -19,7 +19,7 @@ from optparse import OptionParser
 from os.path import expandvars
 
 
-from utils import get_run_folder
+from utils import get_run_folder, muongun_keys
 
 
 SPLINE_TABLES = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables/splines'
@@ -124,7 +124,7 @@ def main(cfg, run_number, scratch):
             'SimTrimmer', # for SimTrimmer flag
             'TimeShift', # the time shift amount
             'WIMP_params', # Wimp-sim
-           ]
+           ] + muongun_keys
 
     keep_before_merge = filter_globals.q_frame_keeps + [
                             'InIceDSTPulses', # keep DST pulse masks
