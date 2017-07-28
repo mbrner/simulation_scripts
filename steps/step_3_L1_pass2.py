@@ -62,7 +62,7 @@ def main(cfg, run_number, scratch):
                     )
 
     # make random service
-    seed = os.getpid()
+    seed = cfg['seed'] + run_number
     filter_mask_randoms = phys_services.I3GSLRandomService(seed)
 
     # override MinBias Prescale
