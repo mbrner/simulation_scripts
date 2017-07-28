@@ -79,7 +79,7 @@ det_keep_mc_pulses: False
 # keep MCTree with all in-ice propagated secondaries. These take a lot of space compared un propagated tree.
 det_keep_propagated_mc_tree: True
 # Keep everything upto run X
-det_keep_all_upto: -1
+det_pass2_keep_all_upto: 1000
 # add beacon lauches.
 det_add_beacon_launches: True
 # reduce peak memory use by repeatedly merging hits as they are generated.  WARNING: Use of this option may slightly reduce precision and drastically increase running time. It is potentially useful for very bright events, and probably harmful for very long events.
