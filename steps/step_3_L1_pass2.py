@@ -67,6 +67,7 @@ def main(cfg, run_number, scratch):
 
     # override MinBias Prescale
     filterconfigs = filter_globals.filter_pairs + filter_globals.sdst_pairs
+    print(cfg['l1_min_bias_prescale'])
     if cfg['l1_min_bias_prescale']:
         for i,filtertuple in enumerate(filterconfigs):
             if filtertuple[0] == filter_globals.FilterMinBias:
