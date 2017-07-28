@@ -53,8 +53,8 @@ def main(cfg, run_number, scratch):
             'SplineRecoTimingTable': os.path.join(SPLINE_TABLES,'InfBareMu_mie_prob_z20a10.fits'),
             'hese_followup_base_GCD_filename': cfg['gcd_pass2'],
         })
-    if cfg['l1_run_gfu'] is not None:
-        online_kwargs['gfu_enabled'] = cfg['l1_run_gfu']
+    if cfg['L1_pass2_run_gfu'] is not None:
+        online_kwargs['gfu_enabled'] = cfg['L1_pass2_run_gfu']
     tray.AddSegment(OnlineFilter, "OnlineFilter",
                     decode=False, simulation=True,
                     vemcal_enabled=False,
@@ -67,12 +67,12 @@ def main(cfg, run_number, scratch):
 
     # override MinBias Prescale
     filterconfigs = filter_globals.filter_pairs + filter_globals.sdst_pairs
-    print(cfg['l1_min_bias_prescale'])
-    if cfg['l1_min_bias_prescale']:
+    print(cfg['L1_min_bias_prescale'])
+    if cfg['L1_min_bias_prescale']:
         for i,filtertuple in enumerate(filterconfigs):
             if filtertuple[0] == filter_globals.FilterMinBias:
                 del filterconfigs[i]
-                filterconfigs.append((filtertuple[0],cfg['l1_min_bias_prescale']))
+                filterconfigs.append((filtertuple[0],cfg['L1_min_bias_prescale']))
                 break
     print(filterconfigs)
 

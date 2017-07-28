@@ -85,7 +85,7 @@ def main(config_file, run_number, scratch):
                    "filtermaskmover",
                    Keys=["FilterMask", "OrigFilterMask"])
 
-    if cfg['L1_qify']:
+    if cfg['L1_2012_qify']:
         tray.AddModule("QConverter", "qify", WritePFrame=False)
 
     def MissingITCheck(frame):
@@ -97,7 +97,7 @@ def main(config_file, run_number, scratch):
                    'L1_AddIceTopPulses',
                    Streams=[icetray.I3Frame.DAQ])
 
-    if cfg['L1_retrigger']:
+    if cfg['L1_2012_retrigger']:
         # some cleanup first
         tray.AddModule("Delete",
                        "delete_triggerHierarchy",
@@ -112,7 +112,7 @@ def main(config_file, run_number, scratch):
                     pulses=filter_globals.CleanedMuonPulses,
                     decode=False,
                     simulation=True,
-                    DomLauncher=(not cfg['L1_dom_simulator']))
+                    DomLauncher=(not cfg['L1_2012_dom_simulator']))
 
     tray.AddSegment(jeb_filter_2012.MuonFilter,
                     "MuonFilter",
