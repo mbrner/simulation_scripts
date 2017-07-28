@@ -67,6 +67,7 @@ clsim_hybrid_mode: False
 
 l1_run_gfu: true
 l1_min_bias_prescale: None
+l1_sdstarchive: false
 
 # muongun specific options
 # Energy offset `b` of power-law approximation (E + b)^{-gamma}
