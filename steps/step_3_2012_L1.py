@@ -38,7 +38,7 @@ def main(config_file, run_number, scratch):
     tray = I3Tray()
     tray.AddModule('I3Reader',
                    'reader',
-                   FilenameList=[cfg['gcd'], infile],
+                   FilenameList=[cfg['gcd_2012'], infile],
                    SkipKeys=['I3DST11',
                              'I3SuperDST',
                              'I3VEMCalData',
@@ -102,7 +102,7 @@ def main(config_file, run_number, scratch):
         tray.AddModule("Delete",
                        "delete_triggerHierarchy",
                        Keys=["I3TriggerHierarchy", "TimeShift"])
-        gcd_file = dataio.I3File(cfg['gcd'])
+        gcd_file = dataio.I3File(cfg['gcd_2012'])
         tray.AddSegment(trigger_sim.TriggerSim,
                         "trig",
                         gcd_file=gcd_file)
