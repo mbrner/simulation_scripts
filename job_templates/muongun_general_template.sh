@@ -11,7 +11,7 @@
 #PBS -S /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
 FINAL_OUT={final_out}
 KEEP_CRASHED_FILES={keep_crashed_files}
-if [ {step} -le 10 ] ; then
+if [ {step} -le 13 ] ; then
     echo 'Loading py2-v2'
     eval `/cvmfs/icecube.opensciencegrid.org/py2-v2/setup.sh`
     export PYTHONUSERBASE=/home/mboerner/software/python_libs
