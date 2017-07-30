@@ -5,7 +5,7 @@ import os
 import click
 import yaml
 
-from utils import get_run_folder
+from utils import get_run_folder, muongun_keys
 
 from I3Tray import I3Tray
 from icecube import icetray, dataclasses, dataio, jeb_filter_2012
@@ -259,7 +259,7 @@ def main(config_file, run_number, scratch):
                             'I3MCPESeriesMap',
                             'I3MCPulseSeriesMap',
                             'I3MCPulseSeriesMapParticleIDMap',
-                          ],
+                          ] + muongun_keys,
                    If=is_Q
                    )
 
@@ -302,7 +302,7 @@ def main(config_file, run_number, scratch):
                              'I3MCPESeriesMap',
                              'I3MCPulseSeriesMap',
                              'I3MCPulseSeriesMapParticleIDMap',
-                             ],
+                             ] + muongun_keys,
                    If = do_save_just_superdst
                    )
 
@@ -331,7 +331,7 @@ def main(config_file, run_number, scratch):
     tray.AddModule("Keep", "KeepOnlyDSTs",
                    keys = filter_globals.keep_dst_only
                           + ["PassedAnyFilter","PassedKeepSuperDSTOnly",
-                             filter_globals.eventheader],
+                             filter_globals.eventheader] + muongun_keys,
                           If = dont_save_superdst
                    )
 
@@ -358,7 +358,7 @@ def main(config_file, run_number, scratch):
                                    'I3TriggerHierarchy',
                                    'GCFilter_GCFilterMJD']
     tray.AddModule("Keep", "inice_keeps",
-                   keys = in_ice_keeps,
+                   keys = in_ice_keeps + muongun_keys,
                    If = which_split(split_name=filter_globals.InIceSplitter),
                    )
 
@@ -399,7 +399,8 @@ def main(config_file, run_number, scratch):
                    filename=outfile,
                    Streams=[icetray.I3Frame.DAQ,
                             icetray.I3Frame.Physics,
-                            icetray.I3Frame.TrayInfo])
+                            icetray.I3Frame.TrayInfo,
+                            icetray.I3Frame.Simulation])
     tray.AddModule("TrashCan", "the can")
     tray.Execute()
     tray.Finish()
