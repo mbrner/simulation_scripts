@@ -43,12 +43,12 @@ def main(cfg, run_number, scratch):
                    'i3 reader',
                    FilenameList=[cfg['gcd_pass2'], infile])
 
-    tray.AddSegment(OfflineFilter, "OfflineFilter",
-        dstfile=None,
-        mc=True,
-        doNotQify=True,
-        photonicsdir=PHOTONICS_DIR
-        )
+    tray.AddSegment(OfflineFilter,
+                    "OfflineFilter",
+                    dstfile=None,
+                    mc=True,
+                    doNotQify=True,
+                    photonicsdir=PHOTONICS_DIR)
 
     if scratch:
         outfile = cfg['scratchfile_pattern'].format(**cfg)
@@ -61,7 +61,7 @@ def main(cfg, run_number, scratch):
                             icetray.I3Frame.Physics,
                             icetray.I3Frame.TrayInfo,
                             icetray.I3Frame.Simulation],
-                   DropOrphanStreams = [icetray.I3Frame.DAQ])
+                   DropOrphanStreams=[icetray.I3Frame.DAQ])
     tray.AddModule("TrashCan", "the can")
     tray.Execute()
     tray.Finish()
