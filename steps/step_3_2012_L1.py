@@ -67,8 +67,8 @@ def main(config_file, run_number, scratch):
         def SFrame(self, frame):
             pass
 
-    tray.AddModule(SkipSFrames,
-                   "Skip I Frames")
+#    tray.AddModule(SkipSFrames,
+#                   "Skip I Frames")
 
     def check_driving_time(frame):
         if 'DrivingTime' not in frame:
