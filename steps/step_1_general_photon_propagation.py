@@ -42,8 +42,8 @@ def process_single_stream(cfg, infile, outfile):
     tray = I3Tray()
     tray.context['I3FileStager'] = dataio.get_stagers()
     random_service, _, _ = create_random_services(
-        dataset_number=cfg['run_number'],
-        run_number=cfg['dataset_number'],
+        dataset_number=cfg['dataset_number'],
+        run_number=cfg['run_number'],
         seed=cfg['seed'])
     tray.context['I3RandomService'] = random_service
     tray.Add('I3Reader', FilenameList=[cfg['gcd'], infile])
