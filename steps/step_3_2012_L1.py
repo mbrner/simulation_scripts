@@ -400,7 +400,7 @@ def main(config_file, run_number, scratch):
                    Streams=[icetray.I3Frame.DAQ,
                             icetray.I3Frame.Physics,
                             icetray.I3Frame.TrayInfo,
-                            icetray.I3Frame.Simulation])
+                            icetray.I3Frame.Stream('S')])
     tray.AddModule("TrashCan", "the can")
     tray.Execute()
     tray.Finish()
