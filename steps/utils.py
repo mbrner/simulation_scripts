@@ -36,7 +36,8 @@ def get_run_folder(run_number, runs_per_folder=1000):
     return '{}-{}'.format(str(start).zfill(fill), str(stop).zfill(fill))
 
 
-muongun_keys = ['MCOversizeStream0',
+muongun_keys = ['MCOversizeStreamDefault',
+                'MCOversizeStream0',
                 'MCOversizeStream1',
                 'MCOversizeStream2',
                 'MCOversizeStream3',
