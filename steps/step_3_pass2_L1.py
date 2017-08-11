@@ -197,7 +197,7 @@ def main(cfg, run_number, scratch):
     tray.AddModule("Keep", "KeepOnlyDSTs",
                    keys=filter_globals.keep_dst_only + [
                        "PassedAnyFilter",
-                       "assedKeepSuperDSTOnly",
+                       "PassedKeepSuperDSTOnly",
                        filter_globals.eventheader] + muongun_keys,
                    If=dont_save_superdst)
 
