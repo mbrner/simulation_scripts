@@ -1,0 +1,22 @@
+chain_name: muongun_floodlight_2012_pass2_distance_split
+seed: 1337
+dataset_number: 44137
+gcd_2012: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2012.56063_V1.i3.gz
+gcd_pass2: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2015.57161_V0.i3.gz
+generator: muongun
+n_events_per_run: 500000
+n_runs: 1
+e_min: !!float 5e1
+e_max: !!float 1e7
+gamma: 2.
+muongun_e_break: !!float 1e6
+icemodel: SpiceLea
+distance_splits:  [-1., 10., 20., 30., 100.]
+threshold_doms: 1
+oversize_factors: [16.,  1.,  2.,  3.,   5.]
+clsim_unshadowed_fraction: 0.99
+clsim_ignore_muon_light: False
+clsim_usegpus: True
+clsim_keep_mcpe: False
+clsim_dom_oversize: 5.
+clsim_hybrid_mode: False
