@@ -218,7 +218,8 @@ def main(cfg, run_number, scratch):
                    filename=outfile,
                    Streams=[icetray.I3Frame.DAQ,
                             icetray.I3Frame.Physics,
-                            icetray.I3Frame.TrayInfo],
+                            icetray.I3Frame.TrayInfo,
+                            icetray.I3Frame.Stream('S')],
                    DropOrphanStreams=[icetray.I3Frame.DAQ])
     tray.AddModule("TrashCan", "the can")
     tray.Execute()
