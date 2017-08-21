@@ -33,6 +33,7 @@ def main(cfg, run_number, scratch):
 
     infile = cfg['infile_pattern'].format(**cfg)
     infile = infile.replace(' ', '0')
+    infile = infile.replace('2012_pass2', '2012')
 
     if scratch:
         outfile = cfg['scratchfile_pattern'].format(**cfg)
@@ -40,6 +41,7 @@ def main(cfg, run_number, scratch):
         outfile = cfg['outfile_pattern'].format(**cfg)
 
     outfile = outfile.replace(' ', '0')
+    outfile = outfile.replace('2012_pass2', '2012')
 
     tray = I3Tray()
 

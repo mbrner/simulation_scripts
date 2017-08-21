@@ -63,6 +63,7 @@ def main(cfg, run_number, scratch):
     else:
         outfile = cfg['outfile_pattern'].format(**cfg)
     outfile = outfile.replace(' ', '0')
+    outfile = outfile.replace('2012_pass2', 'pass2')
 
     print(outfile)
     print(cfg['outfile_pattern'])

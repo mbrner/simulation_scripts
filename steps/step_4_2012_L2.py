@@ -51,6 +51,7 @@ def main(cfg, run_number, scratch):
 
     infile = cfg['infile_pattern'].format(**cfg)
     infile = infile.replace(' ', '0')
+    infile = infile.replace('2012_pass2', '2012')
 
     tray = I3Tray()
     tray.AddModule('I3Reader',
@@ -213,6 +214,7 @@ def main(cfg, run_number, scratch):
     else:
         outfile = cfg['outfile_pattern'].format(**cfg)
     outfile = outfile.replace(' ', '0')
+    outfile = outfile.replace('2012_pass2', '2012')
 
     tray.AddModule("I3Writer", "EventWriter",
                    filename=outfile,

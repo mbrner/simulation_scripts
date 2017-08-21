@@ -37,6 +37,7 @@ def main(cfg, run_number, scratch):
 
     infile = cfg['infile_pattern'].format(**cfg)
     infile = infile.replace(' ', '0')
+    infile = infile.replace('2012_pass2', 'pass2')
 
     tray = I3Tray()
     """The main L1 script"""
@@ -244,6 +245,8 @@ def main(cfg, run_number, scratch):
     else:
         outfile = cfg['outfile_pattern'].format(**cfg)
     outfile = outfile.replace(' ', '0')
+    outfile = outfile.replace('2012_pass2', 'pass2')
+
     tray.AddModule("I3Writer", "EventWriter",
                    filename=outfile,
                    Streams=[icetray.I3Frame.DAQ,
