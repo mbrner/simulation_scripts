@@ -4,12 +4,12 @@ dataset_number: 44137
 gcd_2012: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2012.56063_V1.i3.gz
 gcd_pass2: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2015.57161_V0.i3.gz
 generator: muongun
-n_events_per_run: 500000
-n_runs: 1
+n_events_per_run: 500
+n_runs: 1000000
 e_min: !!float 5e1
 e_max: !!float 1e7
-gamma: 2.
-muongun_e_break: !!float 1e6
+gamma: 1.
+muongun_e_break: 0.
 icemodel: SpiceLea
 distance_splits:  [-1., 10., 20., 30., 100.]
 threshold_doms: 1
