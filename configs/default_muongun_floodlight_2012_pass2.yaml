@@ -6,8 +6,7 @@ n_events_per_run: 10000
 n_runs: 1000
 
 # Pattern for the outputfile
-output_pattern: '{run_folder}/{step_name}.{dataset_number:6d}.{run_number}.i3.bz2'
-
+output_pattern: '{run_folder}/Level0.{step}_muongun_floodlight_IC86.2012_pass2.{dataset_number:6d}.{run_number}.i3.bz2'
 # sub-dict to indicate need resources
 resources:
   # Indication which steps need GPUs, default is 0

@@ -32,6 +32,7 @@ def main(config_file, run_number, scratch):
 
     infile = cfg['infile_pattern'].format(**cfg)
     infile = infile.replace(' ', '0')
+    infile = infile.replace('2012_pass2', '2012')
 
     seed = cfg['seed'] + run_number
 
@@ -395,6 +396,8 @@ def main(config_file, run_number, scratch):
     else:
         outfile = cfg['outfile_pattern'].format(**cfg)
     outfile = outfile.replace(' ', '0')
+    outfile = outfile.replace('2012_pass2', '2012')
+
     tray.AddModule("I3Writer", "EventWriter",
                    filename=outfile,
                    Streams=[icetray.I3Frame.DAQ,
