@@ -46,10 +46,13 @@ def fetch_chain(chain_name):
 def create_filename(cfg, input=False):
     if input:
         step_name = cfg['step_name']
+        step = cfg['step']
         cfg['step_name'] = cfg['previous_step_name']
+        cfg['step'] = cfg['previous_step']
         filename = cfg['output_pattern'].format(**cfg)
         full_path = os.path.join(cfg['input_folder'], filename)
         cfg['step_name'] = step_name
+        cfg['step'] = step
     else:
         filename = cfg['output_pattern'].format(**cfg)
         full_path = os.path.join(cfg['output_folder'], filename)
@@ -142,7 +145,8 @@ def main(data_folder, config_file, processing_scratch, step, pbs, dagman):
     custom_settings.update({
         'step': step,
         'step_name': step_enum[step],
-        'previous_step_name': step_enum.get(step - 1, None)})
+        'previous_step_name': step_enum.get(step - 1, None),
+        'previous_step': step - 1})
 
     if 'outfile_pattern' in custom_settings.keys():
         click.echo('Building config for next step based on provided config!')
