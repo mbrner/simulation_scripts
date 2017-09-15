@@ -4,7 +4,7 @@ MAX_DATASET_NUMBER = 100000
 MAX_RUN_NUMBER = 100000
 
 
-def create_random_services(dataset_number, run_number, seed):
+def create_random_services(dataset_number, run_number, seed, n_services=1):
     from icecube import phys_services, icetray, dataclasses
     if run_number < 0:
         raise RuntimeError("negative run numbers are not supported")
@@ -17,16 +17,14 @@ def create_random_services(dataset_number, run_number, seed):
 
     int_run_number = dataset_number * MAX_RUN_NUMBER + run_number
 
-    random_service = phys_services.I3SPRNGRandomService(
-        seed=seed,
-        nstreams=MAX_RUN_NUMBER * 2,
-        streamnum=run_number + MAX_RUN_NUMBER)
 
-    random_service_prop = phys_services.I3SPRNGRandomService(
-        seed=seed,
-        nstreams=MAX_RUN_NUMBER * 2,
-        streamnum=run_number)
-    return random_service, random_service_prop, int_run_number
+    random_services = []
+    for i in range(n_services):
+        random_services.append(phys_services.I3SPRNGRandomService(
+            seed=seed,
+            nstreams=MAX_RUN_NUMBER * n_services,
+            streamnum=run_number + MAX_RUN_NUMBER * i))
+    return random_services, int_run_number
 
 
 def get_run_folder(run_number, runs_per_folder=1000):
