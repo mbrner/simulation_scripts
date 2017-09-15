@@ -19,7 +19,7 @@ from utils import create_random_services, get_run_folder
 from dom_distance_cut import generate_stream_object
 
 
-MAX_PARALLEL_EVENTS = 100
+MAX_PARALLEL_EVENTS = 50
 SPLINE_TABLES = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables/splines'
 
 
