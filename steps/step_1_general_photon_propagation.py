@@ -41,10 +41,13 @@ def process_single_stream(cfg, infile, outfile):
 
     tray = I3Tray()
     tray.context['I3FileStager'] = dataio.get_stagers()
-    random_service, _, _ = create_random_services(
+    random_services, _ = create_random_services(
         dataset_number=cfg['dataset_number'],
         run_number=cfg['run_number'],
-        seed=cfg['seed'])
+        seed=cfg['seed'],
+        n_services=process_single_stream.n_streams)
+
+    random_service = random_services[process_single_stream.i_th_stream]
     tray.context['I3RandomService'] = random_service
     tray.Add('I3Reader', FilenameList=[cfg['gcd'], infile])
 
@@ -86,6 +89,10 @@ def process_single_stream(cfg, infile, outfile):
     tray.AddModule("TrashCan", "the can")
     tray.Execute()
     tray.Finish()
+
+
+process_single_stream.n_streams = 1
+process_single_stream.i_th_stream = 0
 
 
 def filter_S_frame(frame):
@@ -171,6 +178,7 @@ def main(cfg, run_number, scratch):
         stream_objects = generate_stream_object(distance_splits[order],
                                                 dom_limits[order],
                                                 oversize_factors[order])
+        process_single_stream.n_streams = len(stream_objects)
         for stream_i in stream_objects:
             infile_i = stream_i.transform_filepath(infile)
             outfile_i = stream_i.transform_filepath(outfile)
@@ -179,6 +187,7 @@ def main(cfg, run_number, scratch):
                                args=(cfg, infile_i, outfile_i))
             proc.start()
             proc.join()
+            process_single_stream.i_th_stream += 1
         if proc.exception:
             error, traceback = proc.exception
             print(traceback)

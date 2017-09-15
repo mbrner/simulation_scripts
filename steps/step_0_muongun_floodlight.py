@@ -41,11 +41,13 @@ def main(cfg, run_number, scratch):
 
     tray = I3Tray()
 
-    random_service, random_service_prop, _ = create_random_services(
+    random_services, _ = create_random_services(
         dataset_number=cfg['dataset_number'],
         run_number=cfg['run_number'],
-        seed=cfg['seed'])
+        seed=cfg['seed'],
+        n_services=2)
 
+    random_service, random_service_prop = random_services
     tray.context['I3RandomService'] = random_service
 
     tray.AddModule("I3InfiniteSource",
