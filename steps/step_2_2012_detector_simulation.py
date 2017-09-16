@@ -37,7 +37,6 @@ def main(cfg, run_number, scratch):
         seed=cfg['seed'],
         n_services=1)
     random_service = random_services[0]
-
     tray.context['I3RandomService'] = random_service
 
     tray.Add('I3Reader', FilenameList=[cfg['gcd_2012'], infile])
