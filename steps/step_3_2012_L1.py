@@ -5,7 +5,7 @@ import os
 import click
 import yaml
 
-from utils import get_run_folder, muongun_keys
+from utils import get_run_folder, muongun_keys, create_random_services
 
 from I3Tray import I3Tray
 from icecube import icetray, dataclasses, dataio, jeb_filter_2012
@@ -34,7 +34,11 @@ def main(config_file, run_number, scratch):
     infile = infile.replace(' ', '0')
     infile = infile.replace('2012_pass2', '2012')
 
-    seed = cfg['seed'] + run_number
+    _, seed = create_random_services(
+        dataset_number=cfg['dataset_number'],
+        run_number=cfg['run_number'],
+        seed=cfg['seed'],
+        n_services=0)
 
     tray = I3Tray()
     tray.AddModule('I3Reader',

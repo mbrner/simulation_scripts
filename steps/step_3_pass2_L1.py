@@ -64,7 +64,11 @@ def main(cfg, run_number, scratch):
                     )
 
     # make random service
-    seed = cfg['seed'] + run_number
+    _, seed = create_random_services(
+        dataset_number=cfg['dataset_number'],
+        run_number=cfg['run_number'],
+        seed=cfg['seed'],
+        n_services=0)
     filter_mask_randoms = phys_services.I3GSLRandomService(seed)
 
     # override MinBias Prescale
