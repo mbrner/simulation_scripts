@@ -19,7 +19,7 @@ from optparse import OptionParser
 from os.path import expandvars
 
 
-from utils import get_run_folder, muongun_keys
+from utils import get_run_folder, muongun_keys, create_random_services
 
 
 SPLINE_TABLES = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables/splines'
