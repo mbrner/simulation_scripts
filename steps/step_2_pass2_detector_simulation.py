@@ -48,7 +48,7 @@ def main(cfg, run_number, scratch):
 
     tray.AddSegment(segments.DetectorSim, "Detector5Sim",
         RandomService='I3RandomService',
-        RunID=run_id,
+        RunID=run_id // 10,
         GCDFile=cfg['gcd_pass2'],
         KeepMCHits=cfg['det_keep_mc_hits'],
         KeepPropagatedMCTree=cfg['det_keep_propagated_mc_tree'],
