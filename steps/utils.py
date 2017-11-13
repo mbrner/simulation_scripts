@@ -15,7 +15,9 @@ def create_random_services(dataset_number, run_number, seed, n_services=1):
     if dataset_number < 0:
         raise RuntimeError("negative dataset numbers are not supported")
 
-    int_run_number = dataset_number * MAX_RUN_NUMBER + run_number
+    max_run_num = MAX_RUN_NUMBER // 10
+
+    int_run_number = dataset_number * max_run_num + run_number
 
 
     random_services = []
