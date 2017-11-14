@@ -22,10 +22,11 @@ def create_random_services(dataset_number, run_number, seed, n_services=1):
 
     random_services = []
     for i in range(n_services):
+        streamnum = run_number + (MAX_RUN_NUMBER * i)
         random_services.append(phys_services.I3SPRNGRandomService(
             seed=seed,
             nstreams=MAX_RUN_NUMBER * n_services,
-            streamnum=run_number + MAX_RUN_NUMBER * i))
+            streamnum=streamnum))
     return random_services, int_run_number
 
 

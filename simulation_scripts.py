@@ -60,7 +60,7 @@ def create_filename(cfg, input=False):
     return full_path
 
 
-def write_job_files(config, step):
+def write_job_files(config, step, check_existing=False):
     with open(config['job_template']) as f:
         template = f.read()
     output_base = os.path.join(config['processing_folder'], 'jobs')
@@ -78,6 +78,9 @@ def write_job_files(config, step):
         final_out = config['outfile_pattern'].format(**config)
         final_out = final_out.replace(' ', '0')
         config['final_out'] = final_out
+        if check_existing:
+            if os.path.isfile(config['final_out']):
+                continue
         output_folder = os.path.dirname(final_out)
         if not os.path.isdir(output_folder):
             os.makedirs(output_folder)
@@ -135,7 +138,15 @@ def build_config(data_folder, custom_settings):
               help='Write/Not write files to start processing on a pbs system')
 @click.option('--step', '-s', default=1,
               help='0=upto clsim\n1 = clsim\n2 =upto L2')
-def main(data_folder, config_file, processing_scratch, step, pbs, dagman):
+@click.option('--resume/--no-resume', default=False,
+              help='Resume processing -> check for existing output')
+def main(data_folder,
+         config_file,
+         processing_scratch,
+         step,
+         pbs,
+         dagman,
+         resume):
     config_file = click.format_filename(config_file)
     with open(config_file, 'r') as stream:
         custom_settings = SafeDict(yaml.load(stream))
@@ -188,7 +199,7 @@ def main(data_folder, config_file, processing_scratch, step, pbs, dagman):
                 default=default)
         config['processing_scratch'] = os.path.abspath(processing_scratch)
 
-    script_files = write_job_files(config, step)
+    script_files = write_job_files(config, step, check_existing=resume)
 
     if dagman or pbs:
         scratch_subfolder = '{dataset_number}_{step_name}'.format(**config)
