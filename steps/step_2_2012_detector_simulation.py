@@ -24,6 +24,8 @@ def main(cfg, run_number, scratch):
     cfg['run_number'] = run_number
     cfg['run_folder'] = get_run_folder(run_number)
 
+    cfg['previous_step'] = cfg['previous_step'] % 10
+    cfg['step'] = cfg['step'] % 10
     infile = cfg['infile_pattern'].format(**cfg)
     infile = infile.replace(' ', '0')
 
