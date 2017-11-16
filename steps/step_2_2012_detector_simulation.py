@@ -25,8 +25,6 @@ def main(cfg, run_number, scratch):
     cfg['run_folder'] = get_run_folder(run_number)
     infile = cfg['infile_pattern'].format(**cfg)
     infile = infile.replace(' ', '0')
-
-    infile = infile.replace('2012_pass2', '2012')
     infile = infile.replace('Level0.{}'.format(cfg['previous_step']),
                             'Level0.{}'.format(cfg['previous_step'] % 10))
 
@@ -36,6 +34,7 @@ def main(cfg, run_number, scratch):
         outfile = cfg['outfile_pattern'].format(**cfg)
     outfile = outfile.replace('Level0.{}'.format(cfg['step']),
                             'Level0.{}'.format(cfg['step'] % 10))
+    outfile = infile.replace(' ', '0')
     os.environ["FINAL_OUT"] = outfile
     print('Corrected Env variable "FINAL_OUT" to: {}'.format(outfile))
 
