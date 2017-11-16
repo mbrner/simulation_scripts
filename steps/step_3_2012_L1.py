@@ -406,13 +406,6 @@ def main(config_file, run_number, scratch):
     tray.AddModule(I3RawDataCleaner,"CleanErrataForConventional",
                    Streams=[icetray.I3Frame.DAQ])
 
-    if scratch:
-        outfile = cfg['scratchfile_pattern'].format(**cfg)
-    else:
-        outfile = cfg['outfile_pattern'].format(**cfg)
-    outfile = outfile.replace(' ', '0')
-    outfile = outfile.replace('2012_pass2', '2012')
-
     tray.AddModule("I3Writer", "EventWriter",
                    filename=outfile,
                    Streams=[icetray.I3Frame.DAQ,
