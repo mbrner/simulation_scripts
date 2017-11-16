@@ -48,12 +48,23 @@ def main(cfg, run_number, scratch):
         cfg = cfg['dictitems']
     cfg['run_number'] = run_number
     cfg['run_folder'] = get_run_folder(run_number)
-    cfg['previous_step'] = cfg['previous_step'] % 10
-    cfg['step'] = cfg['step'] % 10
-
     infile = cfg['infile_pattern'].format(**cfg)
     infile = infile.replace(' ', '0')
+
     infile = infile.replace('2012_pass2', '2012')
+    cfg['previous_step'] = cfg['previous_step'] % 10
+    cfg['step'] = cfg['step'] % 10
+    infile = infile.replace('Level0.{}'.format(cfg['previous_step']),
+                            'Level0.{}'.format(cfg['previous_step'] % 10))
+
+    if scratch:
+        outfile = cfg['scratchfile_pattern'].format(**cfg)
+    else:
+        outfile = cfg['outfile_pattern'].format(**cfg)
+    outfile = outfile.replace('Level0.{}'.format(cfg['step']),
+                            'Level0.{}'.format(cfg['step'] % 10))
+    os.environ["FINAL_OUT"] = outfile
+    print('Corrected Env variable "FINAL_OUT" to: {}'.format(outfile))
 
     tray = I3Tray()
     tray.AddModule('I3Reader',
@@ -210,13 +221,6 @@ def main(cfg, run_number, scratch):
         N_iter=12,
         If=lambda f: which_split(f, split_name='InIceSplit') and ehe_wg(f)
     )
-
-    if scratch:
-        outfile = cfg['scratchfile_pattern'].format(**cfg)
-    else:
-        outfile = cfg['outfile_pattern'].format(**cfg)
-    outfile = outfile.replace(' ', '0')
-    outfile = outfile.replace('2012_pass2', '2012')
 
     tray.AddModule("I3Writer", "EventWriter",
                    filename=outfile,
