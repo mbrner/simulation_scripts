@@ -35,6 +35,7 @@ def main(cfg, run_number, scratch):
     outfile = outfile.replace('Level0.{}'.format(cfg['step']),
                             'Level0.{}'.format(cfg['step'] % 10))
     outfile = outfile.replace(' ', '0')
+    outfile = outfile.replace('2012_pass2', '2012')
     print('Outfile != $FINAL_OUT clean up for crashed scripts not possible!')
 
     tray = I3Tray()

@@ -50,12 +50,9 @@ def main(cfg, run_number, scratch):
     cfg['run_folder'] = get_run_folder(run_number)
     infile = cfg['infile_pattern'].format(**cfg)
     infile = infile.replace(' ', '0')
-
-    infile = infile.replace('2012_pass2', '2012')
-    cfg['previous_step'] = cfg['previous_step'] % 10
-    cfg['step'] = cfg['step'] % 10
     infile = infile.replace('Level0.{}'.format(cfg['previous_step']),
                             'Level0.{}'.format(cfg['previous_step'] % 10))
+    infile = infile.replace('2012_pass2', '2012')
 
     if scratch:
         outfile = cfg['scratchfile_pattern'].format(**cfg)
@@ -63,8 +60,9 @@ def main(cfg, run_number, scratch):
         outfile = cfg['outfile_pattern'].format(**cfg)
     outfile = outfile.replace('Level0.{}'.format(cfg['step']),
                             'Level0.{}'.format(cfg['step'] % 10))
-    os.environ["FINAL_OUT"] = outfile
-    print('Corrected Env variable "FINAL_OUT" to: {}'.format(outfile))
+    outfile = outfile.replace(' ', '0')
+    outfile = outfile.replace('2012_pass2', '2012')
+    print('Outfile != $FINAL_OUT clean up for crashed scripts not possible!')
 
     tray = I3Tray()
     tray.AddModule('I3Reader',

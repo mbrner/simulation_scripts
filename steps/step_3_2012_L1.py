@@ -29,12 +29,21 @@ def main(config_file, run_number, scratch):
         cfg = cfg['dictitems']
     cfg['run_number'] = run_number
     cfg['run_folder'] = get_run_folder(run_number)
-    cfg['previous_step'] = cfg['previous_step'] % 10
-    cfg['step'] = cfg['step'] % 10
-
     infile = cfg['infile_pattern'].format(**cfg)
     infile = infile.replace(' ', '0')
+    infile = infile.replace('Level0.{}'.format(cfg['previous_step']),
+                            'Level0.{}'.format(cfg['previous_step'] % 10))
     infile = infile.replace('2012_pass2', '2012')
+
+    if scratch:
+        outfile = cfg['scratchfile_pattern'].format(**cfg)
+    else:
+        outfile = cfg['outfile_pattern'].format(**cfg)
+    outfile = outfile.replace('Level0.{}'.format(cfg['step']),
+                            'Level0.{}'.format(cfg['step'] % 10))
+    outfile = outfile.replace(' ', '0')
+    outfile = outfile.replace('2012_pass2', '2012')
+    print('Outfile != $FINAL_OUT clean up for crashed scripts not possible!')
 
     _, seed = create_random_services(
         dataset_number=cfg['dataset_number'],
