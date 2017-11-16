@@ -23,13 +23,21 @@ def main(cfg, run_number, scratch):
         cfg = yaml.load(stream)
     cfg['run_number'] = run_number
     cfg['run_folder'] = get_run_folder(run_number)
-
-    cfg['previous_step'] = cfg['previous_step'] % 10
-    cfg['step'] = cfg['step'] % 10
-    print(cfg['infile_pattern'])
     infile = cfg['infile_pattern'].format(**cfg)
-    print(infile)
     infile = infile.replace(' ', '0')
+
+    infile = infile.replace('2012_pass2', '2012')
+    infile = infile.replace('Level0.{}'.format(cfg['previous_step']),
+                            'Level0.{}'.format(cfg['previous_step'] % 10))
+
+    if scratch:
+        outfile = cfg['scratchfile_pattern'].format(**cfg)
+    else:
+        outfile = cfg['outfile_pattern'].format(**cfg)
+    outfile = outfile.replace('Level0.{}'.format(cfg['step']),
+                            'Level0.{}'.format(cfg['step'] % 10))
+    os.environ["FINAL_OUT"] = outfile
+    print('Corrected Env variable "FINAL_OUT" to: {}'.format(outfile))
 
     tray = I3Tray()
 
@@ -57,15 +65,6 @@ def main(cfg, run_number, scratch):
         BeaconLaunches=cfg['det_add_beacon_launches'],
         FilterTrigger=cfg['det_filter_trigger'])
 
-    if scratch:
-        outfile = cfg['scratchfile_pattern'].format(**cfg)
-    else:
-        outfile = cfg['outfile_pattern'].format(**cfg)
-    outfile = outfile.replace(' ', '0')
-    outfile = outfile.replace('2012_pass2', '2012')
-
-    print(outfile)
-    print(cfg['outfile_pattern'])
     tray.AddModule("I3Writer", "EventWriter",
                    filename=outfile,
                    Streams=[icetray.I3Frame.DAQ,
