@@ -35,8 +35,7 @@ def main(cfg, run_number, scratch):
     outfile = outfile.replace('Level0.{}'.format(cfg['step']),
                             'Level0.{}'.format(cfg['step'] % 10))
     outfile = outfile.replace(' ', '0')
-    os.environ["FINAL_OUT"] = outfile
-    print('Corrected Env variable "FINAL_OUT" to: {}'.format(outfile))
+    print('Outfile != $FINAL_OUT clean up for crashed scripts not possible!')
 
     tray = I3Tray()
 
