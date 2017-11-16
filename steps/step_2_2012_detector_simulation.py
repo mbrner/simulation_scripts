@@ -34,7 +34,7 @@ def main(cfg, run_number, scratch):
         outfile = cfg['outfile_pattern'].format(**cfg)
     outfile = outfile.replace('Level0.{}'.format(cfg['step']),
                             'Level0.{}'.format(cfg['step'] % 10))
-    outfile = infile.replace(' ', '0')
+    outfile = outfile.replace(' ', '0')
     os.environ["FINAL_OUT"] = outfile
     print('Corrected Env variable "FINAL_OUT" to: {}'.format(outfile))
 
