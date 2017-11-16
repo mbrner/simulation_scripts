@@ -59,7 +59,7 @@ def main(cfg, run_number, scratch):
     else:
         outfile = cfg['outfile_pattern'].format(**cfg)
     outfile = outfile.replace('Level0.{}'.format(cfg['step']),
-                            'Level{}'.format(cfg['step'] % 10))
+                            'Level2')
     outfile = outfile.replace(' ', '0')
     outfile = outfile.replace('2012_pass2', '2012')
     print('Outfile != $FINAL_OUT clean up for crashed scripts not possible!')

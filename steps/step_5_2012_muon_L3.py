@@ -32,7 +32,7 @@ def main(cfg, run_number, scratch):
     infile = cfg['infile_pattern'].format(**cfg)
     infile = infile.replace(' ', '0')
     infile = infile.replace('Level0.{}'.format(cfg['previous_step']),
-                            'Level{}'.format(cfg['previous_step'] % 10))
+                            'Level2')
     infile = infile.replace('2012_pass2', '2012')
 
     if scratch:
@@ -40,7 +40,7 @@ def main(cfg, run_number, scratch):
     else:
         outfile = cfg['outfile_pattern'].format(**cfg)
     outfile = outfile.replace('Level0.{}'.format(cfg['step']),
-                            'Level{}'.format(cfg['step'] % 10))
+                            'Level3')
     outfile = outfile.replace(' ', '0')
     outfile = outfile.replace('2012_pass2', '2012')
     print('Outfile != $FINAL_OUT clean up for crashed scripts not possible!')
