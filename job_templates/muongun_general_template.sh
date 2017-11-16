@@ -33,7 +33,7 @@ then
     ICETRAY_RC=$?
     echo 'IceTray finished with Exit Code: ' $ICETRAY_RC
     if [ $ICETRAY_RC -ne 0 ] && [ $KEEP_CRASHED_FILES -eq 0 ] ; then
-        echo 'Deleting partially processed file!'
+        echo 'Deleting partially processed file! ' $FINAL_OUT
         rm $FINAL_OUT
     fi
 else

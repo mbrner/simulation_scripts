@@ -26,7 +26,9 @@ def main(cfg, run_number, scratch):
 
     cfg['previous_step'] = cfg['previous_step'] % 10
     cfg['step'] = cfg['step'] % 10
+    print(cfg['infile_pattern'])
     infile = cfg['infile_pattern'].format(**cfg)
+    print(infile)
     infile = infile.replace(' ', '0')
 
     tray = I3Tray()
