@@ -37,7 +37,19 @@ def main(cfg, run_number, scratch):
 
     infile = cfg['infile_pattern'].format(**cfg)
     infile = infile.replace(' ', '0')
+    infile = infile.replace('Level0.{}'.format(cfg['previous_step']),
+                            'Level0.{}'.format(cfg['previous_step'] % 10))
     infile = infile.replace('2012_pass2', 'pass2')
+
+    if scratch:
+        outfile = cfg['scratchfile_pattern'].format(**cfg)
+    else:
+        outfile = cfg['outfile_pattern'].format(**cfg)
+    outfile = outfile.replace('Level0.{}'.format(cfg['step']),
+                            'Level0.{}'.format(cfg['step'] % 10))
+    outfile = outfile.replace(' ', '0')
+    outfile = outfile.replace('2012_pass2', '2012')
+    print('Outfile != $FINAL_OUT clean up for crashed scripts not possible!')
 
     tray = I3Tray()
     """The main L1 script"""
@@ -243,13 +255,6 @@ def main(cfg, run_number, scratch):
     tray.AddModule(I3RawDataCleaner,
                    "CleanErrataForConventional",
                    Streams=[icetray.I3Frame.DAQ])
-
-    if scratch:
-        outfile = cfg['scratchfile_pattern'].format(**cfg)
-    else:
-        outfile = cfg['outfile_pattern'].format(**cfg)
-    outfile = outfile.replace(' ', '0')
-    outfile = outfile.replace('2012_pass2', 'pass2')
 
     tray.AddModule("I3Writer", "EventWriter",
                    filename=outfile,
