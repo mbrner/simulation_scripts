@@ -19,7 +19,7 @@ double_pulse_resimulations:
   default_config: configs/default_muongun_floodlight_2012_pass2.yaml
   job_template: job_templates/muongun_general_template.sh
   steps:
-    0: step_0_muongun_floodlight
+    0: step_0_muon_resimulation
     1: step_1_general_photon_propagation
     2: step_2_pass2_detector_simulation
     3: step_3_pass2_L1

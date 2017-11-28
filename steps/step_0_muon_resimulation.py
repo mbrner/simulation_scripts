@@ -238,7 +238,7 @@ class ParticleFactory(icetray.I3ConditionalModule):
         self.event_name = self.GetParameter('event_name')
         self.num_events = self.GetParameter('num_events')
         self.xsec_table_path = self.GetParameter('xsec_table_path')
-        self.smearing_pos = self.GetParameter('smearing_pos')
+        self.pos_sigma = self.GetParameter('smearing_pos')
         self.events_done = 0
 
         self.the_map = getSmearedMap(
@@ -410,7 +410,14 @@ def main(cfg, run_number, scratch):
         outfile = cfg['scratchfile_pattern'].format(**cfg)
     else:
         outfile = cfg['outfile_pattern'].format(**cfg)
+    outfile = outfile.replace(' ', '0')
 
+    click.echo('Run: {}'.format(run_number))
+    click.echo('Outfile: {}'.format(outfile))
+    click.echo('n_events_per_run: {}'.format(cfg['n_events_per_run']))
+    click.echo('smearing_angle: {}'.format(cfg['smearing_angle']))
+    click.echo('xsec_table_path: {}'.format(cfg['xsec_table_path']))
+    click.echo('skymap_path: {}'.format(cfg['skymap_path']))
 
     tray = I3Tray()
     tray.AddModule('I3InfiniteSource', 'source',
@@ -430,9 +437,7 @@ def main(cfg, run_number, scratch):
     tray.Finish()
     del tray
 
-
-
-
-
-
+if __name__ == '__main__':
+    print('AJAJAJ')
+    main()
 
