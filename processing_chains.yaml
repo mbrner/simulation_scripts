@@ -13,3 +13,20 @@ muongun_floodlight_2012_pass2_distance_split:
     13: step_3_2012_L1
     14: step_4_2012_L2
     15: step_5_2012_muon_L3
+
+
+double_pulse_resimulations:
+  default_config: configs/default_muongun_floodlight_2012_pass2.yaml
+  job_template: job_templates/muongun_general_template.sh
+  steps:
+    0: step_0_muongun_floodlight
+    1: step_1_general_photon_propagation
+    2: step_2_pass2_detector_simulation
+    3: step_3_pass2_L1
+    4: step_4_pass2_L2
+    5: step_5_pass2_muon_L3
+    11: step_1_general_photon_propagation
+    12: step_2_2012_detector_simulation
+    13: step_3_2012_L1
+    14: step_4_2012_L2
+    15: step_5_2012_muon_L3

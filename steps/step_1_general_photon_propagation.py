@@ -167,6 +167,7 @@ def main(cfg, run_number, scratch):
     else:
         outfile = cfg['outfile_pattern'].format(**cfg)
     outfile = outfile.replace(' ', '0')
+
     if cfg.get('distance_splits', False):
 
         distance_splits = np.atleast_1d(cfg['distance_splits'])
@@ -196,6 +197,9 @@ def main(cfg, run_number, scratch):
         infiles = [stream_i.transform_filepath(outfile)
                    for stream_i in stream_objects]
         merge(infiles, outfile)
+    else:
+        process_single_stream(cfg, infile, outfile)
+
 
 
 if __name__ == '__main__':
