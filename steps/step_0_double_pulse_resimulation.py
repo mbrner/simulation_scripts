@@ -21,7 +21,6 @@ from scipy import interpolate
 from collections import Iterable
 
 
-
 def logsumexp(a, axis=None, b=None):
     a = np.asarray(a)
     if axis is None:
@@ -221,6 +220,7 @@ class InterpolatedCrossSection():
         else:
             return rand_uni[:, 0]
 
+
 class ParticleFactory(icetray.I3ConditionalModule):
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
@@ -396,7 +396,6 @@ class TauFactory(ParticleFactory):
             self.RequestSuspension()
 
 
-
 @click.command()
 @click.argument('cfg', click.Path(exists=True))
 @click.argument('run_number', type=int)
@@ -421,20 +420,31 @@ def main(cfg, run_number, scratch):
     click.echo('skymap_path: {}'.format(cfg['skymap_path']))
 
     tray = I3Tray()
+    random_services, _ = create_random_services(
+        dataset_number=cfg['dataset_number'],
+        run_number=cfg['run_number'],
+        seed=cfg['seed'])
+
     tray.AddModule('I3InfiniteSource', 'source',
                    # Prefix=gcdfile,
                    Stream=icetray.I3Frame.DAQ)
-    if cfg['particle_type'] == 'muon':
+    if cfg['particle_type'] == 'numu':
         factory = MuonFactory
-    elif cfg['particle_type'] == 'muon':
+    elif cfg['particle_type'] == 'nutau':
         factory = TauFactory
 
     tray.AddModule(factory,
                    'make_showers',
-                    map_filename=cfg['skymap_path'],
-                    num_events=cfg['n_events_per_run'],
-                    smearing_angle=cfg['smearing_angle'] * I3Units.deg,
-                    xsec_table_path=cfg['xsec_table_path'])
+                   map_filename=cfg['skymap_path'],
+                   num_events=cfg['n_events_per_run'],
+                   smearing_angle=cfg['smearing_angle'] * I3Units.deg,
+                   xsec_table_path=cfg['xsec_table_path'])
+
+    tray.AddSegment(segments.PropagateMuons,
+                    'propagate_muons',
+                    RandomService=random_services[0],
+                    InputMCTreeName='I3MCTree')
+
     tray.AddModule('I3Writer', 'write',
                    Filename=outfile,
                    Streams=[icetray.I3Frame.DAQ, icetray.I3Frame.Stream('M')])
@@ -446,4 +456,3 @@ def main(cfg, run_number, scratch):
 if __name__ == '__main__':
     print('AJAJAJ')
     main()
-

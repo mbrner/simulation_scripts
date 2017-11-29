@@ -15,4 +15,4 @@ clsim_usegpus: True
 clsim_keep_mcpe: False
 clsim_dom_oversize: 1.
 clsim_hybrid_mode: False
-particle_type: muon
+particle_type: numu
