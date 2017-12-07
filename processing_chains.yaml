@@ -24,7 +24,7 @@ double_pulse_resimulations:
     2: step_2_pass2_detector_simulation
     3: step_3_pass2_L1
     4: step_4_pass2_L2
-    5: step_5_pass2_muon_L3
+    5: step_5_pass2_double_pulse_reco
     11: step_1_general_photon_propagation
     12: step_2_2012_detector_simulation
     13: step_3_2012_L1
