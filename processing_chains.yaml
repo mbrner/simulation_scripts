@@ -17,7 +17,7 @@ muongun_floodlight_2012_pass2_distance_split:
 
 double_pulse_resimulations:
   default_config: configs/default_double_pulse_resimulation.yaml
-  job_template: job_templates/muongun_general_template.sh
+  job_template: job_templates/resimulation_general_template.sh
   steps:
     0: step_0_double_pulse_resimulation
     1: step_1_general_photon_propagation
