@@ -78,12 +78,18 @@ def getSmearedMap(filename, sigmaInDeg=30., eventName=None):
         filename=name)
 
 
-def sampleFromMap(mapDict, ptype='nutau', pos_sigma=5.,  **kwargs):
+def sampleFromMap(mapDict, random_state,
+                  ptype='nutau', pos_sigma=5.,
+                  **kwargs):
+    if not isinstance(random_state, np.random.RandomState):
+        random_state = np.random.RandomState(random_state)
+
     nside = healpy.npix2nside(len(mapDict["probs_smooth"]))
 
-    sampled_index = np.random.choice(np.arange(len(mapDict['probs_smooth'])),
-                                     p=mapDict['probs_smooth'],
-                                     size=1)[0]
+    sampled_index = random_state.choice(
+        np.arange(len(mapDict['probs_smooth'])),
+        p=mapDict['probs_smooth'],
+        size=1)[0]
     dir_zen, dir_azi = healpy.pix2ang(nside, sampled_index)
 
     energy = mapDict["energies"][sampled_index]
@@ -95,18 +101,18 @@ def sampleFromMap(mapDict, ptype='nutau', pos_sigma=5.,  **kwargs):
     if ptype == 'nutau':
         energy_sigma = 0.5
         eshift = max(1,
-                     np.random.normal(loc=1,
-                                      scale=energy_sigma,
-                                      size=1)[0])
+                     random_state.normal(loc=1,
+                                         scale=energy_sigma,
+                                         size=1)[0])
         energy = energy * eshift
 
     elif ptype == 'numu':
         e_min = energy
         e_max = kwargs.get('e_max', 1e6)
 
-        energy = np.random.uniform(e_min, e_max)
+        energy = random_state.uniform(e_min, e_max)
 
-    vshift = np.random.normal(loc=0, scale=pos_sigma, size=3)
+    vshift = random_state.normal(loc=0, scale=pos_sigma, size=3)
 
     return dict(
         zenith=dir_zen,
@@ -189,7 +195,10 @@ class InterpolatedCrossSection():
                 e_log = np.repeat(e_log, len(y_log))
         return 10**self._interp(e_log, y_log)
 
-    def sample_y(self, e_log, y_log=None, n_samples=1):
+    def sample_y(self, e_log, y_log=None, n_samples=1, random_state=None):
+        if not isinstance(random_state, np.random.RandomState):
+            random_state = np.random_state.RandomState(random_state)
+
         if y_log is None:
             e_nu = 10**e_log
             proton_mass = 0.938  # in GeV
@@ -202,12 +211,12 @@ class InterpolatedCrossSection():
         xsec = self.__call__(e_log, y_log)
         xsec_max = np.max(xsec)
 
-        rand_uni = np.random.uniform(size=(n_samples, 2))
+        rand_uni = random_state.uniform(size=(n_samples, 2))
         xsec_at_u = self.__call__(e_log, np.log10(rand_uni[:, 0]))
         failed_mask = rand_uni[:, 1] > (xsec_at_u / xsec_max)
         n_failed = np.sum(failed_mask)
         while n_failed != 0:
-            new_rand_uni = np.random.uniform(size=(n_failed, 2))
+            new_rand_uni = random_state.uniform(size=(n_failed, 2))
             rand_uni[failed_mask] = new_rand_uni
             xsec_at_u[failed_mask] = self.__call__(
                 e_log,
@@ -231,6 +240,7 @@ class ParticleFactory(icetray.I3ConditionalModule):
         self.AddParameter('num_events', '', 1)
         self.AddParameter('xsec_table_path', '', None)
         self.AddParameter('smearing_pos', '', 5.)
+        self.AddParameter('random_state', '', 1337)
 
     def Configure(self):
         self.map_filename = self.GetParameter('map_filename')
@@ -239,6 +249,9 @@ class ParticleFactory(icetray.I3ConditionalModule):
         self.num_events = self.GetParameter('num_events')
         self.xsec_table_path = self.GetParameter('xsec_table_path')
         self.pos_sigma = self.GetParameter('smearing_pos')
+        self.random_state = self.GetParameter('random_state')
+        if not isinstance(self.random_state, np.random.RandomState):
+            self.random_state = np.random.RandomState(self.random_state)
         self.events_done = 0
 
         self.the_map = getSmearedMap(
@@ -251,6 +264,7 @@ class ParticleFactory(icetray.I3ConditionalModule):
 class MuonFactory(ParticleFactory):
     def DAQ(self, frame):
         sample = sampleFromMap(self.the_map,
+                               self.random_state,
                                ptype='numu',
                                pos_sigma=self.pos_sigma)
         primary = dataclasses.I3Particle()
@@ -274,7 +288,8 @@ class MuonFactory(ParticleFactory):
                 interp_type='linear')
 
             daughter = dataclasses.I3Particle()
-            y = xsec.sample_y(np.log10(primary.energy))
+            y = xsec.sample_y(np.log10(primary.energy),
+                              random_state=self.random_state)
             daughter.energy = primary.energy * (1 - y)
 
         else:
@@ -325,7 +340,7 @@ class MuonFactory(ParticleFactory):
 
 class TauFactory(ParticleFactory):
     def DAQ(self, frame):
-        sample = sampleFromMap(self.the_map, ptype='nutau', )
+        sample = sampleFromMap(self.the_map, self.random_state, ptype='nutau')
         primary = dataclasses.I3Particle()
 
         primary.time = sample['time'] * I3Units.ns
@@ -347,7 +362,8 @@ class TauFactory(ParticleFactory):
                 interp_type='linear')
 
             daughter = dataclasses.I3Particle()
-            y = xsec.sample_y(np.log10(primary.energy))
+            y = xsec.sample_y(np.log10(primary.energy),
+                              random_state=self.random_state)
             daughter.energy = primary.energy * (1 - y)
 
         else:
@@ -438,7 +454,8 @@ def main(cfg, run_number, scratch):
                    map_filename=cfg['skymap_path'],
                    num_events=cfg['n_events_per_run'],
                    smearing_angle=cfg['smearing_angle'] * I3Units.deg,
-                   xsec_table_path=cfg['xsec_table_path'])
+                   xsec_table_path=cfg['xsec_table_path'],
+                   random_state=cfg['seed'])
 
     tray.AddSegment(segments.PropagateMuons,
                     'propagate_muons',
