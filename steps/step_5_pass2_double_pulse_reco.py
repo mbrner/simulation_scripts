@@ -1,5 +1,5 @@
 #!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v1/icetray-start
-#METAPROJECT /data/user/mmeier/tests/musner/icerec.trunk.rev142791.extended.2016-03-04.RHEL_6_x86_64
+#METAPROJECT /home/mmeier/combo_stable/build
 import os
 
 import click
@@ -10,7 +10,8 @@ from utils import get_run_folder
 from I3Tray import I3Tray
 from icecube import icetray, dataio, dataclasses, hdfwriter, phys_services
 from icecube import lilliput, gulliver, gulliver_modules
-from icecube import improvedLinefit, rootwriter
+from icecube import linefit, rootwriter
+from icecube.icetray import I3Units
 
 from icecube.photonics_service import I3PhotoSplineService
 from icecube.millipede import HighEnergyExclusions
@@ -18,8 +19,8 @@ from modules.taupede import TaupedeWrapper
 from icecube.level3_filter_muon.level3_Reconstruct import DoSplineReco
 from icecube.level3_filter_muon.level3_SplitHiveSplitter import SplitAndRecoHiveSplitter
 from icecube import mue
-from icecube.level3_filter_cascade.CascadeL3TraySegment import maskify
 from icecube.level3_filter_cascade.L3_monopod import L3_Monopod
+from icecube import STTools
 from icecube.level3_filter_cascade.level3_Recos import CascadeLlhVertexFit
 
 SPLINE_TABLES = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables/splines'
@@ -28,7 +29,7 @@ DRIVER_FILE = 'mu_photorec.list'
 
 
 @icetray.traysegment
-def taupede_segment(tray, name, cfg, pulses='SplitInIcePulses'):
+def taupede_segment(tray, name, cfg, pulses='SplitInIcePulses', seed_key='L3_MonopodFit4_AmptFit'):
     cascade_service = I3PhotoSplineService(
         amplitudetable=os.path.join(SPLINE_TABLES, 'ems_mie_z20_a10.abs.fits'),
         timingtable=os.path.join(SPLINE_TABLES, 'ems_mie_z20_a10.prob.fits'),
@@ -62,7 +63,7 @@ def taupede_segment(tray, name, cfg, pulses='SplitInIcePulses'):
 
     tray.AddSegment(TaupedeWrapper, 'TaupedeFit',
                     omgeo=omgeo,
-                    Seed='L3MonopodFit4',
+                    Seed=seed_key,
                     Iterations=4,
                     PhotonsPerBin=5,
                     **millipede_params)
@@ -74,6 +75,32 @@ def mu_millipede_segment(tray, name, cfg, pulses='InIcePulses'):
     suffix = 'HV'
     tray.AddSegment(SplitAndRecoHiveSplitter, 'HiveSplitterSegment',
                     Suffix=suffix)
+
+    tray.AddService('I3GulliverMinuitFactory', 'Minuit',
+                    Algorithm='SIMPLEX',
+                    MaxIterations=1000,
+                    Tolerance=0.01)
+    tray.AddService("I3SimpleParametrizationFactory", "SimpleTrack",
+	    StepX = 20*I3Units.m,
+	    StepY = 20*I3Units.m,
+	    StepZ = 20*I3Units.m,
+	    StepZenith = 0.1*I3Units.radian,
+	    StepAzimuth= 0.2*I3Units.radian,
+	    BoundsX = [-2000*I3Units.m, 2000*I3Units.m],
+	    BoundsY = [-2000*I3Units.m, 2000*I3Units.m],
+	    BoundsZ = [-2000*I3Units.m, 2000*I3Units.m])
+
+    tray.AddService( "I3PowExpZenithWeightServiceFactory", "ZenithWeight",
+	    Amplitude=2.49655e-07,               # Default
+	    CosZenithRange=[ -1, 1 ],            # Default
+	    DefaultWeight=1.383896526736738e-87, # Default
+	    ExponentFactor=0.778393,             # Default
+	    FlipTrack=False,                     # Default
+	    PenaltySlope=-1000,                  # ! Add penalty for being in the wrong region
+	    PenaltyValue=-200,                   # Default
+	    Power=1.67721)                       # Default
+
+
     # Run MuEX as a seed for spline MPE
     # muex - iterative angular
     tray.AddModule("muex", "muex_angular4",
@@ -107,7 +134,7 @@ def mu_millipede_segment(tray, name, cfg, pulses='InIcePulses'):
 
     exclusionsHE = tray.AddSegment(HighEnergyExclusions,
                                    "excludes_high_energies",
-                                   Pulses="Millipede"+Suffix+"SplitPulses",
+                                   Pulses="Millipede"+suffix+"SplitPulses",
                                    ExcludeDeepCore="DeepCoreDOMs",
                                    ExcludeSaturatedDOMs=False,
                                    ExcludeBrightDOMS="BrightDOMs",
@@ -115,7 +142,7 @@ def mu_millipede_segment(tray, name, cfg, pulses='InIcePulses'):
                                    SaturationWindows="SaturationWindows",
                                    BadDomsList="BadDomsList",
                                    CalibrationErrata="CalibrationErrata")
-    exclusionsHE.append("Millipede"+Suffix+"SplitPulsesExcludedTimeRange")
+    exclusionsHE.append("Millipede"+suffix+"SplitPulsesExcludedTimeRange")
 
     tray.AddModule("MuMillipede", "millipede_highenergy_mie",
                    MuonPhotonicsService=None,
@@ -139,6 +166,25 @@ def monopod_segment(tray, name, cfg, pulses='InIcePulses',
                                                  'ems_mie_z20_a10.abs.fits'),
                     timing_table=os.path.join(SPLINE_TABLES,
                                               'ems_mie_z20_a10.prob.fits')):
+    def maskify(frame):
+        if frame.Has('SplitInIcePulses'): 
+            frame['OfflinePulses']=frame['SplitInIcePulses']  # In IC86-2013 'SplitInIcePulses' is used as 'OfflinePulses' in IC86-2011
+            frame['OfflinePulsesTimeRange']=frame['SplitInIcePulsesTimeRange']
+        else:
+            return True
+        if frame.Has('SRTInIcePulses'):
+            frame['SRTOfflinePulses']=frame['SRTInIcePulses']
+        else:
+            return True
+        return True
+
+    def add_timerange(frame, pulses):
+        time_range = frame['CalibratedWaveformRange']
+        frame[pulses + 'TimeRange'] = dataclasses.I3TimeWindow(time_range.start - 25.*I3Units.ns, time_range.stop)
+        return True
+
+    tray.AddModule(add_timerange, 'add timerange for monopod',
+                   pulses='SplitInIcePulses')
     # Rename Pulses for Cascade L3 Scripts
     tray.AddModule(maskify, 'maskify')
 
@@ -166,7 +212,8 @@ def monopod_segment(tray, name, cfg, pulses='InIcePulses',
     # Rename the L3 Fit to the expected key in the L3_Monopod Segment
     # for the year 2012, changing the year just changes the Seed Key
     tray.AddModule("Rename", keys=['CscdL3_CascadeLlhVertexFit',
-                                   'CascadeLlhVertexFit_L2'])
+                                   'CascadeLlhVertexFit_L2'],
+                   If=lambda frame: not frame.Has('CascadeLlhVertexFit_L2'))
 
     tray.AddSegment(L3_Monopod, 'monopod',
                     Pulses='OfflinePulses',
@@ -201,22 +248,27 @@ def main(cfg, run_number, scratch):
     outfile = outfile.replace('2012_pass2', 'pass2')
     print('Outfile != $FINAL_OUT clean up for crashed scripts not possible!')
 
-    outfile = outfile.replace(' ', '0')
-    outfile = outfile.replace('2012_pass2', 'pass2')
-
     tray = I3Tray()
 
     tray.AddModule('I3Reader', 'reader', filenamelist=[cfg['gcd'], infile])
 
+    def split_selector(frame):
+        if frame.Stop == icetray.I3Frame.Physics:
+            if frame['I3EventHeader'].sub_event_stream == 'InIceSplit':
+                return True
+        return False
+
+    tray.AddModule(split_selector, 'select_inicesplit')    
+
+    tray.AddSegment(monopod_segment, 'MonopodSegment', cfg=cfg)
+
     tray.AddSegment(taupede_segment, 'TaupedeSegment', cfg=cfg)
 
-    tray.AddSegment(mu_millipede_segment, 'TaupedeSegment', cfg=cfg)
-
-    tray.AddSegment(monopod_segment, 'TaupedeSegment', cfg=cfg)
+    tray.AddSegment(mu_millipede_segment, 'MuMillipedeSegment', cfg=cfg)
 
     tray.AddModule('I3Writer', 'writer',
                    Streams=[icetray.I3Frame.DAQ, icetray.I3Frame.Physics],
-                   Filename=out_file)
+                   Filename=outfile)
 
     tray.AddModule("TrashCan", "Bye")
     tray.Execute()
