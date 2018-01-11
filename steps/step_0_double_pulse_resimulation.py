@@ -99,12 +99,10 @@ def sampleFromMap(mapDict, random_state,
     time = mapDict["time"][sampled_index]
 
     if ptype == 'nutau':
-        energy_sigma = 0.5
-        eshift = max(1,
-                     random_state.normal(loc=1,
-                                         scale=energy_sigma,
-                                         size=1)[0])
-        energy = energy * eshift
+        e_min = energy
+        e_max = kwargs.get('e_max', 1e6)
+
+        energy = random_state.uniform(e_min, e_max)
 
     elif ptype == 'numu':
         e_min = energy
