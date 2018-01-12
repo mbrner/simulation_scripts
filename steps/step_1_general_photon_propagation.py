@@ -31,6 +31,8 @@ def process_single_stream(cfg, infile, outfile):
                          cfg['clsim_hybrid_mode'])
     click.echo('UseGPUs: {}'.format(cfg['clsim_usegpus']))
     click.echo('IceModel: {}'.format(cfg['icemodel']))
+    if not cfg['icemodel_location'] is None:
+        click.echo('IceModelLocation: {}'.format(cfg['icemodel_location']))
     click.echo('DomOversize {}'.format(cfg['clsim_dom_oversize']))
     click.echo('UnshadowedFraction: {0:.2f}'.format(
         cfg['clsim_unshadowed_fraction']))
@@ -71,6 +73,7 @@ def process_single_stream(cfg, infile, outfile):
         MaxParallelEvents=MAX_PARALLEL_EVENTS,
         KeepIndividualMaps=cfg['clsim_keep_mcpe'],
         IceModel=cfg['icemodel'],
+        IceModelLocation=cfg['icemodel_location'],
         UnshadowedFraction=cfg['clsim_unshadowed_fraction'],
         IgnoreMuons=ignore_muon_light,
         HybridMode=hybrid_mode,
