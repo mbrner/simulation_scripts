@@ -53,6 +53,8 @@ zenith_max: 180.
 
 # Used icemodel ['SpiceLea']
 icemodel: SpiceLea
+# For default location: leave empty
+icemodel_location:
 
 # CLSIM specific options
 # Ratio of the dom not shadowed by calbes other anything else
