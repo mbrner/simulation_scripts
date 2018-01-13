@@ -1,0 +1,44 @@
+# Nugen NuMu simulation
+# 10^2 - 10^7 GeV
+# Gamma = 1
+# Deep-Homogenous Ice, no tilt
+# DOMs on perfect hex grid
+
+chain_name: nugen_2012_pass2_distance_split
+seed: 1337
+
+# Number of the dataset
+dataset_number: 11068
+# Events generated for each file
+n_events_per_run: 10000
+# Number of total runs/file
+n_runs: 1000
+
+# PATH to the GCD File
+gcd: /data/user/mhuennefeld/data/simulation/GeoCalibDetectorStatus_2015.57161_V0_perfectHexGrid.i3.gz
+gcd_2012: /data/user/mhuennefeld/data/simulation/GeoCalibDetectorStatus_2012.56063_V1_perfectHexGrid.i3.gz
+gcd_pass2: /data/user/mhuennefeld/data/simulation/GeoCalibDetectorStatus_2015.57161_V0_perfectHexGrid.i3.gz
+
+# used icemodel
+icemodel: deep-homogenous
+# For default location: leave empty
+icemodel_location: /data/user/mhuennefeld/IceModels
+# Whether I3MCPE list should be stored
+clsim_keep_mcpe: False
+
+# nugen specific settings
+# Neutrino flavor to simulate
+# if neutrino_flavor is set, neutrino_types does
+# not have any effect and I3NuGInjector is used.
+neutrino_flavor: NuMu
+
+# Detector Simulation
+# keep MCPEs in frame
+det_keep_mc_hits: True
+# keep I3MCPulseSeriesMap in frame.
+det_keep_mc_pulses: False
+# Keep everything upto run X
+det_pass2_keep_all_upto: -1
+# keep MCTree with all in-ice propagated secondaries. These take a lot of space compared un propagated tree.
+det_keep_propagated_mc_tree: True
+
