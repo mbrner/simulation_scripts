@@ -1,6 +1,6 @@
 from icecube import dataio, dataclasses, icetray
 from icecube.icetray import I3PacketModule, I3Units, I3Frame
-from icecube import lilliput, HiveSplitter
+from icecube import lilliput, HiveSplitter, linefit
 from icecube import CoincSuite
 from icecube.CoincSuite import which_split
 from icecube.STTools.seededRT.configuration_services import \
