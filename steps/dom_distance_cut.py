@@ -18,6 +18,22 @@ def get_numu_particles(frame, numu):
     return particles
 
 
+def get_nue_particles(frame, nue):
+    particles = []
+
+    def crawl(parent):
+        for p in frame['I3McTree'].get_daughters(parent):
+            if p.type == p.NuE or p.type == p.NuEBar:
+                crawl(p)
+            elif p.type in [p.Hadrons]:
+                if p.location_type == p.LocationType.InIce:
+                    particles.append(p)
+
+    crawl(nue)
+    return particles
+
+
+
 def is_infront_of_point(v_dir, v_pos, points):
     a = np.dot(v_pos, v_dir) * -1.
     dist_plain = np.dot(v_dir, points) + a
@@ -235,31 +251,24 @@ class OversizeSplitterNSplits(icetray.I3ConditionalModule):
 
     def DAQ(self, frame):
         if self.simulation_type == 'muongun':
-            particle_list = [(frame['MCMuon'], 'track')]
+            particle_list = [frame['MCMuon']]
             check_starting = False
             check_stopping = False
         elif self.simulation_type == 'nue':
-            particle_list = [(frame['NuGPrimary'], 'cascade')]
+            particle_list = get_nue_particles(frame, frame['NuGPrimary'])
+            check_starting = False
+            check_stopping = False
         elif self.simulation_type == 'numu':
-            particle_list = []
-
-            if frame['I3MCWeightDict'].InteractionType < 1.5:
-
-
-                particle_list.append((frame['MCPrimary'], 'track'))
+            particle_list = get_numu_particles(frame, frame['NuGPrimary'])
             check_starting = True
             check_stopping = True
 
-
         stream_list = []
-        for p, t in particle_list:
-            if t == 'track':
-                distances = self.get_distances_track(
-                    p,
-                    check_starting=check_starting,
-                    check_stopping=check_stopping)
-            elif t == 'cascade':
-                distances = self.get_distances_cscd(p)
+        for p in particle_list:
+            distances = self.get_distances(
+                p,
+                check_starting=check_starting,
+                check_stopping=check_stopping)
 
             if self.relevance_dist is not None:
                 n_relevant_doms = distances < self.relevance_dist
