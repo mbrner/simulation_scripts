@@ -72,6 +72,7 @@ def write_job_files(config, step, check_existing=False):
     if not os.path.isdir(log_dir):
         os.makedirs(log_dir)
     scripts = []
+    run_numbers = []
     for i in range(config['n_runs']):
         config['run_number'] = i
         config['run_folder'] = get_run_folder(i)
@@ -94,7 +95,8 @@ def write_job_files(config, step, check_existing=False):
         st = os.stat(script_path)
         os.chmod(script_path, st.st_mode | stat.S_IEXEC)
         scripts.append(script_path)
-    return scripts
+        run_numbers.append(i)
+    return scripts, run_numbers
 
 
 def build_config(data_folder, custom_settings):
@@ -199,7 +201,7 @@ def main(data_folder,
                 default=default)
         config['processing_scratch'] = os.path.abspath(processing_scratch)
 
-    script_files = write_job_files(config, step, check_existing=resume)
+    script_files, run_numbers = write_job_files(config, step, check_existing=resume)
 
     if dagman or pbs:
         scratch_subfolder = '{dataset_number}_{step_name}'.format(**config)
@@ -210,10 +212,12 @@ def main(data_folder,
         if dagman:
             create_dagman_files(config,
                                 script_files,
+                                run_numbers,
                                 scratch_folder)
         if pbs:
             create_pbs_files(config,
                              script_files,
+                             run_numbers,
                              scratch_folder)
 
 
