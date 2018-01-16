@@ -1,29 +1,75 @@
 import numpy as np
-from scipy.spatial import ConvexHull
 
-from icecube import phys_services, icetray, dataclasses
+from icecube import phys_services, icetray, dataclasses, MuonGun
+
+
+def get_numu_particles(frame, numu):
+    particles = []
+
+    def crawl(parent):
+        for p in frame['I3McTree'].get_daughters(parent):
+            if p.type == p.NuMu or p.type == p.NuMuBar:
+                crawl(p)
+            elif p.type in [p.Hadrons, p.MuMinus, p.MuPlus]:
+                if p.location_type == p.LocationType.InIce:
+                    particles.append(p)
+
+    crawl(numu)
+    return particles
+
+
+def is_infront_of_point(v_dir, v_pos, points):
+    a = np.dot(v_pos, v_dir) * -1.
+    dist_plain = np.dot(v_dir, points) + a
+    return dist_plain > 0
+
+
+def get_muon_v_stop(frame, muon):
+    v_stop = None
+    for t in frame['MMCTrackList']:
+        if t.particle.id == muon.id:
+            if t.Ef < 0:
+                v_dir = np.array([muon.dir.x, muon.dir.y, muon.dir.z])
+                v_pos = np.array(muon.pos)
+                v_stop = v_pos + v_dir * (t.Ef / -100.)
+    return v_stop
+
 
 class OversizeStream(object):
     def __init__(self,
-                 stream_id,
                  distance_cut,
                  dom_limit,
                  oversize_factor):
-        self.stream_id = stream_id
+
         self.distance_cut = distance_cut
         self.dom_limit = dom_limit
         self.oversize_factor = oversize_factor
-        if not isinstance(stream_id, int):
-            raise TypeError('stream id has to be int!')
-        elif stream_id == -1:
-            self.stream_id = -1
+        self._stream_id = None
+        self.stream_name = None
+        self.file_addition = None
+
+    @property
+    def stream_id(self):
+        if self._steam_id is None:
+            raise RuntimeError('No stream_id set!')
+        else:
+            return self._stream_id
+
+    @stream_id.setter
+    def stream_id(self, value):
+        if not isinstance(value, int):
+            raise TypeError('stream_id has to be int!')
+        else:
+            if self._stream_id < -1:
+                raise ValueError('stream_id has greater than -2!')
+            else:
+                self._stream_id = value
+        if self._stream_id == -1:
             self.stream_name = 'MCOversizeStreamDefault'
             self.file_addition = 'OversizeStreamDefault'
         else:
-            self.stream_name = 'MCOversizeStream{}'.format(self.stream_id)
-            self.file_addition = 'OversizeStream{}'.format(
-                self.stream_id)
-
+            self.stream_name = 'MCOversizeStream{}'.format(self._stream_id)
+            self.file_addition = 'OversizeStream{}'.format(self._stream_id)
 
     def __call__(self, frame):
         if frame.Stop == icetray.I3Frame.DAQ:
@@ -37,39 +83,57 @@ class OversizeStream(object):
         else:
             return True
 
+    def __lt__(self, other):
+        if isinstance(other, OversizeStream):
+            other = other.distance_cut
+        if isinstance(other, float) or isinstance(other, int):
+            if self.distance_cut < 0:
+                return True
+            else:
+                return self.distance_cut > other
+
     def transform_filepath(self, filepath):
         return filepath.replace('i3.bz2',
                                 '{}.i3.bz2'.format(self.file_addition))
 
-
 def generate_stream_object(cut_distances, dom_limits, oversize_factors):
-    order = np.argsort(cut_distances)
-    cut_distances = cut_distances[order]
-    dom_limits = dom_limits[order]
-    oversize_factors = oversize_factors[order]
+    cut_distances = np.atleast_1d(cut_distances)
+    dom_limits = np.atleast_1d(dom_limits)
+    oversize_factors = np.atleast_1d(oversize_factors)
 
-    stream_id = 0
+    if np.sum(cut_distances < 0) > 1:
+        raise ValueError('More than one default stream provided!')
+    if len(cut_distances) != len(dom_limits):
+         if len(dom_limits) == 1:
+             dom_limits = np.ones_like(cut_distances) * dom_limits
+         else:
+             raise ValueError('Provide either a DOM limit for each distance'
+                              ' or one for all!')
+    if len(oversize_factors) != len(cut_distances):
+        raise ValueError('You should provide a oversize factor for split!')
+
     stream_objects = []
-
     for dist_i, lim_i, factor_i in zip(cut_distances,
                                        dom_limits,
                                        oversize_factors):
-        if dist_i < 0:
-            id_ = -1
-        else:
-            id_ = stream_id
-            stream_id += 1
         stream_objects.append(
-            OversizeStream(id_,
-                           distance_cut=dist_i,
+            OversizeStream(distance_cut=dist_i,
                            dom_limit=lim_i,
                            oversize_factor=factor_i))
-
+    stream_objects = sorted(stream_objects)
+    stream_id = 0
+    for stream_i in stream_objects:
+        if stream_i.cut_distances > 0:
+            stream_i.stream_id = stream_id
+            stream_id += 1
+        else:
+            stream_i.stream_id = -1
     return stream_objects
 
 
 class OversizeSplitterNSplits(icetray.I3ConditionalModule):
     S_stream = icetray.I3Frame.Stream('S')
+    supported_simulations = ['muongun', 'numu', 'nue']
 
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
@@ -79,49 +143,44 @@ class OversizeSplitterNSplits(icetray.I3ConditionalModule):
         self.AddParameter('thresholds_doms',
                           'Treshold for too many close DOMs',
                           1)
-        self.AddParameter('oversize_factors',
-                          'Treshold for too many close DOMs',
-                          None)
+        self.AddParameter(
+            'oversize_factors',
+            'Oversize_factors used in case of too many close DOMs',
+            None)
         self.AddParameter('relevance_dist',
                           'Max distance to cosinder a DOM as relevant',
-                          200.)
+                          None)
+        self.AddParameter('simulaton_type',
+                          'Specify type of simulation. Currently available '
+                          '["muongun", "numu", "nue"]',
+                          'muongun')
 
     def Configure(self):
-        self.thresholds = np.atleast_1d(self.GetParameter('thresholds'))
-        self.lim_doms = np.atleast_1d(self.GetParameter('thresholds_doms'))
-        if len(self.thresholds) != len(self.lim_doms):
-            if len(self.lim_doms) == 1:
-                self.lim_doms = np.ones_like(self.thresholds) * self.lim_doms
-            else:
-                raise ValueError('Provide either a DOM limit for each distance'
-                                 ' or one for all!')
-        if self.GetParameter('oversize_factors') is None:
-            ValueError('No OversizeFactors Provided! You better document '
-                          'your settings!')
-        else:
-            self.oversize_factors = np.atleast_1d(
-                self.GetParameter('oversize_factors'))
-            if not len(self.oversize_factors) == len(self.thresholds):
-                raise ValueError('You should provide a oversize factor for '
-                                 'split!')
-        order = np.argsort(self.thresholds)
-        self.thresholds = self.thresholds[order]
-        self.lim_doms = self.lim_doms[order]
+        self.stream_objects = generate_stream_object(
+            cut_distances=self.GetParameter('thresholds'),
+            dom_limits=self.GetParameter('thresholds_doms'),
+            oversize_factors=self.GetParameter('oversize_factors'))
+        self.thresholds = np.zeros(len(self.stream_objects), dtype=float)
+        self.lim_doms = np.zeros_like(self.lim_doms)
+        self.oversize_factors = np.zeros(self.lim_doms)
+        for i, stream_i in enumerate(self.stream_objects):
+            self.thresholds[i] = stream_i.distance_cut
+            self.lim_doms[i] = stream_i.dom_limit
+            self.oversize_factors[i] = stream_i.oversize_factor
+
+        self.simulation_type = self.GetParameter('simulaton_type').lower()
+        if self.simulation_type not in self.supported_simulations:
+            s = ', '.join(self.supported_simulations)
+            raise AttributeError(
+                'Unsupported simulation type! Available: [{}]'.format(s))
+
         if any(self.thresholds == -1.):
             self.default_idx = np.where(self.thresholds == -1.)[0][0]
         else:
             self.default_idx = None
-        relevance_dist_needed = any([x < 1. for i, x in enumerate(self.lim_doms)
-                                     if i != self.default_idx])
-        if relevance_dist_needed:
-            self.relevance_dist = self.GetParameter('relevance_dist')
-        else:
-            self.relevance_dist = None
-        self.stream_objects = generate_stream_object(self.thresholds,
-                                                     self.lim_doms,
-                                                     self.oversize_factors)
-        self.hist = np.zeros(len(self.stream_objects), dtype=int)
-        self.min_distances = []
+
+        self.relevance_dist = self.GetParameter('relevance_dist')
+
         self.Register(self.S_stream, self.SFrame)
 
     def Geometry(self, frame):
@@ -142,38 +201,96 @@ class OversizeSplitterNSplits(icetray.I3ConditionalModule):
                 self.oversize_factors)
         self.PushFrame(frame)
 
-    def DAQ(self, frame):
-        particle = frame['MCMuon']
+    def get_distances(self,
+                      frame,
+                      particle,
+                      check_starting=False,
+                      check_stopping=False):
         v_dir = np.array([particle.dir.x, particle.dir.y, particle.dir.z])
         v_pos = np.array(particle.pos)
-        distances = np.linalg.norm(np.cross(v_dir, v_pos - self.dom_positions),
-                                   axis=1)
-        self.min_distances.append(min(distances))
-        if self.relevance_dist is not None:
-            n_relevant_doms = distances < self.relevance_dist
+        if particle.type == particle.Hadrons:
+            v_pos = np.array(particle.pos)
+            return np.linalg.norm(v_pos - self.dom_positions, axis=1)
+        elif particle.type in [particle.MuMinus, particle.MuPlus]:
+            distances = np.linalg.norm(
+                np.cross(v_dir,v_pos - self.dom_positions),
+                axis=1)
+            if check_starting:
+                is_infront = is_infront_of_point(v_dir,
+                                                 v_pos,
+                                                 self.dom_positions)
+                distances[~is_infront] = np.linalg.norm(
+                    v_pos - self.dom_positions[~is_infront, :],
+                    axis=1)
+            if check_stopping:
+                v_stop = get_muon_v_stop(frame, particle)
+                if v_stop is not None:
+                    is_infront = is_infront_of_point(v_dir,
+                                                     v_stop,
+                                                     self.dom_positions)
+                    distances[is_infront] = np.linalg.norm(
+                        v_stop - self.dom_positions[is_infront, :],
+                        axis=1)
+        return distances
 
-        already_added = False
+    def DAQ(self, frame):
+        if self.simulation_type == 'muongun':
+            particle_list = [(frame['MCMuon'], 'track')]
+            check_starting = False
+            check_stopping = False
+        elif self.simulation_type == 'nue':
+            particle_list = [(frame['NuGPrimary'], 'cascade')]
+        elif self.simulation_type == 'numu':
+            particle_list = []
 
-        for i, stream_i in enumerate(self.stream_objects):
-            if i == self.default_idx:
-                continue
-            if already_added:
-                is_in_stream = False
+            if frame['I3MCWeightDict'].InteractionType < 1.5:
+
+
+                particle_list.append((frame['MCPrimary'], 'track'))
+            check_starting = True
+            check_stopping = True
+
+
+        stream_list = []
+        for p, t in particle_list:
+            if t == 'track':
+                distances = self.get_distances_track(
+                    p,
+                    check_starting=check_starting,
+                    check_stopping=check_stopping)
+            elif t == 'cascade':
+                distances = self.get_distances_cscd(p)
+
+            if self.relevance_dist is not None:
+                n_relevant_doms = distances < self.relevance_dist
             else:
+                n_relevant_doms = self.dom_positions.shape[0]
+
+            for i, stream_i in enumerate(self.stream_objects):
                 if stream_i.dom_limit < 1.:
                     limit_i = n_relevant_doms * stream_i.dom_limit
                 else:
                     limit_i = stream_i.dom_limit
-                is_in_stream = np.sum(distances < stream_i.distance_cut) >= limit_i
-            frame[stream_i.stream_name] = icetray.I3Bool(is_in_stream)
-            if is_in_stream:
-                self.hist[i] += 1
-                already_added = True
-        if self.default_idx is not None:
-            if already_added and self.default_idx is not None:
-                frame['MCOversizeStreamDefault'] = icetray.I3Bool(False)
+                if np.sum(distances < stream_i.distance_cut) >= limit_i:
+                    stream_list.append(stream_i)
+            if self.default_idx is not None:
+                stream_list.append(self.stream_objects[self.default_idx])
+
+        selected_stream = None
+        lowest_oversize = None
+        for i, stream_i in enumerate(stream_list):
+            if lowest_oversize is None:
+                lowest_oversize = stream_i.oversize_factor
+                selected_stream = stream_i
             else:
-                self.hist[self.default_idx] += 1
-                frame['MCOversizeStreamDefault'] = icetray.I3Bool(True)
+                if stream_i.oversize_factor < lowest_oversize:
+                    selected_stream = stream_i
+                    lowest_oversize = stream_i.oversize_factor
+
+        for stream_i in self.stream_objects:
+            if stream_i is selected_stream:
+                frame[stream_i.stream_name] = icetray.I3Bool(True)
+            else:
+                frame[stream_i.stream_name] = icetray.I3Bool(False)
         self.PushFrame(frame)
 
