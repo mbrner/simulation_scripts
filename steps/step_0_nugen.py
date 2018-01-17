@@ -28,9 +28,7 @@ def main(cfg, run_number, scratch):
         outfile = cfg['scratchfile_pattern'].format(**cfg)
     else:
         outfile = cfg['outfile_pattern'].format(**cfg)
-    if cfg['distance_splits'] is not None:
-        click.echo('SplittingDistances: {}'.format(cfg['distance_splits']))
-        click.echo('Oversizefactors: {}'.format(cfg['oversize_factors']))
+    outfile = outfile.replace(' ', '0')
     click.echo('NEvents: {}'.format(cfg['n_events_per_run']))
     click.echo('EMin: {}'.format(cfg['e_min']))
     click.echo('EMax: {}'.format(cfg['e_max']))
@@ -77,7 +75,7 @@ def main(cfg, run_number, scratch):
         # NuTypes = cfg['neutrino_types'], # Only in newer simprod versions
         # PrimaryTypeRatio = cfg['primary_type_ratio'], # Only in newer simprod versions
         GammaIndex = cfg['gamma'],
-        
+
         FromEnergy = cfg['e_min']*icetray.I3Units.GeV,
         ToEnergy   = cfg['e_max']*icetray.I3Units.GeV,
 
@@ -96,36 +94,23 @@ def main(cfg, run_number, scratch):
         segments.PropagateMuons,
         "PropagateMuons",
         RandomService=random_service_prop)
-
-    if scratch:
-        outfile = cfg['scratchfile_pattern'].format(**cfg)
-    else:
-        outfile = cfg['outfile_pattern'].format(**cfg)
-    outfile = outfile.replace(' ', '0')
     if cfg['distance_splits'] is not None:
-        click.echo('SplittingDistance: {}'.format(
-            cfg['distance_splits']))
-        distance_splits = np.atleast_1d(cfg['distance_splits'])
-        dom_limits = np.atleast_1d(cfg['threshold_doms'])
-        if len(dom_limits) == 1:
-            dom_limits = np.ones_like(distance_splits) * cfg['threshold_doms']
-        oversize_factors = np.atleast_1d(cfg['oversize_factors'])
-        order = np.argsort(distance_splits)
-
-        distance_splits = distance_splits[order]
-        dom_limits = dom_limits[order]
-        oversize_factors = oversize_factors[order]
-
-        stream_objects = generate_stream_object(distance_splits,
-                                                dom_limits,
-                                                oversize_factors)
-        tray.AddModule(OversizeSplitterNSplits,
+        import dom_distance_cut as dom_cut
+        click.echo('Oversizestreams')
+        stream_objects = dom_cut.generate_stream_object(
+            cut_distances=cfg['distance_splits'],
+            dom_limits=cfg['threshold_doms'],
+            oversize_factors=cfg['oversize_factors'])
+        tray.AddModule(dom_cut.OversizeSplitterNSplits,
                        "OversizeSplitterNSplits",
-                       thresholds=distance_splits,
-                       thresholds_doms=dom_limits,
-                       oversize_factors=oversize_factors)
+                       thresholds=cfg['distance_splits'],
+                       thresholds_doms=cfg['threshold_doms'],
+                       oversize_factors=cfg['oversize_factors'],
+                       simulaton_type=cfg['neutrino_flavor'].lower())
         for stream_i in stream_objects:
             outfile_i = stream_i.transform_filepath(outfile)
+            click.echo('\t{}'.format(stream_i))
+            click.echo('\tOutfile: {}'.format(outfile_i))
             tray.AddModule("I3Writer",
                            "writer_{}".format(stream_i.stream_name),
                            Filename=outfile_i,
@@ -134,8 +119,6 @@ def main(cfg, run_number, scratch):
                                     icetray.I3Frame.Stream('S'),
                                     icetray.I3Frame.Stream('M')],
                            If=stream_i)
-            click.echo('Output ({}): {}'.format(stream_i.stream_name,
-                                                outfile_i))
     else:
         click.echo('Output: {}'.format(outfile))
         tray.AddModule("I3Writer", "writer",

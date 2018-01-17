@@ -1,3 +1,4 @@
+import warnings
 import numpy as np
 
 from icecube import phys_services, icetray, dataclasses, MuonGun
@@ -36,7 +37,7 @@ def get_nue_particles(frame, nue):
 
 def is_infront_of_point(v_dir, v_pos, points):
     a = np.dot(v_pos, v_dir) * -1.
-    dist_plain = np.dot(v_dir, points) + a
+    dist_plain = np.dot(points, v_dir) + a
     return dist_plain > 0
 
 
@@ -56,10 +57,27 @@ class OversizeStream(object):
                  distance_cut,
                  dom_limit,
                  oversize_factor):
+        if not isinstance(dom_limit, int) or not isinstance(dom_limit, float):
+            self.distance_cut = distance_cut
+        else:
+            raise ValueError("distance_cut has to be provided as float or int")
 
-        self.distance_cut = distance_cut
-        self.dom_limit = dom_limit
-        self.oversize_factor = oversize_factor
+        if not isinstance(oversize_factor, int) or not \
+                isinstance(oversize_factor, float):
+            self.oversize_factor = oversize_factor
+        else:
+            raise ValueError(
+                "oversize_factor has to be provided as float or int")
+
+        if not isinstance(dom_limit, int) or not isinstance(dom_limit, float):
+            self.dom_limit = dom_limit
+        else:
+            if dom_limit is None:
+                warnings.warn("'dom_limit' was set to None using default: 1")
+                dom_limit = 1
+            else:
+                raise TypeError("dom_limit has to be int or float")
+
         self._stream_id = None
         self.stream_name = None
         self.file_addition = None
@@ -76,7 +94,7 @@ class OversizeStream(object):
         if not isinstance(value, int):
             raise TypeError('stream_id has to be int!')
         else:
-            if self._stream_id < -1:
+            if value < -1:
                 raise ValueError('stream_id has greater than -2!')
             else:
                 self._stream_id = value
@@ -104,14 +122,29 @@ class OversizeStream(object):
             other = other.distance_cut
         if isinstance(other, float) or isinstance(other, int):
             if self.distance_cut < 0:
+                return False
+            elif other < 0:
                 return True
             else:
-                return self.distance_cut > other
+                return self.distance_cut < other
+
+    def __str__(self):
+        s = '{} - Id: {}; Distance: {}; DOM limit: {}; Factor {}'
+        s = s.format(self.stream_name,
+                     self._stream_id,
+                     self.distance_cut,
+                     self.dom_limit,
+                     self.oversize_factor)
+        return s
+
+    def __repr__(self):
+        return self.__str__()
 
     def transform_filepath(self, filepath):
         return filepath.replace('i3.bz2',
                                 '{}.i3.bz2'.format(self.file_addition))
 
+      
 def generate_stream_object(cut_distances, dom_limits, oversize_factors):
     cut_distances = np.atleast_1d(cut_distances)
     dom_limits = np.atleast_1d(dom_limits)
@@ -139,7 +172,7 @@ def generate_stream_object(cut_distances, dom_limits, oversize_factors):
     stream_objects = sorted(stream_objects)
     stream_id = 0
     for stream_i in stream_objects:
-        if stream_i.cut_distances > 0:
+        if stream_i.distance_cut > 0:
             stream_i.stream_id = stream_id
             stream_id += 1
         else:
@@ -177,8 +210,8 @@ class OversizeSplitterNSplits(icetray.I3ConditionalModule):
             dom_limits=self.GetParameter('thresholds_doms'),
             oversize_factors=self.GetParameter('oversize_factors'))
         self.thresholds = np.zeros(len(self.stream_objects), dtype=float)
-        self.lim_doms = np.zeros_like(self.lim_doms)
-        self.oversize_factors = np.zeros(self.lim_doms)
+        self.lim_doms = np.zeros_like(self.thresholds)
+        self.oversize_factors = np.zeros_like(self.thresholds)
         for i, stream_i in enumerate(self.stream_objects):
             self.thresholds[i] = stream_i.distance_cut
             self.lim_doms[i] = stream_i.dom_limit
@@ -195,7 +228,7 @@ class OversizeSplitterNSplits(icetray.I3ConditionalModule):
         else:
             self.default_idx = None
 
-        self.relevance_dist = self.GetParameter('relevance_dist')
+            self.relevance_dist = self.GetParameter('relevance_dist')
 
         self.Register(self.S_stream, self.SFrame)
 
@@ -266,6 +299,7 @@ class OversizeSplitterNSplits(icetray.I3ConditionalModule):
         stream_list = []
         for p in particle_list:
             distances = self.get_distances(
+                frame,
                 p,
                 check_starting=check_starting,
                 check_stopping=check_stopping)

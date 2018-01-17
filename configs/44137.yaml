@@ -5,7 +5,7 @@ gcd_2012: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_201
 gcd_pass2: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2015.57161_V0.i3.gz
 generator: muongun
 n_events_per_run: 500
-n_runs: 10000
+n_runs: 10
 e_min: !!float 5e1
 e_max: !!float 1e7
 gamma: 1.
