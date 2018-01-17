@@ -7,7 +7,7 @@ def get_numu_particles(frame, numu):
     particles = []
 
     def crawl(parent):
-        for p in frame['I3McTree'].get_daughters(parent):
+        for p in frame['I3MCTree'].get_daughters(parent):
             if p.type == p.NuMu or p.type == p.NuMuBar:
                 crawl(p)
             elif p.type in [p.Hadrons, p.MuMinus, p.MuPlus]:
@@ -22,7 +22,7 @@ def get_nue_particles(frame, nue):
     particles = []
 
     def crawl(parent):
-        for p in frame['I3McTree'].get_daughters(parent):
+        for p in frame['I3MCTree'].get_daughters(parent):
             if p.type == p.NuE or p.type == p.NuEBar:
                 crawl(p)
             elif p.type in [p.Hadrons]:
