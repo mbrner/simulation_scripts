@@ -76,7 +76,7 @@ class OversizeStream(object):
         if not isinstance(value, int):
             raise TypeError('stream_id has to be int!')
         else:
-            if self._stream_id < -1:
+            if value < -1:
                 raise ValueError('stream_id has greater than -2!')
             else:
                 self._stream_id = value
@@ -139,7 +139,7 @@ def generate_stream_object(cut_distances, dom_limits, oversize_factors):
     stream_objects = sorted(stream_objects)
     stream_id = 0
     for stream_i in stream_objects:
-        if stream_i.cut_distances > 0:
+        if stream_i.distance_cut > 0:
             stream_i.stream_id = stream_id
             stream_id += 1
         else:
@@ -177,8 +177,8 @@ class OversizeSplitterNSplits(icetray.I3ConditionalModule):
             dom_limits=self.GetParameter('thresholds_doms'),
             oversize_factors=self.GetParameter('oversize_factors'))
         self.thresholds = np.zeros(len(self.stream_objects), dtype=float)
-        self.lim_doms = np.zeros_like(self.lim_doms)
-        self.oversize_factors = np.zeros(self.lim_doms)
+        self.lim_doms = np.zeros_like(self.thresholds)
+        self.oversize_factors = np.zeros_like(self.thresholds)
         for i, stream_i in enumerate(self.stream_objects):
             self.thresholds[i] = stream_i.distance_cut
             self.lim_doms[i] = stream_i.dom_limit
@@ -266,6 +266,7 @@ class OversizeSplitterNSplits(icetray.I3ConditionalModule):
         stream_list = []
         for p in particle_list:
             distances = self.get_distances(
+                frame,
                 p,
                 check_starting=check_starting,
                 check_stopping=check_stopping)
