@@ -1,3 +1,4 @@
+import warnings
 import numpy as np
 
 from icecube import phys_services, icetray, dataclasses, MuonGun
@@ -7,7 +8,7 @@ def get_numu_particles(frame, numu):
     particles = []
 
     def crawl(parent):
-        for p in frame['I3McTree'].get_daughters(parent):
+        for p in frame['I3MCTree'].get_daughters(parent):
             if p.type == p.NuMu or p.type == p.NuMuBar:
                 crawl(p)
             elif p.type in [p.Hadrons, p.MuMinus, p.MuPlus]:
@@ -36,7 +37,7 @@ def get_nue_particles(frame, nue):
 
 def is_infront_of_point(v_dir, v_pos, points):
     a = np.dot(v_pos, v_dir) * -1.
-    dist_plain = np.dot(v_dir, points) + a
+    dist_plain = np.dot(points, v_dir) + a
     return dist_plain > 0
 
 
@@ -56,10 +57,27 @@ class OversizeStream(object):
                  distance_cut,
                  dom_limit,
                  oversize_factor):
+        if not isinstance(dom_limit, int) or not isinstance(dom_limit, float):
+            self.distance_cut = distance_cut
+        else:
+            raise ValueError("distance_cut has to be provided as float or int")
 
-        self.distance_cut = distance_cut
-        self.dom_limit = dom_limit
-        self.oversize_factor = oversize_factor
+        if not isinstance(oversize_factor, int) or not \
+                isinstance(oversize_factor, float):
+            self.oversize_factor = oversize_factor
+        else:
+            raise ValueError(
+                "oversize_factor has to be provided as float or int")
+
+        if not isinstance(dom_limit, int) or not isinstance(dom_limit, float):
+            self.dom_limit = dom_limit
+        else:
+            if dom_limit is None:
+                warnings.warn("'dom_limit' was set to None using default: 1")
+                dom_limit = 1
+            else:
+                raise TypeError("dom_limit has to be int or float")
+
         self._stream_id = None
         self.stream_name = None
         self.file_addition = None
@@ -111,8 +129,9 @@ class OversizeStream(object):
                 return self.distance_cut < other
 
     def __str__(self):
-        s = 'OversizeStream - Id: {}; Distance: {}; DOM limit: {}; Factor {}'
-        s = s.format(self._stream_id,
+        s = '{} - Id: {}; Distance: {}; DOM limit: {}; Factor {}'
+        s = s.format(self.stream_name,
+                     self._stream_id,
                      self.distance_cut,
                      self.dom_limit,
                      self.oversize_factor)
