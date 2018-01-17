@@ -41,6 +41,17 @@ class OversizeStream(object):
         return filepath.replace('i3.bz2',
                                 '{}.i3.bz2'.format(self.file_addition))
 
+    def __str__(self):
+        s = 'OversizeStrea - Id: {}; Distance: {}; DOM limit: {}; Factor {}'
+        s = s.format(self.stream_id,
+                     self.distance_cut,
+                     self.dom_limit,
+                     self.oversize_factor)
+        return s
+
+    def __repr__(self):
+        return self.__str__()
+
 
 def generate_stream_object(cut_distances, dom_limits, oversize_factors):
     order = np.argsort(cut_distances)
@@ -120,6 +131,10 @@ class OversizeSplitterNSplits(icetray.I3ConditionalModule):
         self.stream_objects = generate_stream_object(self.thresholds,
                                                      self.lim_doms,
                                                      self.oversize_factors)
+
+        for i in self.stream_objects:
+            print(i)
+
         self.hist = np.zeros(len(self.stream_objects), dtype=int)
         self.min_distances = []
         self.Register(self.S_stream, self.SFrame)
