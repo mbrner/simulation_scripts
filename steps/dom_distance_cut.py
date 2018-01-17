@@ -189,8 +189,6 @@ class OversizeSplitterNSplits(icetray.I3ConditionalModule):
             cut_distances=self.GetParameter('thresholds'),
             dom_limits=self.GetParameter('thresholds_doms'),
             oversize_factors=self.GetParameter('oversize_factors'))
-        for i in self.stream_objects:
-            print(i)
         self.thresholds = np.zeros(len(self.stream_objects), dtype=float)
         self.lim_doms = np.zeros_like(self.thresholds)
         self.oversize_factors = np.zeros_like(self.thresholds)
