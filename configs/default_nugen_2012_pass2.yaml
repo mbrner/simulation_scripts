@@ -15,9 +15,10 @@ resources:
   # Indication of needed memory for each step if nothing is set 1GB is assumed as default
   memory:
     1: 6gb
-    2: 3gb
+    2: 5gb
     3: 3gb
     4: 3gb
+    5: 3gb
     12: 3gb
     13: 3gb
     14: 3gb
@@ -35,6 +36,7 @@ seed: 1337
 keep_crashed_files: 0
 
 # PATH to the GCD File
+gcd: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2015.57161_V0.i3.gz
 gcd_2012: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2012.56063_V1.i3.gz
 gcd_pass2: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2015.57161_V0.i3.gz
 
@@ -59,6 +61,9 @@ azimuth_max: 360.
 icemodel: SpiceMie
 # For default location: leave empty
 icemodel_location:
+
+# MuonPropagation specific options
+muon_propagation_config : {}
 
 # CLSIM specific options
 # Ratio of the dom not shadowed by calbes other anything else

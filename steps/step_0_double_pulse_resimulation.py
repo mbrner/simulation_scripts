@@ -458,7 +458,8 @@ def main(cfg, run_number, scratch):
     tray.AddSegment(segments.PropagateMuons,
                     'propagate_muons',
                     RandomService=random_services[0],
-                    InputMCTreeName='I3MCTree')
+                    InputMCTreeName='I3MCTree',
+                    **cfg['muon_propagation_config'])
 
     tray.AddModule('I3Writer', 'write',
                    Filename=outfile,
