@@ -46,10 +46,11 @@ def get_muon_v_stop(frame, muon):
     for t in frame['MMCTrackList']:
         if t.particle.id == muon.id:
             if t.Ef < 0:
-                v_dir = np.array([muon.dir.x, muon.dir.y, muon.dir.z])
-                v_pos = np.array(muon.pos)
-                v_stop = v_pos + v_dir * (t.Ef / -100.)
-    return v_stop
+            # For stopping muons, the negative length in 
+            # meter is saved in Ef: 
+            # Ef = - length [meter]
+                v_stop = muon.pos + muon.dir * muon.length
+    return np.array(v_stop)
 
 
 class OversizeStream(object):
