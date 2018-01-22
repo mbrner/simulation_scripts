@@ -1,5 +1,7 @@
 #!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
-#METAPROJECT simulation/V05-01-01
+#METAPROJECT /home/mmeier/combo_test/build
+# use self-build combo until the I3CrossSection pybindings are included
+# in a release
 from __future__ import division
 import click
 import yaml
@@ -109,6 +111,10 @@ def sampleFromMap(mapDict, random_state,
         e_max = kwargs.get('e_max', 1e6)
 
         energy = random_state.uniform(e_min, e_max)
+
+    else:
+        raise ValueError(('ptype {} either unknown or not' +
+                         'implemented').format(ptype))
 
     vshift = random_state.normal(loc=0, scale=pos_sigma, size=3)
 
@@ -232,22 +238,24 @@ class ParticleFactory(icetray.I3ConditionalModule):
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
         self.AddOutBox('OutBox')
+        self.AddParameter('particle_type', '', None)
         self.AddParameter('map_filename', '', None)
         self.AddParameter('smearing_angle', '', 30.*I3Units.deg)
         self.AddParameter('event_name', '', None)
         self.AddParameter('num_events', '', 1)
-        self.AddParameter('xsec_table_path', '', None)
         self.AddParameter('smearing_pos', '', 5.)
         self.AddParameter('random_state', '', 1337)
+        self.AddParameter('random_service', '', None)
 
     def Configure(self):
+        self.particle_type = self.GetParameter('particle_type')
         self.map_filename = self.GetParameter('map_filename')
         self.smearing_angle = self.GetParameter('smearing_angle')
         self.event_name = self.GetParameter('event_name')
         self.num_events = self.GetParameter('num_events')
-        self.xsec_table_path = self.GetParameter('xsec_table_path')
         self.pos_sigma = self.GetParameter('smearing_pos')
         self.random_state = self.GetParameter('random_state')
+        self.random_service = self.GetParameter('random_service')
         if not isinstance(self.random_state, np.random.RandomState):
             self.random_state = np.random.RandomState(self.random_state)
         self.events_done = 0
@@ -258,14 +266,13 @@ class ParticleFactory(icetray.I3ConditionalModule):
             eventName=self.event_name
             )
 
-
-class MuonFactory(ParticleFactory):
     def DAQ(self, frame):
         sample = sampleFromMap(self.the_map,
                                self.random_state,
-                               ptype='numu',
+                               ptype=self.particle_type,
                                pos_sigma=self.pos_sigma)
         primary = dataclasses.I3Particle()
+        daughter = dataclasses.I3Particle()
 
         primary.time = sample['time'] * I3Units.ns
         primary.dir = dataclasses.I3Direction(sample['zenith'],
@@ -275,25 +282,39 @@ class MuonFactory(ParticleFactory):
                                              sample['posY'] * I3Units.m,
                                              sample['posZ'] * I3Units.m)
         primary.speed = dataclasses.I3Constants.c
-        primary.type = dataclasses.I3Particle.ParticleType.NuMu
         primary.location_type = dataclasses.I3Particle.LocationType.Anywhere
 
-        if self.xsec_table_path is not None:
-            # Load xsec tables
-            # Draw muon energy from xsec
-            xsec = InterpolatedCrossSection(
-                xsec_path=self.xsec_table_path,
-                interp_type='linear')
-
-            daughter = dataclasses.I3Particle()
-            y = xsec.sample_y(np.log10(primary.energy),
-                              random_state=self.random_state)
-            daughter.energy = primary.energy * (1 - y)
-
+        if self.particle_type == 'numu':
+            primary.type = dataclasses.I3Particle.ParticleType.NuMu
+            daughter.type = dataclasses.I3Particle.ParticleType.MuMinus
+        elif self.particle_type == 'nutau':
+            primary.type = dataclasses.I3Particle.ParticleType.NuTau
+            daughter.type = dataclasses.I3Particle.ParticleType.TauMinus
+        elif self.particle_type == 'nue':
+            primary.type = dataclasses.I3Particle.ParticleType.NuE
+            daughter.type = dataclasses.I3Particle.ParticleType.EMinus
         else:
-            # Set muon energy to neutrino energy
-            daughter = dataclasses.I3Particle()
-            daughter.energy = primary.energy
+            raise ValueError(('particle_type {} not known or not ' +
+                              'implemented'.format(self.particle_type)))
+
+        # Load xsec tables
+        # Draw muon energy from xsec
+        base_path = os.path.join('$I3_DATA',
+                                 'neutrino-generator',
+                                 'cross_section_data',
+                                 'csms_differential_v1.0')
+        base_path = os.path.expandvars(base_path)
+
+        cross_section = sim_services.I3CrossSection(
+            os.path.join(base_path, 'dsdxdy_nu_CC_iso.fits'),
+            os.path.join(base_path, 'sigma_nu_CC_iso.fits'))
+
+        final_state_record = cross_section.sample_final_state(
+            primary.energy,
+            primary.type,
+            self.random_service)
+
+        daughter.energy = primary.energy * (1 - final_state_record.y)
 
         daughter.time = primary.time
         daughter.dir = primary.dir
@@ -302,81 +323,7 @@ class MuonFactory(ParticleFactory):
             primary.pos.x,
             primary.pos.y,
             primary.pos.z)
-        daughter.type = dataclasses.I3Particle.MuMinus
-        daughter.location_type = dataclasses.I3Particle.LocationType.InIce
-        daughter.shape = dataclasses.I3Particle.InfiniteTrack
 
-        # ################################################
-        # Add hadrons to the mctree with E_h = E_nu * y  #
-        # ################################################
-        hadrons = dataclasses.I3Particle()
-        hadrons.energy = primary.energy - daughter.energy
-        hadrons.pos = dataclasses.I3Position(
-            primary.pos.x,
-            primary.pos.y,
-            primary.pos.z)
-        hadrons.time = daughter.time
-        hadrons.dir = daughter.dir
-        hadrons.speed = daughter.speed
-        hadrons.type = dataclasses.I3Particle.ParticleType.Hadrons
-        hadrons.location_type = daughter.location_type
-        hadrons.shape = dataclasses.I3Particle.Cascade
-
-        # Fill primary and daughter particles into a MCTree
-        mctree = dataclasses.I3MCTree()
-        mctree.add_primary(primary)
-        mctree.append_child(primary, daughter)
-        mctree.append_child(primary, hadrons)
-
-        frame["I3MCTree"] = mctree
-        self.PushFrame(frame)
-
-        self.events_done += 1
-        if self.events_done >= self.num_events:
-            self.RequestSuspension()
-
-
-class TauFactory(ParticleFactory):
-    def DAQ(self, frame):
-        sample = sampleFromMap(self.the_map, self.random_state, ptype='nutau')
-        primary = dataclasses.I3Particle()
-
-        primary.time = sample['time'] * I3Units.ns
-        primary.dir = dataclasses.I3Direction(sample['zenith'],
-                                              sample['azimuth'])
-        primary.energy = sample['energy'] * I3Units.GeV
-        primary.pos = dataclasses.I3Position(sample['posX'] * I3Units.m,
-                                             sample['posY'] * I3Units.m,
-                                             sample['posZ'] * I3Units.m)
-        primary.speed = dataclasses.I3Constants.c
-        primary.type = dataclasses.I3Particle.ParticleType.NuTau
-        primary.location_type = dataclasses.I3Particle.LocationType.Anywhere
-
-        if self.xsec_table_path is not None:
-            # Load xsec tables
-            # Draw tau energy from xsec
-            xsec = InterpolatedCrossSection(
-                xsec_path=self.xsec_table_path,
-                interp_type='linear')
-
-            daughter = dataclasses.I3Particle()
-            y = xsec.sample_y(np.log10(primary.energy),
-                              random_state=self.random_state)
-            daughter.energy = primary.energy * (1 - y)
-
-        else:
-            # Set tau energy to neutrino energy
-            daughter = dataclasses.I3Particle()
-            daughter.energy = primary.energy
-
-        daughter.time = primary.time
-        daughter.dir = primary.dir
-        daughter.speed = primary.speed
-        daughter.pos = dataclasses.I3Position(
-            primary.pos.x,
-            primary.pos.y,
-            primary.pos.z)
-        daughter.type = dataclasses.I3Particle.TauMinus
         daughter.location_type = dataclasses.I3Particle.LocationType.InIce
         daughter.shape = dataclasses.I3Particle.InfiniteTrack
 
@@ -430,34 +377,31 @@ def main(cfg, run_number, scratch):
     click.echo('Outfile: {}'.format(outfile))
     click.echo('n_events_per_run: {}'.format(cfg['n_events_per_run']))
     click.echo('smearing_angle: {}'.format(cfg['smearing_angle']))
-    click.echo('xsec_table_path: {}'.format(cfg['xsec_table_path']))
     click.echo('skymap_path: {}'.format(cfg['skymap_path']))
 
     tray = I3Tray()
     random_services, _ = create_random_services(
         dataset_number=cfg['dataset_number'],
         run_number=cfg['run_number'],
-        seed=cfg['seed'])
+        seed=cfg['seed'],
+        n_services=2)
 
     tray.AddModule('I3InfiniteSource', 'source',
                    # Prefix=gcdfile,
                    Stream=icetray.I3Frame.DAQ)
-    if cfg['particle_type'] == 'numu':
-        factory = MuonFactory
-    elif cfg['particle_type'] == 'nutau':
-        factory = TauFactory
 
-    tray.AddModule(factory,
-                   'make_showers',
+    tray.AddModule(ParticleFactory,
+                   'make_particles',
+                   particle_type=cfg['particle_type'],
                    map_filename=cfg['skymap_path'],
                    num_events=cfg['n_events_per_run'],
                    smearing_angle=cfg['smearing_angle'] * I3Units.deg,
-                   xsec_table_path=cfg['xsec_table_path'],
-                   random_state=cfg['seed'])
+                   random_state=cfg['seed'],
+                   random_service=random_services[0])
 
     tray.AddSegment(segments.PropagateMuons,
                     'propagate_muons',
-                    RandomService=random_services[0],
+                    RandomService=random_services[1],
                     InputMCTreeName='I3MCTree')
 
     tray.AddModule('I3Writer', 'write',
