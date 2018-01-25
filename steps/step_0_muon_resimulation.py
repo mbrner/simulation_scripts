@@ -74,7 +74,7 @@ def create_muon(
     # create particle
     muon = dataclasses.I3Particle()
     muon.speed = dataclasses.I3Constants.c
-    muon.location_type = dataclasses.I3Particle.LocationType.Anywhere
+    muon.location_type = dataclasses.I3Particle.LocationType.InIce
     muon.type = dataclasses.I3Particle.ParticleType.MuMinus
     muon.dir = dataclasses.I3Direction(zenith,azimuth)
     muon.energy = energy * I3Units.GeV
@@ -199,7 +199,6 @@ def main(cfg, run_number, scratch):
     tray.AddSegment(segments.PropagateMuons,
                     'propagate_muons',
                     RandomService=random_services[1],
-                    InputMCTreeName='I3MCTree_preMuonProp',
                     **cfg['muon_propagation_config'])
 
 
