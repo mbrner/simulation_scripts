@@ -93,7 +93,9 @@ def main(cfg, run_number, scratch):
     tray.AddSegment(
         segments.PropagateMuons,
         "PropagateMuons",
-        RandomService=random_service_prop)
+        RandomService=random_service_prop,
+        **cfg['muon_propagation_config'])
+
     if cfg['distance_splits'] is not None:
         import dom_distance_cut as dom_cut
         click.echo('Oversizestreams')

@@ -69,7 +69,8 @@ def main(cfg, run_number, scratch):
     tray.AddSegment(
         segments.PropagateMuons,
         "PropagateMuons",
-        RandomService=random_service_prop)
+        RandomService=random_service_prop,
+        **cfg['muon_propagation_config'])
     if scratch:
         outfile = cfg['scratchfile_pattern'].format(**cfg)
     else:
