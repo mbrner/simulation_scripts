@@ -73,12 +73,13 @@ def write_config_file(config,
 
 def write_option_file(config,
                       script_files,
+                      run_numbers,
                       job_file,
                       scratch_folder):
     process_name = '{dataset_number}_{step_name}'.format(**config)
 
     lines = []
-    for i, script_i in enumerate(script_files):
+    for i, script_i in zip(run_numbers, script_files):
         job_name = '{}_{}'.format(process_name, i)
         lines.append('JOB {} {}'.format(job_name, job_file))
         lines.append('VARS {} script_file="{}" run="{}"'.format(
@@ -93,11 +94,13 @@ def write_option_file(config,
 
 def create_dagman_files(config,
                         script_files,
+                        run_numbers,
                         scratch_folder):
     config_file = write_config_file(config, scratch_folder)
     onejob_file = write_onejob_file(config, scratch_folder)
     options_file = write_option_file(config,
                                      script_files,
+                                     run_numbers,
                                      onejob_file,
                                      scratch_folder)
     cmd = 'condor_submit_dag -config {} -notification Complete {}'.format(
@@ -133,6 +136,7 @@ def adjust_resouces(config, script_files, scratch_folder):
 
 def create_pbs_files(config,
                      script_files,
+                     run_numbers,
                      scratch_folder):
     pass
 

@@ -23,6 +23,7 @@ from icecube.level3_filter_cascade.L3_monopod import L3_Monopod
 from icecube import STTools
 from icecube.level3_filter_cascade.level3_Recos import CascadeLlhVertexFit
 import icecube.lilliput.segments
+from icecube.weighting import get_weighted_primary
 
 
 SPLINE_TABLES = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables/splines'
@@ -269,6 +270,9 @@ def main(cfg, run_number, scratch):
         return False
 
     tray.AddModule(split_selector, 'select_inicesplit')
+
+    tray.AddModule(get_weighted_primary, 'get_the_primary',
+                   If=lambda frame: not frame.Has('MCPrimary'))
 
     tray.AddSegment(monopod_segment, 'MonopodSegment', cfg=cfg)
 
