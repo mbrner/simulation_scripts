@@ -187,8 +187,6 @@ def main(cfg, run_number, scratch):
     # Build IceTray
     #--------------------------------------
     tray = I3Tray()
-    tray.context['I3RandomService'] = random_service
-
     tray.AddModule('I3InfiniteSource', 'source',
                    # Prefix=gcdfile,
                    Stream=icetray.I3Frame.DAQ)
