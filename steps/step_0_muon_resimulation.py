@@ -231,7 +231,7 @@ def main(cfg, run_number, scratch):
     else:
         convex_hull = None
 
-    if not extend_past_hull in cfg:
+    if not 'extend_past_hull' in cfg:
         cfg['extend_past_hull'] = 0.0
 
     # create muon

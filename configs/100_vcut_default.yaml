@@ -29,6 +29,11 @@ zenith_max: 180.
 azimuth_min: 0.
 # End azimuth
 azimuth_max: 360.
+# Create vertex on convex hull
+use_convex_hull: True
+# Distance to move vertex further past 
+# the convex hull [in meter]
+extend_past_hull: 60.
 
 # MuonPropagation specific options
 muon_propagation_config : {}

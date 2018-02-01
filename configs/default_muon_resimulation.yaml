@@ -64,6 +64,14 @@ anchor_z_range: [-400,400]
 # from the anchor point in order to
 # create the vertex of the muon
 length_to_go_back: 2000
+# Instead create the vertex on the
+# convex hull?
+# If use_convex_hull is True,
+# length_to_go_back is ignored
+use_convex_hull: False
+# Distance to move vertex further past 
+# the convex hull
+extend_past_hull: 0.
         
 
 # Used icemodel
