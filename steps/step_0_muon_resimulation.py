@@ -127,7 +127,8 @@ def create_muon(
                         eps=1e-4)
 
         length_to_go_back = - t_s[t_s <= 0.0 ]
-        assert isinstance(length_to_go_back,float), 'Is anchor point within convex_hull?'
+        assert len(length_to_go_back) == 1, 'Is anchor point within convex_hull?'
+        length_to_go_back = length_to_go_back[0]
 
 
     vertex = anchor - length_to_go_back*I3Units.m * muon.dir
