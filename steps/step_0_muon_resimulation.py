@@ -8,6 +8,7 @@ import yaml
 import copy
 
 import numpy as np
+from scipy.spatial import ConvexHull
 
 from icecube.simprod import segments
 
@@ -15,6 +16,7 @@ from I3Tray import I3Tray, I3Units
 from icecube import icetray, dataclasses
 
 from utils import create_random_services, get_run_folder
+from resources.geometry import get_intersections
 
 
 def create_muon(
@@ -26,6 +28,8 @@ def create_muon(
             anchor_y_range=[-400,400],
             anchor_z_range=[-400,400],
             length_to_go_back=2000,
+            convex_hull=None,
+            extend_past_hull=0.,
             random_service=None,
             ):
     '''
@@ -34,7 +38,13 @@ def create_muon(
 
     First samples direction and anchor point. Then calculates
     the vertex by going back along the track from the anchor 
-    point.
+    point. The distance how far to go back along the track is 
+    given by length_to_go_back.
+
+    If a convex_hull is given, length_to_go_back is ignored
+    and instead, the intersection point with the convex hull
+    will be used as a vertex. Optionally, the vertex can be
+    moved further out. This is defined by extend_past_hull.
 
     azimuth_range: [min, max] 
                    in degree
@@ -54,14 +64,24 @@ def create_muon(
 
     anchor_i_range: [min, max]
                     in m
-                The anchor point coordinate i
+                The anchor point coordinate i.
+                Anchor point must be inside
+                convex hull if given.
 
     length_to_go_back: float
+                in m
                 Length to go back along track from 
                 anchor point, e.g. how far away
                 to set the vertex of the point
 
-    seed: random seed
+    convex_hull : scipy.spatial.ConvexHull
+                 defining the desired convex volume
+
+    extend_past_hull: float
+                in m
+                Length to extend past convex hull
+
+    random_service: random number service
     '''
 
     #------
@@ -96,6 +116,20 @@ def create_muon(
     #------
     # calculate vertex
     #------
+    if not convex_hull is None:
+        t_s = get_intersections(convex_hull, 
+                        v_pos = (anchor_x,
+                                 anchor_y,
+                                 anchor_z),
+                        v_dir = (muon.dir.x,
+                                 muon.dir.y,
+                                 muon.dir.z),
+                        eps=1e-4)
+
+        length_to_go_back = - t_s[t_s <= 0.0 ]
+        assert isinstance(length_to_go_back,float), 'Is anchor point within convex_hull?'
+
+
     vertex = anchor - length_to_go_back*I3Units.m * muon.dir
     travel_time = length_to_go_back * I3Units.m / muon.speed
     vertex_time = anchor_time - travel_time * I3Units.ns
@@ -169,6 +203,37 @@ def main(cfg, run_number, scratch):
         seed=cfg['seed'],
         n_services=2)
 
+    # create convex hull
+    if 'use_convex_hull' in cfg and cfg['use_convex_hull']:
+
+        # hardcode icecube corner points
+        # ToDo: read from geometry file
+        points = [
+           [-570.90002441, -125.13999939, 501], # string 31
+           [-256.14001465, -521.08001709, 501], # string 1
+           [ 361.        , -422.82998657, 501], # string 6
+           [ 576.36999512,  170.91999817, 501], # string 50
+           [ 338.44000244,  463.72000122, 501], # string 74
+           [ 101.04000092,  412.79000854, 501], # string 72
+           [  22.11000061,  509.5       , 501], # string 78
+           [-347.88000488,  451.51998901, 501], # string 75
+
+           [-570.90002441, -125.13999939, -502], # string 31
+           [-256.14001465, -521.08001709, -502], # string 1
+           [ 361.        , -422.82998657, -502], # string 6
+           [ 576.36999512,  170.91999817, -502], # string 50
+           [ 338.44000244,  463.72000122, -502], # string 74
+           [ 101.04000092,  412.79000854, -502], # string 72
+           [  22.11000061,  509.5       , -502], # string 78
+           [-347.88000488,  451.51998901, -502], # string 75
+            ]
+        convex_hull = ConvexHull(points)
+    else:
+        convex_hull = None
+
+    if not extend_past_hull in cfg:
+        cfg['extend_past_hull'] = 0.0
+
     # create muon
     muon = create_muon(
             azimuth_range=[cfg['azimuth_min'],cfg['azimuth_max']],
@@ -179,6 +244,8 @@ def main(cfg, run_number, scratch):
             anchor_y_range=cfg['anchor_y_range'],
             anchor_z_range=cfg['anchor_z_range'],
             length_to_go_back=cfg['length_to_go_back'],
+            convex_hull=convex_hull,
+            extend_past_hull=cfg['extend_past_hull'],
             random_service=random_services[0],
             )
 
