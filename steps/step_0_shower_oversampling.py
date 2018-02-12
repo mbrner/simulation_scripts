@@ -1,6 +1,17 @@
 #!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
 #METAPROJECT /home/mmeier/combo_test/build
 from __future__ import division
+import click
+import yaml
+import copy
+
+import numpy as np
+
+from I3Tray import I3Tray, I3Units
+from icecube import icetray, dataclasses
+from icecube.simprod import segments
+
+from utils import create_random_services, get_run_folder
 
 import os
 
@@ -43,8 +54,9 @@ class QFactory(icetray.I3ConditionalModule):
 
     def DAQ(self, frame):
         for i in range(self.n_events):
-            frame['CorsikaWeightMap']['Oversampling'] = float(self.n_events)
-            self.PushFrame(frame)
+            new_frame = copy.deepcopy(frame)
+            new_frame['CorsikaWeightMap']['Oversampling'] = float(self.n_events)
+            self.PushFrame(new_frame)
 
 
 @click.command()
@@ -62,10 +74,15 @@ def main(cfg, run_number, scratch):
         outfile = cfg['outfile_pattern'].format(**cfg)
     outfile = outfile.replace(' ', '0')
 
-    infile = cfg['infile_pattern'].format(**cfg)
+    print(cfg['input_pattern'])
+    infile_cfg = {}
+    infile_cfg['run_folder'] = cfg['run_folder']
+    infile_cfg['run_number'] = str(cfg['run_number']).zfill(6)
+    infile = cfg['input_pattern'].format(**infile_cfg)
     infile = infile.replace(' ', '0')
 
     if not os.path.isfile(infile):
+        print(infile)
         exit('File does not exist! Skipping it...')
 
     click.echo('Run: {}'.format(run_number))
@@ -97,10 +114,10 @@ def main(cfg, run_number, scratch):
 
     tray.AddModule('HomogenizedQTot', 'Causal Qtot',
                    Pulses=cfg['pulses'],
-                   Qutput='CausalQTot',
+                   Output='CausalQTot',
                    VertexTime='VHESelfVetoVertexTime')
 
-    tray.AddModule(lamda frame: np.log10(frame['CausalQTot'].value) >= 3.)
+    tray.AddModule(lambda frame: np.log10(frame['CausalQTot'].value) >= 3.)
 
     # Strip down the MCTree and inject n_events_per_event new Q Frames
     tray.AddModule(MCTreeStripper, 'Strip down the MCTree')
@@ -126,7 +143,7 @@ def main(cfg, run_number, scratch):
                    Filename=outfile,
                    Streams=[icetray.I3Frame.DAQ, icetray.I3Frame.Stream('M')])
     tray.AddModule('TrashCan', 'trash')
-    tray.Execute(10)
+    tray.Execute()
     tray.Finish()
     del tray
 
