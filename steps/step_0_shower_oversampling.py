@@ -18,6 +18,25 @@ import os
 from icecube import VHESelfVeto
 
 
+def scramble_azimuth(mctree, random_state):
+    # For each particle in the MCTree, rotate the x-y coordinates
+    # by an azimuth shift angle
+    if not isinstance(random_state, np.random.RandomState):
+        random_state = np.random.RandomState(random_state)
+
+    azi_shift = np.deg2rad(random_state.uniform(0., 360.))
+
+    rotation_matrix = np.array([[np.cos(azi_shift), -np.sin(azi_shift)],
+                                [np.sin(azi_shift), np.cos(azi_shift)]])
+
+    for particle in mctree:
+        pos = np.array([particle.pos.x,
+                        particle.pos.y])
+        rotated_pos = pos.dot(rotation_matrix)
+        particle.pos.x = rotated_pos[0]
+        particle.pos.y = rotated_pos[1]
+
+
 class MCTreeStripper(icetray.I3ConditionalModule):
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
@@ -38,6 +57,9 @@ class MCTreeStripper(icetray.I3ConditionalModule):
         del frame['I3MCTree']
         frame['I3MCTree'] = new_tree
 
+        frame['I3EventHeader_Original'] = copy.deepcopy(frame['I3EventHeader'])
+        del frame['I3EventHeader']
+
         self.PushFrame(frame)
 
     def Physics(self, frame):
@@ -55,7 +77,9 @@ class QFactory(icetray.I3ConditionalModule):
     def DAQ(self, frame):
         for i in range(self.n_events):
             new_frame = copy.deepcopy(frame)
-            new_frame['CorsikaWeightMap']['Oversampling'] = float(self.n_events)
+            new_frame['OversamplingIndex'] = i
+            new_frame['CorsikaWeightMap']['Oversampling'] = \
+                float(self.n_events)
             self.PushFrame(new_frame)
 
 
