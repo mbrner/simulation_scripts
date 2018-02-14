@@ -29,12 +29,22 @@ def scramble_azimuth(mctree, random_state):
     rotation_matrix = np.array([[np.cos(azi_shift), -np.sin(azi_shift)],
                                 [np.sin(azi_shift), np.cos(azi_shift)]])
 
-    for particle in mctree:
+    for i, particle in enumerate(mctree):
         pos = np.array([particle.pos.x,
                         particle.pos.y])
         rotated_pos = pos.dot(rotation_matrix)
-        particle.pos.x = rotated_pos[0]
-        particle.pos.y = rotated_pos[1]
+        mctree[i].pos.x = rotated_pos[0]
+        mctree[i].pos.y = rotated_pos[1]
+
+        dir_ = np.array([particle.dir.x,
+                         particle.dir.y])
+        dir_z = particle.dir.z
+        rotated_dir = dir_.dot(rotation_matrix)
+        new_dir = dataclasses.I3Direction(
+            rotated_dir[0], rotated_dir[1], dir_z)
+        mctree[i].dir = new_dir
+
+    return mctree
 
 
 class MCTreeStripper(icetray.I3ConditionalModule):
@@ -70,16 +80,22 @@ class QFactory(icetray.I3ConditionalModule):
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
         self.AddParameter('n_events_per_event', '', 10)
+        self.AddParameter('random_state', '', 1337)
 
     def Configure(self):
         self.n_events = self.GetParameter('n_events_per_event')
+        self.random_state = self.GetParameter('random_state')
 
     def DAQ(self, frame):
         for i in range(self.n_events):
             new_frame = copy.deepcopy(frame)
-            new_frame['OversamplingIndex'] = i
+            new_frame['OversamplingIndex'] = dataclasses.I3Double(i)
             new_frame['CorsikaWeightMap']['Oversampling'] = \
                 float(self.n_events)
+            mctree = new_frame['I3MCTree']
+            new_mctree = scramble_azimuth(mctree, self.random_state)
+            del new_frame['I3MCTree']
+            new_frame['I3MCTree'] = new_mctree
             self.PushFrame(new_frame)
 
 
@@ -147,6 +163,7 @@ def main(cfg, run_number, scratch):
     tray.AddModule(MCTreeStripper, 'Strip down the MCTree')
 
     keep_before_resim = [
+        'I3EventHeader_Original',
         'I3MCTree',
         'CorsikaWeightMap'
     ]
@@ -155,7 +172,8 @@ def main(cfg, run_number, scratch):
                    keys=keep_before_resim)
 
     tray.AddModule(QFactory, 'produce some q frames',
-                   n_events_per_event=cfg['n_events_per_event'])
+                   n_events_per_event=cfg['n_events_per_event'],
+                   random_state=cfg['seed'])
 
     # Propagate Muons
     tray.AddSegment(segments.PropagateMuons,
