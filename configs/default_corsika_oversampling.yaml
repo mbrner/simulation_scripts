@@ -14,6 +14,7 @@ resources:
     1: 1
   # Indication of needed memory for each step if nothing is set 1GB is assumed as default
   memory:
+    0: 3gb
     1: 3gb
     2: 3gb
     3: 3gb
