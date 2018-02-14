@@ -178,8 +178,10 @@ def main(cfg, run_number, scratch):
         def __init__(self, context):
             icetray.I3Module.__init__(self, context)
             self.AddOutBox('OutBox')
+
         def Configure(self):
             pass
+
         def DAQ(self, frame):
             mctree = frame['I3MCTree']
             new_mctree = dataclasses.I3LinearizedMCTree(mctree)
@@ -192,15 +194,16 @@ def main(cfg, run_number, scratch):
                     'propagate_muons',
                     RandomService=random_services[1],
                     InputMCTreeName='I3MCTree')
- 
+
     # Proposal likes to convert Linearized MCTrees to ordinary ones
     tray.AddModule(convert_mctree, 'convert')
 
     class KeyValueTester():
         def __init__(self, key, value):
-             self.key = key
-             self.value = value
-        def __call__(self, frame):  
+            self.key = key
+            self.value = value
+
+        def __call__(self, frame):
             if frame.Stop == icetray.I3Frame.DAQ:
                 if frame[self.key].value == self.value:
                     return True
@@ -208,6 +211,7 @@ def main(cfg, run_number, scratch):
                     return False
             else:
                 return True
+
         def __str__(self):
             s = 'KeyValueTestObject'
             return s
