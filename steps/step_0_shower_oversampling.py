@@ -181,9 +181,19 @@ def main(cfg, run_number, scratch):
                     RandomService=random_services[1],
                     InputMCTreeName='I3MCTree')
 
-    tray.AddModule('I3Writer', 'write',
-                   Filename=outfile,
-                   Streams=[icetray.I3Frame.DAQ, icetray.I3Frame.Stream('M')])
+    if cfg['write_multiple_files']:
+        for i in range(cfg['n_events_per_event']):
+            outfile_i = outfile.replace('.i3.bz2', '_{}.i3.bz2'.format(i))
+            tray.AddModule(
+                'I3Writer', 'writer_{}'.format(i),
+                Filename=outfile_i,
+                Streams=[icetray.I3Frame.DAQ, icetray.I3Frame.Stream('M')],
+                If=lambda frame: int(frame['OversamplingIndex']) == i)
+    else:
+        tray.AddModule(
+            'I3Writer', 'write',
+            Filename=outfile,
+            Streams=[icetray.I3Frame.DAQ, icetray.I3Frame.Stream('M')])
     tray.AddModule('TrashCan', 'trash')
     tray.Execute()
     tray.Finish()

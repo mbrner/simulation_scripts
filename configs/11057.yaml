@@ -5,6 +5,7 @@ gcd_2012: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_201
 gcd_pass2: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2015.57161_V0.i3.gz
 input_pattern: '/data/sim/IceCube/2012/filtered/level2/CORSIKA-in-ice/11057/{run_folder}/Level2_IC86.2012_corsika.011057.{run_number}.i3.bz2'
 n_events_per_event: 10
+write_multiple_files: True
 n_runs: 1000
 icemodel: SpiceLea
 pulses: SplitInIcePulses
