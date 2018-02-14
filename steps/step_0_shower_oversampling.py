@@ -1,5 +1,5 @@
 #!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
-#METAPROJECT /home/mmeier/combo_test/build
+#METAPROJECT /home/mmeier/combo_stable/build
 from __future__ import division
 import click
 import yaml
@@ -56,8 +56,7 @@ class MCTreeStripper(icetray.I3ConditionalModule):
 
     def DAQ(self, frame):
         mctree = frame['I3MCTree']
-        new_tree = dataclasses.I3MCTree()
-
+        new_tree = dataclasses.I3LinearizedMCTree()
         primaries = mctree.get_primaries()
         for primary in primaries:
             new_tree.add_primary(primary)
@@ -89,8 +88,8 @@ class QFactory(icetray.I3ConditionalModule):
     def DAQ(self, frame):
         for i in range(self.n_events):
             new_frame = copy.deepcopy(frame)
-            new_frame['OversamplingIndex'] = dataclasses.I3Double(i)
-            new_frame['CorsikaWeightMap']['Oversampling'] = \
+            new_frame['OversamplingIndex'] = icetray.I3Int(i)
+            new_frame['CorsikaWeightMap']['OverSampling'] = \
                 float(self.n_events)
             mctree = new_frame['I3MCTree']
             new_mctree = scramble_azimuth(mctree, self.random_state)
@@ -175,20 +174,53 @@ def main(cfg, run_number, scratch):
                    n_events_per_event=cfg['n_events_per_event'],
                    random_state=cfg['seed'])
 
+    class convert_mctree(icetray.I3Module):
+        def __init__(self, context):
+            icetray.I3Module.__init__(self, context)
+            self.AddOutBox('OutBox')
+        def Configure(self):
+            pass
+        def DAQ(self, frame):
+            mctree = frame['I3MCTree']
+            new_mctree = dataclasses.I3LinearizedMCTree(mctree)
+            del frame['I3MCTree']
+            frame['I3MCTree'] = new_mctree
+            self.PushFrame(frame)
+
     # Propagate Muons
     tray.AddSegment(segments.PropagateMuons,
                     'propagate_muons',
                     RandomService=random_services[1],
                     InputMCTreeName='I3MCTree')
+ 
+    # Proposal likes to convert Linearized MCTrees to ordinary ones
+    tray.AddModule(convert_mctree, 'convert')
+
+    class KeyValueTester():
+        def __init__(self, key, value):
+             self.key = key
+             self.value = value
+        def __call__(self, frame):  
+            if frame.Stop == icetray.I3Frame.DAQ:
+                if frame[self.key].value == self.value:
+                    return True
+                else:
+                    return False
+            else:
+                return True
+        def __str__(self):
+            s = 'KeyValueTestObject'
+            return s
 
     if cfg['write_multiple_files']:
         for i in range(cfg['n_events_per_event']):
             outfile_i = outfile.replace('.i3.bz2', '_{}.i3.bz2'.format(i))
+            kv_tester_i = KeyValueTester('OversamplingIndex', i)
             tray.AddModule(
                 'I3Writer', 'writer_{}'.format(i),
                 Filename=outfile_i,
                 Streams=[icetray.I3Frame.DAQ, icetray.I3Frame.Stream('M')],
-                If=lambda frame: int(frame['OversamplingIndex']) == i)
+                If=kv_tester_i)
     else:
         tray.AddModule(
             'I3Writer', 'write',
