@@ -14,6 +14,7 @@ from icecube.simprod import segments
 from utils import create_random_services, get_run_folder
 
 import os
+import sys
 
 from icecube import VHESelfVeto
 
@@ -122,7 +123,8 @@ def main(cfg, run_number, scratch):
 
     if not os.path.isfile(infile):
         print(infile)
-        exit('File does not exist! Skipping it...')
+        print('File does not exist! Skipping it...')
+        sys.exit(0)
 
     click.echo('Run: {}'.format(run_number))
     click.echo('Outfile: {}'.format(outfile))
@@ -172,7 +174,7 @@ def main(cfg, run_number, scratch):
 
     tray.AddModule(QFactory, 'produce some q frames',
                    n_events_per_event=cfg['n_events_per_event'],
-                   random_state=cfg['seed'])
+                   random_state=cfg['seed'] * cfg['run_number'])
 
     class convert_mctree(icetray.I3Module):
         def __init__(self, context):
