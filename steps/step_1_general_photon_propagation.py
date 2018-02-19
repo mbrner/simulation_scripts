@@ -203,6 +203,22 @@ def main(cfg, run_number, scratch):
     else:
         process_single_stream(cfg, infile, outfile)
 
+    if cfg.get('write_multiple_files', False):
+        n_events_per_event = cfg.get('n_events_per_event', 1)
+        process_single_stream.n_streams = n_events_per_event
+        for i in range(n_events_per_event):
+            infile_i = infile.replace('.i3.bz2', '_{}.i3.bz2'.format(i))
+            outfile_i = outfile.replace('.i3.bz2', '_{}.i3.bz2'.format(i))
+            proc = ExecProcess(target=process_single_stream,
+                               args=(cfg, infile_i, outfile_i))
+            proc.start()
+            proc.join()
+            process_single_stream.i_th_stream += 1
+        if proc.exception:
+            error, traceback = proc.exception
+            print(traceback)
+            print(error)
+            sys.exit(1)
 
 
 if __name__ == '__main__':
