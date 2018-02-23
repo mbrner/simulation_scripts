@@ -58,7 +58,7 @@ def main(cfg, run_number, scratch):
     random_service = random_services[0]
     tray.context['I3RandomService'] = random_service
 
-    tray.Add('I3Reader', FilenameList=[cfg['gcd_pass2'], infile])
+    tray.Add('I3Reader', FilenameList=infiles)
 
     if run_number < cfg['det_pass2_keep_all_upto']:
         cfg['det_keep_mc_hits'] = True
