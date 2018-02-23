@@ -82,6 +82,9 @@ def process_single_stream(cfg, infile, outfile):
         DOMOversizeFactor=cfg['clsim_dom_oversize'],
         CascadeService=cascade_tables)
 
+    tray.AddModule(linearize_mctree, 'linearize',
+                   Streams=[icetray.I3Frame.DAQ])
+
     outfile = outfile.replace(' ', '0')
     tray.AddModule("I3Writer", "writer",
                    Filename=outfile,
@@ -107,6 +110,13 @@ def filter_S_frame(frame):
 
 
 filter_S_frame.already_added = False
+
+
+def linearize_mctree(frame):
+    new_mctree = dataclasses.I3LinearizedMCTree(frame['I3MCTree'])
+    del frame['I3MCTree']
+    frame['I3MCTree'] = new_mctree
+    return True
 
 
 def merge(infiles, outfile):
@@ -200,15 +210,14 @@ def main(cfg, run_number, scratch):
         infiles = [stream_i.transform_filepath(outfile)
                    for stream_i in stream_objects]
         merge(infiles, outfile)
-    else:
-        process_single_stream(cfg, infile, outfile)
-
-    if cfg.get('write_multiple_files', False):
+    elif cfg.get('write_multiple_files', False):
         n_events_per_event = cfg.get('n_events_per_event', 1)
         process_single_stream.n_streams = n_events_per_event
         for i in range(n_events_per_event):
             infile_i = infile.replace('.i3.bz2', '_{}.i3.bz2'.format(i))
             outfile_i = outfile.replace('.i3.bz2', '_{}.i3.bz2'.format(i))
+            print('infile_i: {}'.format(infile_i))
+            print('outfile_i: {}'.format(outfile_i))
             proc = ExecProcess(target=process_single_stream,
                                args=(cfg, infile_i, outfile_i))
             proc.start()
@@ -219,6 +228,8 @@ def main(cfg, run_number, scratch):
             print(traceback)
             print(error)
             sys.exit(1)
+    else:
+        process_single_stream(cfg, infile, outfile)
 
 
 if __name__ == '__main__':
