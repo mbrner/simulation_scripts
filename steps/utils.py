@@ -36,6 +36,14 @@ def get_run_folder(run_number, runs_per_folder=1000):
     return '{}-{}'.format(str(start).zfill(fill), str(stop).zfill(fill))
 
 
+def linearize_mctree(frame):
+    from icecube import dataclasses
+    new_mctree = dataclasses.I3LinearizedMCTree(frame['I3MCTree'])
+    del frame['I3MCTree']
+    frame['I3MCTree'] = new_mctree
+    return True
+
+
 muongun_keys = ['MCOversizeStreamDefault',
                 'MCOversizeStream0',
                 'MCOversizeStream1',

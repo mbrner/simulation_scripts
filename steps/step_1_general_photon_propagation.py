@@ -16,6 +16,7 @@ from icecube.simprod import segments
 from I3Tray import I3Tray
 from icecube import icetray, dataclasses, dataio, phys_services
 from utils import create_random_services, get_run_folder
+from utils import linearize_mctree
 from dom_distance_cut import generate_stream_object
 
 
@@ -110,13 +111,6 @@ def filter_S_frame(frame):
 
 
 filter_S_frame.already_added = False
-
-
-def linearize_mctree(frame):
-    new_mctree = dataclasses.I3LinearizedMCTree(frame['I3MCTree'])
-    del frame['I3MCTree']
-    frame['I3MCTree'] = new_mctree
-    return True
 
 
 def merge(infiles, outfile):

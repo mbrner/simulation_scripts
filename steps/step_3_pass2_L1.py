@@ -20,6 +20,7 @@ from os.path import expandvars
 
 
 from utils import get_run_folder, muongun_keys, create_random_services
+from utils import linearize_mctree
 
 
 SPLINE_TABLES = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables/splines'
@@ -255,6 +256,10 @@ def main(cfg, run_number, scratch):
     tray.AddModule(I3RawDataCleaner,
                    "CleanErrataForConventional",
                    Streams=[icetray.I3Frame.DAQ])
+
+    tray.AddModule(linearize_mctree, 'linearize',
+                   Streams=[icetray.I3Frame.DAQ,
+                            icetray.I3Frame.Physics])
 
     tray.AddModule("I3Writer", "EventWriter",
                    filename=outfile,

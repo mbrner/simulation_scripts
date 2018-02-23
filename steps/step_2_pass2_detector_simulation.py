@@ -10,6 +10,7 @@ from icecube.simprod import segments
 from I3Tray import I3Tray
 from icecube import icetray, dataclasses, dataio, phys_services
 from utils import create_random_services, get_run_folder
+from utils import linearize_mctree
 
 
 MCPE_SERIES_MAP = 'I3MCPESeriesMap'
@@ -77,6 +78,10 @@ def main(cfg, run_number, scratch):
         InputPESeriesMapName=MCPE_SERIES_MAP,
         BeaconLaunches=cfg['det_add_beacon_launches'],
         FilterTrigger=cfg['det_filter_trigger'])
+
+    tray.AddModule(linearize_mctree, 'linearize',
+                   Streams=[icetray.I3Frame.DAQ])
+
     tray.AddModule("I3Writer", "EventWriter",
                    filename=outfile,
                    Streams=[icetray.I3Frame.DAQ,
