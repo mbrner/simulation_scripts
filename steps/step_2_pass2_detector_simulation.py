@@ -4,6 +4,7 @@ import os
 
 import click
 import yaml
+from glob import glob
 
 from icecube.simprod import segments
 from I3Tray import I3Tray
@@ -27,6 +28,13 @@ def main(cfg, run_number, scratch):
     infile = infile.replace(' ', '0')
     infile = infile.replace('Level0.{}'.format(cfg['previous_step']),
                             'Level0.{}'.format(cfg['previous_step'] % 10))
+
+    if cfg.get('write_multiple_files', False):
+        infile = infile.replace('.i3.bz2', '_*.i3.bz2')
+        infile = glob(infile)
+
+    infiles = [cfg['gcd_pass2']]
+    infiles.extend(infile)
 
     if scratch:
         outfile = cfg['scratchfile_pattern'].format(**cfg)
