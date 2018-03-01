@@ -102,7 +102,7 @@ def sampleFromMap(mapDict, random_state,
 
     if ptype == 'nutau':
         e_min = energy
-        e_max = kwargs.get('e_max', 1e6)
+        e_max = e_min + 10e3
 
         energy = random_state.uniform(e_min, e_max)
 

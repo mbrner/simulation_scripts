@@ -271,6 +271,14 @@ def main(cfg, run_number, scratch):
 
     tray.AddModule(split_selector, 'select_inicesplit')
 
+    def check_srt_pulses(frame):
+        if not frame.Has('SRTInIcePulses'):
+            return False
+        else:
+            return True
+
+    tray.AddModule(check_srt_pulses, 'check_srt')
+
     tray.AddModule(get_weighted_primary, 'get_the_primary',
                    If=lambda frame: not frame.Has('MCPrimary'))
 

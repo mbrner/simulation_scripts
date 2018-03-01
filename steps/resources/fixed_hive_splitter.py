@@ -41,6 +41,8 @@ class P_Combiner(I3PacketModule):
 
     def FramePacket(self, frames):
         daq_frame = frames[0]
+        final_keys = None
+        split_keys = None
         for frame in frames:
             if frame['I3EventHeader'].sub_event_stream == 'Final':
                 final_frame = frame
@@ -48,11 +50,12 @@ class P_Combiner(I3PacketModule):
             if frame['I3EventHeader'].sub_event_stream == 'InIceSplit':
                 split_keys = frame.keys()
                 split_frame = frame
-        for key in final_keys:
-            if key not in split_keys:
-                split_frame[key] = final_frame[key]
-        self.PushFrame(daq_frame)
-        self.PushFrame(split_frame)
+        if final_keys is not None and split_keys is not None:
+            for key in final_keys:
+                if key not in split_keys:
+                    split_frame[key] = final_frame[key]
+            self.PushFrame(daq_frame)
+            self.PushFrame(split_frame)
 
 
 @icetray.traysegment
