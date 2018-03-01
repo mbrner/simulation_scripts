@@ -1,7 +1,5 @@
 #!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
-#METAPROJECT /home/mmeier/combo_test/build
-# use self-build combo until the I3CrossSection pybindings are included
-# in a release
+#METAPROJECT simulation/V05-01-02
 from __future__ import division
 import click
 import yaml
