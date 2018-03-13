@@ -128,6 +128,10 @@ def create_muon(
         assert len(length_to_go_back) == 1, 'Is anchor point within convex_hull?'
         length_to_go_back = length_to_go_back[0]
 
+        # extend past convex hull
+        length_to_go_back += extend_past_hull
+
+
 
     vertex = anchor - length_to_go_back*I3Units.m * muon.dir
     travel_time = length_to_go_back * I3Units.m / muon.speed
