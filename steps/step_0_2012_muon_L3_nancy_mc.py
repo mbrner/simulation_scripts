@@ -30,9 +30,11 @@ def main(cfg, run_number, scratch):
         cfg = yaml.load(stream)
     icetray.logging.set_level("WARN")
     cfg['run_number'] = run_number
-    cfg['run_folder'] = (run_number % 1000) + 1
+    cfg['run_folder'] = get_run_folder(run_number)
+    nancy_run_folder = (run_number % 1000) + 1
     infile = cfg['infile_pattern'].format(**cfg)
     infile = infile.replace(' ', '0')
+    infile = infile.replace(cfg['run_folder'], nancy_run_folder)
     tmpfile = os.path.join(cfg['processing_scratch'],
                             'tmp_{}.i3'.format(run_number))
 

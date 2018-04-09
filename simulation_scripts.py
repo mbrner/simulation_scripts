@@ -15,7 +15,7 @@ from steps.utils import get_run_folder
 DATASET_FOLDER = '{data_folder}/{dataset_number}'
 STEP_FOLDER = DATASET_FOLDER + '/{step_name}'
 PREVIOUS_STEP_FOLDER = DATASET_FOLDER + '/{previous_step_name}'
-PROCESSING_FOLDER = DATASET_FOLDER + '/processing/{step_name}'
+PROCESSING_FOLDER = DATASET_FOLDER + '/processing/{step_name}_{variation_name}'
 SCRIPT_FOLDER = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -142,9 +142,11 @@ def build_config(data_folder, custom_settings):
               help='0=upto clsim\n1 = clsim\n2 =upto L2')
 @click.option('--resume/--no-resume', default=False,
               help='Resume processing -> check for existing output')
+@click.option('--variation_name', '-v', default='baseline')
 def main(data_folder,
          config_file,
          processing_scratch,
+         variation_name,
          step,
          pbs,
          dagman,
@@ -152,6 +154,7 @@ def main(data_folder,
     config_file = click.format_filename(config_file)
     with open(config_file, 'r') as stream:
         custom_settings = SafeDict(yaml.load(stream))
+    custom_settings['variation_name'] = variation_name
     chain_name = custom_settings['chain_name']
     click.echo('Initialized {} chain!'.format(chain_name))
     step_enum, default_config, job_template = fetch_chain(chain_name)
@@ -204,7 +207,7 @@ def main(data_folder,
     script_files, run_numbers = write_job_files(config, step, check_existing=resume)
 
     if dagman or pbs:
-        scratch_subfolder = '{dataset_number}_{step_name}'.format(**config)
+        scratch_subfolder = '{dataset_number}_{step_name}_{variation_name}'.format(**config)
         scratch_folder = os.path.join(config['processing_scratch'],
                                       scratch_subfolder)
         if not os.path.isdir(scratch_folder):

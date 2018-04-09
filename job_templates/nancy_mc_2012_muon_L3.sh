@@ -24,7 +24,6 @@ echo $FINAL_OUT
 if [ -z ${PBS_JOBID} ] && [ -z ${_CONDOR_SCRATCH_DIR} ]
 then
     echo 'Running Script w/o temporary scratch'
-    zstd -d -c /data/ana/Cscd/StartingEvents/NuGen_new/NuMu/medium_energy/IC86_flasher_p1\=0.3_p2\=0.0/l2/1/l2_00000999.i3.zst > test.i3
     {script_folder}/steps/{step_name}.py {yaml_copy} {run_number} --no-scratch
     ICETRAY_RC=$?
     echo 'IceTray finished with Exit Code: ' $ICETRAY_RC
