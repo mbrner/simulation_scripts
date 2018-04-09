@@ -30,8 +30,8 @@ double_pulse_resimulations:
     13: step_3_2012_L1
     14: step_4_2012_L2
     15: step_5_2012_muon_L3
-    
- 
+
+
 nugen_2012_pass2_distance_split:
   default_config: configs/default_nugen_2012_pass2.yaml
   job_template: job_templates/nugen_general_template.sh
@@ -47,7 +47,7 @@ nugen_2012_pass2_distance_split:
     13: step_3_2012_L1
     14: step_4_2012_L2
     15: step_5_2012_2017OnlineL2
-    
+
 muon_resimulation:
   default_config: configs/default_muon_resimulation.yaml
   job_template: job_templates/nugen_general_template.sh
@@ -63,3 +63,23 @@ muon_resimulation:
     13: step_3_2012_L1
     14: step_4_2012_L2
     15: step_5_2012_2017OnlineL2
+
+
+nancy_2012_muon_l3:
+  default_config: configs/default_nancy_simulations_2012.yaml
+  job_template: job_templates/nancy_mc_2012_muon_L3.sh
+  steps:
+    2: level2
+    3: step_0_2012_muon_L3_nancy_mc
+
+    12: level2
+    13: step_0_2012_muon_L3_nancy_mc
+
+    22: level2
+    23: step_0_2012_muon_L3_nancy_mc
+
+    32: level2
+    33: step_0_2012_muon_L3_nancy_mc
+
+    42: level2
+    43: step_0_2012_muon_L3_nancy_mc

@@ -1,0 +1,14 @@
+chain_name: muongun_floodlight_2012_pass2_distance_split
+seed: 1337
+dataset_number: 38518
+gcd_2012: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2012.56063_V1.i3.gz
+gcd_pass2: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2015.57161_V0.i3.gz
+
+variations:
+    0: baseline
+    1: high_abs
+    2: high_scat
+    3: low_scat_abs
+
+n_runs: 10
+
