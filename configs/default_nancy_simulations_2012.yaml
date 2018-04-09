@@ -6,7 +6,7 @@ n_events_per_run: 10000
 n_runs: 1000
 
 # Pattern for the outputfile
-output_pattern: '{variation_name}/{run_folder}/l2_{run_number:6d}.i3.zst '
+output_pattern: '{variation_name}/{run_folder}/l2_{run_number}.i3.zst '
 # sub-dict to indicate need resources
 resources:
   # Indication which steps need GPUs, default is 0
