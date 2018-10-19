@@ -17,26 +17,25 @@ from utils import create_random_services, get_run_folder
 from resources.geometry import get_intersections
 
 
-def create_muon(
-            azimuth_range=[0,360],
-            zenith_range=[0,180],
-            energy_range=[10000,10000],
-            anchor_time_range=[9000,12000],
-            anchor_x_range=[-400,400],
-            anchor_y_range=[-400,400],
-            anchor_z_range=[-400,400],
-            length_to_go_back=2000,
-            convex_hull=None,
-            extend_past_hull=0.,
-            random_service=None,
-            ):
+def create_muon(azimuth_range=[0, 360],
+                zenith_range=[0, 180],
+                energy_range=[10000, 10000],
+                anchor_time_range=[9000, 12000],
+                anchor_x_range=[-400, 400],
+                anchor_y_range=[-400, 400],
+                anchor_z_range=[-400, 400],
+                length_to_go_back=2000,
+                convex_hull=None,
+                extend_past_hull=0.,
+                random_service=None,
+                ):
     '''
-    Generates muon where energy, direction and position is 
+    Generates muon where energy, direction and position is
     uniformly sampled within given range.
 
     First samples direction and anchor point. Then calculates
-    the vertex by going back along the track from the anchor 
-    point. The distance how far to go back along the track is 
+    the vertex by going back along the track from the anchor
+    point. The distance how far to go back along the track is
     given by length_to_go_back.
 
     If a convex_hull is given, length_to_go_back is ignored
@@ -44,16 +43,16 @@ def create_muon(
     will be used as a vertex. Optionally, the vertex can be
     moved further out. This is defined by extend_past_hull.
 
-    azimuth_range: [min, max] 
+    azimuth_range: [min, max]
                    in degree
 
-    zenith_range: [min, max] 
+    zenith_range: [min, max]
                    in degree
 
-    energy_range: [min, max] 
+    energy_range: [min, max]
                    in GeV
 
-    anchor_time_range: [min, max] 
+    anchor_time_range: [min, max]
                    in ns
                 Approximate time when
                 muon is in detector at
@@ -68,7 +67,7 @@ def create_muon(
 
     length_to_go_back: float
                 in m
-                Length to go back along track from 
+                Length to go back along track from
                 anchor point, e.g. how far away
                 to set the vertex of the point
 
@@ -82,9 +81,9 @@ def create_muon(
     random_service: random number service
     '''
 
-    #------
+    # ------
     # sample direction and energy
-    #------
+    # ------
     azimuth = random_service.uniform(*azimuth_range) * I3Units.deg
     zenith = random_service.uniform(*zenith_range) * I3Units.deg
     energy = random_service.uniform(*energy_range) * I3Units.GeV
@@ -94,12 +93,12 @@ def create_muon(
     muon.speed = dataclasses.I3Constants.c
     muon.location_type = dataclasses.I3Particle.LocationType.InIce
     muon.type = dataclasses.I3Particle.ParticleType.MuMinus
-    muon.dir = dataclasses.I3Direction(zenith,azimuth)
+    muon.dir = dataclasses.I3Direction(zenith, azimuth)
     muon.energy = energy * I3Units.GeV
 
-    #------
+    # ------
     # get anchor point and time in detector
-    #------
+    # ------
     anchor_x = random_service.uniform(*anchor_x_range)
     anchor_y = random_service.uniform(*anchor_y_range)
     anchor_z = random_service.uniform(*anchor_z_range)
@@ -111,39 +110,36 @@ def create_muon(
 
     anchor_time = random_service.uniform(*anchor_time_range) * I3Units.ns
 
-    #------
+    # ------
     # calculate vertex
-    #------
-    if not convex_hull is None:
-        t_s = get_intersections(convex_hull, 
-                        v_pos = (anchor_x,
-                                 anchor_y,
-                                 anchor_z),
-                        v_dir = (muon.dir.x,
-                                 muon.dir.y,
-                                 muon.dir.z),
-                        eps=1e-4)
+    # ------
+    if convex_hull is not None:
+        t_s = get_intersections(convex_hull,
+                                v_pos=(anchor_x,
+                                       anchor_y,
+                                       anchor_z),
+                                v_dir=(muon.dir.x,
+                                       muon.dir.y,
+                                       muon.dir.z),
+                                eps=1e-4)
 
-        length_to_go_back = - t_s[t_s <= 0.0 ]
-        assert len(length_to_go_back) == 1, 'Is anchor point within convex_hull?'
+        length_to_go_back = - t_s[t_s <= 0.0]
+        assert len(length_to_go_back) == 1, \
+            'Is anchor point within convex_hull?'
+
         length_to_go_back = length_to_go_back[0]
 
         # extend past convex hull
         length_to_go_back += extend_past_hull
 
-
-
     vertex = anchor - length_to_go_back*I3Units.m * muon.dir
     travel_time = length_to_go_back * I3Units.m / muon.speed
     vertex_time = anchor_time - travel_time * I3Units.ns
 
-    
     muon.pos = vertex
     muon.time = vertex_time * I3Units.ns
 
     return muon
-
-
 
 
 class ParticleMultiplier(icetray.I3ConditionalModule):
@@ -155,9 +151,8 @@ class ParticleMultiplier(icetray.I3ConditionalModule):
     def Configure(self):
         self.num_events = self.GetParameter('num_events')
         self.primary = self.GetParameter('primary')
-        
-        self.events_done = 0
 
+        self.events_done = 0
 
     def DAQ(self, frame):
 
@@ -171,8 +166,6 @@ class ParticleMultiplier(icetray.I3ConditionalModule):
         self.events_done += 1
         if self.events_done >= self.num_events:
             self.RequestSuspension()
-
-
 
 
 @click.command()
@@ -197,7 +190,7 @@ def main(cfg, run_number, scratch):
     click.echo('Zenith: [{},{}]'.format(cfg['zenith_min'],
                                         cfg['zenith_max']))
     click.echo('Energy: [{},{}]'.format(cfg['e_min'],
-                                         cfg['e_max']))
+                                        cfg['e_max']))
 
     # crate random services
     random_services, _ = create_random_services(
@@ -212,36 +205,36 @@ def main(cfg, run_number, scratch):
         # hardcode icecube corner points
         # ToDo: read from geometry file
         points = [
-           [-570.90002441, -125.13999939, 501], # string 31
-           [-256.14001465, -521.08001709, 501], # string 1
-           [ 361.        , -422.82998657, 501], # string 6
-           [ 576.36999512,  170.91999817, 501], # string 50
-           [ 338.44000244,  463.72000122, 501], # string 74
-           [ 101.04000092,  412.79000854, 501], # string 72
-           [  22.11000061,  509.5       , 501], # string 78
-           [-347.88000488,  451.51998901, 501], # string 75
+           [-570.90002441, -125.13999939, 501],  # string 31
+           [-256.14001465, -521.08001709, 501],  # string 1
+           [ 361.        , -422.82998657, 501],  # string 6
+           [ 576.36999512,  170.91999817, 501],  # string 50
+           [ 338.44000244,  463.72000122, 501],  # string 74
+           [ 101.04000092,  412.79000854, 501],  # string 72
+           [  22.11000061,  509.5       , 501],  # string 78
+           [-347.88000488,  451.51998901, 501],  # string 75
 
-           [-570.90002441, -125.13999939, -502], # string 31
-           [-256.14001465, -521.08001709, -502], # string 1
-           [ 361.        , -422.82998657, -502], # string 6
-           [ 576.36999512,  170.91999817, -502], # string 50
-           [ 338.44000244,  463.72000122, -502], # string 74
-           [ 101.04000092,  412.79000854, -502], # string 72
-           [  22.11000061,  509.5       , -502], # string 78
-           [-347.88000488,  451.51998901, -502], # string 75
+           [-570.90002441, -125.13999939, -502],  # string 31
+           [-256.14001465, -521.08001709, -502],  # string 1
+           [ 361.        , -422.82998657, -502],  # string 6
+           [ 576.36999512,  170.91999817, -502],  # string 50
+           [ 338.44000244,  463.72000122, -502],  # string 74
+           [ 101.04000092,  412.79000854, -502],  # string 72
+           [  22.11000061,  509.5       , -502],  # string 78
+           [-347.88000488,  451.51998901, -502],  # string 75
             ]
         convex_hull = ConvexHull(points)
     else:
         convex_hull = None
 
-    if not 'extend_past_hull' in cfg:
+    if 'extend_past_hull' not in cfg:
         cfg['extend_past_hull'] = 0.0
 
     # create muon
     muon = create_muon(
-            azimuth_range=[cfg['azimuth_min'],cfg['azimuth_max']],
-            zenith_range=[cfg['zenith_min'],cfg['zenith_max']],
-            energy_range=[cfg['e_min'],cfg['e_max']],
+            azimuth_range=[cfg['azimuth_min'], cfg['azimuth_max']],
+            zenith_range=[cfg['zenith_min'], cfg['zenith_max']],
+            energy_range=[cfg['e_min'], cfg['e_max']],
             anchor_time_range=cfg['anchor_time_range'],
             anchor_x_range=cfg['anchor_x_range'],
             anchor_y_range=cfg['anchor_y_range'],
@@ -252,10 +245,9 @@ def main(cfg, run_number, scratch):
             random_service=random_services[0],
             )
 
-
-    #--------------------------------------
+    # --------------------------------------
     # Build IceTray
-    #--------------------------------------
+    # --------------------------------------
     tray = I3Tray()
     tray.AddModule('I3InfiniteSource', 'source',
                    # Prefix=gcdfile,
@@ -264,17 +256,16 @@ def main(cfg, run_number, scratch):
     tray.AddModule(ParticleMultiplier,
                    'make_particles',
                    num_events=cfg['n_events_per_run'],
-                   primary= muon)
+                   primary=muon)
 
     tray.AddSegment(segments.PropagateMuons,
                     'propagate_muons',
                     RandomService=random_services[1],
                     **cfg['muon_propagation_config'])
 
-
-    #--------------------------------------
+    # --------------------------------------
     # Distance Splits
-    #--------------------------------------
+    # --------------------------------------
     if cfg['distance_splits'] is not None:
         click.echo('SplittingDistance: {}'.format(
             cfg['distance_splits']))
@@ -317,12 +308,13 @@ def main(cfg, run_number, scratch):
                                 icetray.I3Frame.Physics,
                                 icetray.I3Frame.Stream('S'),
                                 icetray.I3Frame.Stream('M')])
-    #--------------------------------------
+    # --------------------------------------
 
     click.echo('Scratch: {}'.format(scratch))
     tray.AddModule("TrashCan", "the can")
     tray.Execute()
     tray.Finish()
+
 
 if __name__ == '__main__':
     main()
