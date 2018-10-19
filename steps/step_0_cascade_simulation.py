@@ -76,11 +76,11 @@ class CascadeFactory(icetray.I3ConditionalModule):
         self.num_flavors = len(self.flavors)
         self.interaction_types = self.GetParameter('interaction_types')
         self.num_interaction_types = len(self.interaction_types)
-        self.random_state = self.GetParameter('RandomState')
-        self.random_service = self.GetParameter('RandomService')
+        self.random_state = self.GetParameter('random_state')
+        self.random_service = self.GetParameter('random_service')
         if not isinstance(self.random_state, np.random.RandomState):
             self.random_state = np.random.RandomState(self.random_state)
-        self.num_events = self.GetParameter('NumEvents')
+        self.num_events = self.GetParameter('num_events')
         self.events_done = 0
         self.eps = 1e-6
 
@@ -117,32 +117,32 @@ class CascadeFactory(icetray.I3ConditionalModule):
         # sample cascade
         # --------------
         # vertex
-        vertex_x = random_service.uniform(*self.x_range) * I3Units.m
-        vertex_y = random_service.uniform(*self.y_range) * I3Units.m
-        vertex_z = random_service.uniform(*self.z_range) * I3Units.m
+        vertex_x = self.random_service.uniform(*self.x_range) * I3Units.m
+        vertex_y = self.random_service.uniform(*self.y_range) * I3Units.m
+        vertex_z = self.random_service.uniform(*self.z_range) * I3Units.m
         vertex = dataclasses.I3Position(
                         vertex_x * I3Units.m,
                         vertex_y * I3Units.m,
                         vertex_z * I3Units.m)
 
-        vertex_time = random_service.uniform(*self.time_range) * I3Units.ns
+        vertex_time = self.random_service.uniform(*self.time_range)*I3Units.ns
 
         # direction
-        azimuth = random_service.uniform(*self.azimuth_range) * I3Units.deg
-        zenith = random_service.uniform(*self.zenith_range) * I3Units.deg
+        azimuth = self.random_service.uniform(*self.azimuth_range)*I3Units.deg
+        zenith = self.random_service.uniform(*self.zenith_range)*I3Units.deg
 
         # energy
-        hadron_energy = random_service.uniform(
+        hadron_energy = self.random_service.uniform(
                                     *self.hadron_energy_range) * I3Units.GeV
-        fraction = random_service.uniform(
+        fraction = self.random_service.uniform(
                                     *self.fractional_energy_in_hadrons_range)
         primary_energy = hadron_energy / (self.eps + fraction)
         daughter_energy = primary_energy - hadron_energy
 
         # flavor and interaction
-        flavor = self.flavors[random_service.integer(self.num_flavors)]
-        interaction_type = self.interaction_types[random_service.integer(
-                                                self.num_interaction_types)]
+        flavor = self.flavors[self.random_service.integer(self.num_flavors)]
+        interaction_type = self.interaction_types[
+                    self.random_service.integer(self.num_interaction_types)]
 
         # create particle
         primary = dataclasses.I3Particle()
@@ -208,7 +208,7 @@ class CascadeFactory(icetray.I3ConditionalModule):
         mctree.append_child(primary, daughter)
         mctree.append_child(primary, hadrons)
 
-        frame["I3MCTree"] = mctree
+        frame["I3MCTree_preMuonProp"] = mctree
         self.PushFrame(frame)
 
         self.events_done += 1
@@ -233,12 +233,9 @@ def main(cfg, run_number, scratch):
 
     click.echo('Run: {}'.format(run_number))
     click.echo('Outfile: {}'.format(outfile))
-    click.echo('Azimuth: [{},{}]'.format(cfg['azimuth_min'],
-                                         cfg['azimuth_max']))
-    click.echo('Zenith: [{},{}]'.format(cfg['zenith_min'],
-                                        cfg['zenith_max']))
-    click.echo('Energy: [{},{}]'.format(cfg['e_min'],
-                                        cfg['e_max']))
+    click.echo('Azimuth: [{},{}]'.format(*cfg['azimuth_range']))
+    click.echo('Zenith: [{},{}]'.format(*cfg['zenith_range']))
+    click.echo('Energy: [{},{}]'.format(*cfg['hadron_energy_range']))
     click.echo('Vertex x: [{},{}]'.format(*cfg['x_range']))
     click.echo('Vertex y: [{},{}]'.format(*cfg['y_range']))
     click.echo('Vertex z: [{},{}]'.format(*cfg['z_range']))
