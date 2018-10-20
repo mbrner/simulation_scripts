@@ -344,7 +344,13 @@ def main(config_file, run_number, scratch):
             print "Failed to find key frame Bool!!"
             return False
 
+    # backward compatibility
     if 'L1_keep_untriggered' in cfg and cfg['L1_keep_untriggered']:
+        discard_substream_and_keys = False
+    else:
+        discard_substream_and_keys = True
+
+    if discard_substream_and_keys:
         tray.AddModule("Keep", "KeepOnlyDSTs",
                        keys = filter_globals.keep_dst_only
                               + ["PassedAnyFilter","PassedKeepSuperDSTOnly",
