@@ -48,4 +48,10 @@ det_keep_mc_pulses: False
 det_pass2_keep_all_upto: -1
 # keep MCTree with all in-ice propagated secondaries. These take a lot of space compared un propagated tree.
 det_keep_propagated_mc_tree: True
+# keep all events, do not filter
+det_filter_trigger: False
 
+
+#L1 processing
+# Keep untriggered events substream and keys
+L1_keep_untriggered: True
