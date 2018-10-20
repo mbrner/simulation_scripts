@@ -12,10 +12,42 @@
 FINAL_OUT={final_out}
 KEEP_CRASHED_FILES={keep_crashed_files}
 
-echo 'Loading py2-v3.0.1'
-eval `/cvmfs/icecube.opensciencegrid.org/py2-v3.0.1/setup.sh`
-export PYTHONUSERBASE=/data/user/mhuennefeld/DNN_reco/virtualenvs/tensorflow_cpu_py2-v3.0.1/
-echo 'Using PYTHONUSERBASE: '${PYTHONUSERBASE}
+# -----------------
+# Clean environment
+# -----------------
+PATH=/usr/lib64/qt-3.3/bin:/opt/pgi/linux86-64/13.3/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/opt/puppetlabs/bin:/opt/dell/srvadmin/bin
+MANPATH=:/opt/pgi/linux86-64/13.3/man
+unset PYTHONPATH
+unset GLOBUS_LOCATION
+unset PERL5LIB
+unset X509_CERT_DIR
+unset LD_LIBRARY_PATH
+unset SROOTBASE
+unset I3_TESTDATA
+unset I3_DATA
+unset ROOTSYS
+unset SROOT
+unset PKG_CONFIG_PATH
+# -----------------
+
+if [ {step} -eq 0 ] ; then
+    echo 'Loading py2-v3.0.1'
+    eval `/cvmfs/icecube.opensciencegrid.org/py2-v3.0.1/setup.sh`
+    export PYTHONUSERBASE=/data/user/mhuennefeld/DNN_reco/virtualenvs/tensorflow_cpu_py2-v3.0.1/
+    echo 'Using PYTHONUSERBASE: '${PYTHONUSERBASE}
+else
+    if [ {step} -le 12 ] ; then
+        echo 'Loading py2-v2'
+        eval `/cvmfs/icecube.opensciencegrid.org/py2-v2/setup.sh`
+        export PYTHONUSERBASE=/home/mboerner/software/python_libs
+        echo 'Using PYTHONUSERBASE: '${PYTHONUSERBASE}
+    else
+        echo 'Loading py2-v1'
+        eval `/cvmfs/icecube.opensciencegrid.org/py2-v1/setup.sh`
+        export PYTHONUSERBASE=/home/mboerner/software/python_libs_py2_v1
+        echo 'Using PYTHONUSERBASE: '${PYTHONUSERBASE}
+    fi
+fi
 
 export PATH=$PYTHONUSERBASE/bin:$PATH
 export PYTHONPATH=$PYTHONUSERBASE/lib/python2.7/site-packages:$PYTHONPATH
