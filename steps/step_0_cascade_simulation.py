@@ -66,6 +66,8 @@ class CascadeFactory(icetray.I3ConditionalModule):
         self.azimuth_range = self.GetParameter('azimuth_range')
         self.zenith_range = self.GetParameter('zenith_range')
         self.hadron_energy_range = self.GetParameter('hadron_energy_range')
+        self.log_hadron_energy_range = [np.log10(self.hadron_energy_range[0]),
+                                        np.log10(self.hadron_energy_range[1])]
         self.fractional_energy_in_hadrons_range = self.GetParameter(
                                         'fractional_energy_in_hadrons_range')
         self.time_range = self.GetParameter('time_range')
@@ -132,8 +134,9 @@ class CascadeFactory(icetray.I3ConditionalModule):
         zenith = self.random_service.uniform(*self.zenith_range)*I3Units.deg
 
         # energy
-        hadron_energy = self.random_service.uniform(
-                                    *self.hadron_energy_range) * I3Units.GeV
+        log_hadron_energy = self.random_service.uniform(
+                                *self.log_hadron_energy_range) * I3Units.GeV
+        hadron_energy = 10**log_hadron_energy
         fraction = self.random_service.uniform(
                                     *self.fractional_energy_in_hadrons_range)
         primary_energy = hadron_energy / (self.eps + fraction)
