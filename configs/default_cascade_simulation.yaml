@@ -28,6 +28,13 @@ resources:
   # Indication of the number of cores for each step, default is 1
   cpus:
 
+# Dagman options
+dagman_max_jobs: 5000
+dagman_submits_interval: 500
+dagman_scan_interval: 1
+dagman_submit_delay: 0
+
+
 
 # Options used in the steps
 # Options that are expected to be set to generate the scripts
