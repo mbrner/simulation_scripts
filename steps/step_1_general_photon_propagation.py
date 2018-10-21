@@ -66,6 +66,11 @@ def process_single_stream(cfg, infile, outfile):
         use_gpus = True
         use_cpus = False
 
+    if 'additional_clsim_params' in cfg:
+        additional_clsim_params = cfg['additional_clsim_params']
+    else:
+        additional_clsim_params = {}
+
     tray.AddSegment(
         segments.PropagatePhotons,
         "PropagatePhotons",
@@ -80,7 +85,8 @@ def process_single_stream(cfg, infile, outfile):
         UseGPUs=use_gpus,
         UseAllCPUCores=use_cpus,
         DOMOversizeFactor=cfg['clsim_dom_oversize'],
-        CascadeService=cascade_tables)
+        CascadeService=cascade_tables,
+        **additional_clsim_params)
 
     outfile = outfile.replace(' ', '0')
     tray.AddModule("I3Writer", "writer",
