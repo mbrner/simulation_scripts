@@ -74,13 +74,9 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
         self.AddParameter('OversamplingFactor', 'Oversampling factor.', None)
-        self.AddParameter('KeepKeys', 'Keys to keep.', None)
 
     def Configure(self):
         self.oversampling_factor = self.GetParameter('OversamplingFactor')
-        self.keep_keys = self.GetParameter('KeepKeys')
-        if self.keep_keys is None:
-            self.keep_keys = []
         self.current_event_counter = None
         self.current_aggregation_frame = None
         self.oversampling_counter = None
@@ -99,8 +95,14 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
                         self.pushed_frame_already is False):
                     self.current_aggregation_frame['AggregatedPulses'] = \
                         self.merged_pulse_series
-                    self.current_aggregation_frame['oversampling'].update(
-                        {'num_aggregated_pulses': self.oversampling_counter})
+
+                    # update oversampling dictionary
+                    dic = dict(self.current_aggregation_frame['oversampling'])
+                    del self.current_aggregation_frame['oversampling']
+                    dic['num_aggregated_pulses'] = self.oversampling_counter
+                    self.current_aggregation_frame['oversampling'] = \
+                        dataclasses.I3MapStringInt(dic)
+
                     self.PushFrame(self.current_aggregation_frame)
 
                 # reset values for new event
@@ -124,8 +126,14 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
                 if self.current_aggregation_frame is not None:
                     self.current_aggregation_frame['AggregatedPulses'] = \
                         self.merged_pulse_series
-                    self.current_aggregation_frame['oversampling'].update(
-                        {'num_aggregated_pulses': self.oversampling_counter})
+
+                    # update oversampling dictionary
+                    dic = dict(self.current_aggregation_frame['oversampling'])
+                    del self.current_aggregation_frame['oversampling']
+                    dic['num_aggregated_pulses'] = self.oversampling_counter
+                    self.current_aggregation_frame['oversampling'] = \
+                        dataclasses.I3MapStringInt(dic)
+
                     self.PushFrame(self.current_aggregation_frame)
                     self.pushed_frame_already = True
 
@@ -173,10 +181,37 @@ def main(cfg, run_number, scratch):
 
     # merge oversampled events: calculate average hits
     if cfg['oversampling_factor'] is not None:
-        tray.AddModule(MergeOversampledEvents, 'MergeOversampledEvents',
-                       OversamplingFactor=cfg['oversampling_factor'],
-                       KeepKeys=cfg['oversampling_keep_keys'])
 
+        if 'oversampling_keep_keys' not in cfg:
+            oversampling_keep_keys = []
+        elif cfg['oversampling_keep_keys'] is None:
+            oversampling_keep_keys = []
+
+        if cfg['L1_keep_untriggered']:
+            stream_name = filter_globals.InIceSplitter
+        else:
+            stream_name = filter_globals.NullSplitter
+        tray.AddModule("KeepFromSubstream", "DeleteSubstream",
+                       StreamName=stream_name,
+                       KeepKeys=['do_not_keep_anything'])
+        tray.AddModule(MergeOversampledEvents, 'MergeOversampledEvents',
+                       OversamplingFactor=cfg['oversampling_factor'])
+        keys_to_keep = [
+            'I3MCTree_preMuonProp',
+            'I3MCTree',
+            'I3EventHeader',
+            'RNGState',
+            'oversampling',
+            'AggregatedPulses',
+            'InIceDSTPulses',
+            'CalibrationErrata',
+            'SaturationWindows',
+            ]
+
+        tray.AddModule("Keep", "keep_before_merge",
+                       keys=keys_to_keep + cfg['oversampling_keep_keys'])
+
+    tray.Add("I3OrphanQDropper")  # drop q frames not followed by p frames
     tray.AddModule("I3Writer", "EventWriter",
                    filename=outfile,
                    Streams=[icetray.I3Frame.DAQ,
