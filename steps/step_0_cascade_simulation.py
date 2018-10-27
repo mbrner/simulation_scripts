@@ -54,6 +54,10 @@ class CascadeFactory(icetray.I3ConditionalModule):
         self.AddParameter('random_state', '', 1337)
         self.AddParameter('random_service', '', None)
         self.AddParameter('num_events', '', 1)
+        self.AddParameter('oversampling_factor',
+                          'Oversampling Factor to be used. Simulation is '
+                          'averaged over these many simulations.',
+                          1)
 
     def Configure(self):
         """Configures CascadeFactory.
@@ -83,6 +87,7 @@ class CascadeFactory(icetray.I3ConditionalModule):
         if not isinstance(self.random_state, np.random.RandomState):
             self.random_state = np.random.RandomState(self.random_state)
         self.num_events = self.GetParameter('num_events')
+        self.oversampling_factor = self.GetParameter('oversampling_factor')
         self.events_done = 0
         self.eps = 1e-6
 
@@ -205,14 +210,24 @@ class CascadeFactory(icetray.I3ConditionalModule):
         hadrons.location_type = daughter.location_type
         hadrons.shape = dataclasses.I3Particle.Cascade
 
-        # Fill primary and daughter particles into a MCTree
-        mctree = dataclasses.I3MCTree()
-        mctree.add_primary(primary)
-        mctree.append_child(primary, daughter)
-        mctree.append_child(primary, hadrons)
+        # oversampling
+        for i in range(self.oversampling_factor):
+            if 'I3MCTree_preMuonProp' in frame:
+                del frame['I3MCTree_preMuonProp']
 
-        frame["I3MCTree_preMuonProp"] = mctree
-        self.PushFrame(frame)
+            # Fill primary and daughter particles into a MCTree
+            primary_copy = dataclasses.I3Particle(primary)
+            mctree = dataclasses.I3MCTree()
+            mctree.add_primary(primary_copy)
+            mctree.append_child(primary_copy, dataclasses.I3Particle(daughter))
+            mctree.append_child(primary_copy, dataclasses.I3Particle(hadrons))
+
+            frame['I3MCTree_preMuonProp'] = mctree
+            frame['oversampling'] = icecube.dataclasses.I3MapStringInt({
+                                        'event_num_in_run': self.events_done,
+                                        'oversampling_num': i,
+                                    })
+            self.PushFrame(frame)
 
         self.events_done += 1
         if self.events_done >= self.num_events:
@@ -272,8 +287,10 @@ def main(cfg, run_number, scratch):
                    flavors=cfg['flavors'],
                    interaction_types=cfg['interaction_types'],
                    num_events=cfg['n_events_per_run'],
+                   oversampling_factor=cfg['oversampling_factor'],
                    random_state=cfg['seed'],
-                   random_service=random_services[0])
+                   random_service=random_services[0],
+                   )
 
     tray.AddSegment(segments.PropagateMuons,
                     'propagate_muons',

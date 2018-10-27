@@ -210,6 +210,5 @@ def main(cfg, run_number, scratch):
         process_single_stream(cfg, infile, outfile)
 
 
-
 if __name__ == '__main__':
     main()
