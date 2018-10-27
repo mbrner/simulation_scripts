@@ -23,7 +23,6 @@ def GetPulses(tray, name,
               decode=False,
               sdstarchive=False,
               slop_split_enabled=True,
-              vemcal_enabled=True,
               needs_wavedeform_spe_corr=False,
               If=lambda f: True,
               ):
@@ -69,11 +68,68 @@ def GetPulses(tray, name,
                         needs_wavedeform_spe_corr=needs_wavedeform_spe_corr
                         )
 
-    # Todo:  Check with IceTop group has this changed?
-    # Note: simulation doesn't run VEMCAL
-    if vemcal_enabled:
-        from icecube.filterscripts.vemcal import IceTopVEMCal
-        tray.AddSegment(IceTopVEMCal, "VEMCALStuff")
+
+class MergeOversampledEvents(icetray.I3ConditionalModule):
+
+    def __init__(self, context):
+        icetray.I3ConditionalModule.__init__(self, context)
+        self.AddParameter('KeepKeys', 'Keys to keep.', None)
+
+    def Configure(self):
+        self.keep_keys = self.GetParameter('KeepKeys')
+        if self.keep_keys is None:
+            self.keep_keys = []
+        self.current_event_counter = None
+        self.current_aggregation_frame = None
+        self.oversampling_counter = None
+        self.pushed_frame_already = False
+
+    def Physics(self, frame):
+        if 'oversampling' in frame:
+            oversampling = frame['oversampling']
+
+            # Find out if a new event started
+            if (oversampling['event_num_in_run']
+                    != self.current_event_counter):
+                # new event started:
+                # push aggregated frame if it hasn't been yet
+                if (self.current_aggregation_frame is not None and
+                        self.pushed_frame_already is False):
+                    self.current_aggregation_frame['AggregatedPulses'] = \
+                        self.merged_pulse_series
+                    self.current_aggregation_frame['oversampling'].update(
+                        {'num_aggregated_pulses': self.oversampling_counter})
+                    self.PushFrame(self.current_aggregation_frame)
+
+                # reset values for new event
+                self.current_aggregation_frame = frame
+                self.current_event_counter = oversampling['event_num_in_run']
+                self.merged_pulse_series = frame['InIceDSTPulses'].apply(frame)
+                self.oversampling_counter = 1
+                self.pushed_frame_already = False
+
+            else:
+                # same event, keep aggregating pulses
+                new_pulses = dataclasses.I3RecoPulseSeriesMap(
+                                    frame['InIceDSTPulses'].apply(frame))
+                self.merged_pulse_series.update(new_pulses)
+                self.oversampling_counter += 1
+
+            # Find out if event ended
+            if (cfg['oversampling_factor']
+                    == 1 + oversampling['oversampling_num']):
+
+                if self.current_aggregation_frame is not None:
+                    self.current_aggregation_frame['AggregatedPulses'] = \
+                        self.merged_pulse_series
+                    self.current_aggregation_frame['oversampling'].update(
+                        {'num_aggregated_pulses': self.oversampling_counter})
+                    self.PushFrame(self.current_aggregation_frame)
+                    self.pushed_frame_already = True
+
+            # create copy of frame:
+        else:
+            self.PushFrame(frame)
 
 
 @click.command()
@@ -103,7 +159,6 @@ def main(cfg, run_number, scratch):
     print('Outfile != $FINAL_OUT clean up for crashed scripts not possible!')
 
     tray = I3Tray()
-    """The main L1 script"""
     tray.AddModule('I3Reader',
                    'i3 reader',
                    FilenameList=[cfg['gcd_pass2'], infile])
@@ -112,8 +167,12 @@ def main(cfg, run_number, scratch):
     tray.AddSegment(GetPulses, "GetPulses",
                     decode=False,
                     simulation=True,
-                    vemcal_enabled=False,
                     )
+
+    # merge oversampled events: calculate average hits
+    if cfg['oversampling_factor'] is not None:
+        tray.AddModule(MergeOversampledEvents, 'MergeOversampledEvents',
+                       KeepKeys=cfg['oversampling_keep_keys'])
 
     tray.AddModule("I3Writer", "EventWriter",
                    filename=outfile,

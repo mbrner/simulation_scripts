@@ -69,6 +69,8 @@ flavors: ['NuE']
 interaction_types: ['NC']
 # oversampling to use
 oversampling_factor: None
+# keep keys for merging of oversampled events
+oversampling_keep_keys: []
 
 
 # Used icemodel
