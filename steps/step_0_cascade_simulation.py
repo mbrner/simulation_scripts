@@ -57,7 +57,7 @@ class CascadeFactory(icetray.I3ConditionalModule):
         self.AddParameter('oversampling_factor',
                           'Oversampling Factor to be used. Simulation is '
                           'averaged over these many simulations.',
-                          1)
+                          None)
 
     def Configure(self):
         """Configures CascadeFactory.
@@ -88,6 +88,8 @@ class CascadeFactory(icetray.I3ConditionalModule):
             self.random_state = np.random.RandomState(self.random_state)
         self.num_events = self.GetParameter('num_events')
         self.oversampling_factor = self.GetParameter('oversampling_factor')
+        if self.oversampling_factor is None:
+            self.oversampling_factor = 1
         self.events_done = 0
         self.eps = 1e-6
 
@@ -105,6 +107,11 @@ class CascadeFactory(icetray.I3ConditionalModule):
         for flavor in self.flavors:
             if flavor not in ['nue', 'numu', 'nutau']:
                 raise ValueError('Flavor unkown: {!r}'.format(flavor))
+
+        if self.oversampling_factor < 1:
+            raise ValueError('Oversampling must be set to "None" or integer'
+                             ' greater than 1. It is currently set to: '
+                             '{!r}'.format(self.oversampling_factor))
         # --------------
 
     def DAQ(self, frame):
@@ -212,8 +219,11 @@ class CascadeFactory(icetray.I3ConditionalModule):
 
         # oversampling
         for i in range(self.oversampling_factor):
-            if 'I3MCTree_preMuonProp' in frame:
+            if i > 0:
+                # create a new frame
+                frame = icetray.I3Frame(frame)
                 del frame['I3MCTree_preMuonProp']
+                del frame['oversampling']
 
             # Fill primary and daughter particles into a MCTree
             primary_copy = dataclasses.I3Particle(primary)
@@ -223,7 +233,8 @@ class CascadeFactory(icetray.I3ConditionalModule):
             mctree.append_child(primary_copy, dataclasses.I3Particle(hadrons))
 
             frame['I3MCTree_preMuonProp'] = mctree
-            frame['oversampling'] = icecube.dataclasses.I3MapStringInt({
+            if self.oversampling_factor > 1:
+                frame['oversampling'] = dataclasses.I3MapStringInt({
                                         'event_num_in_run': self.events_done,
                                         'oversampling_num': i,
                                     })

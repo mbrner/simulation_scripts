@@ -68,7 +68,7 @@ flavors: ['NuE']
 # interaction types. Options are: 'CC', 'NC'
 interaction_types: ['NC']
 # oversampling to use
-oversampling_factor: 1
+oversampling_factor: None
 
 
 # Used icemodel
