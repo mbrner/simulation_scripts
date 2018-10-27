@@ -73,9 +73,11 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
 
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
+        self.AddParameter('OversamplingFactor', 'Oversampling factor.', None)
         self.AddParameter('KeepKeys', 'Keys to keep.', None)
 
     def Configure(self):
+        self.oversampling_factor = self.GetParameter('OversamplingFactor')
         self.keep_keys = self.GetParameter('KeepKeys')
         if self.keep_keys is None:
             self.keep_keys = []
@@ -116,7 +118,7 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
                 self.oversampling_counter += 1
 
             # Find out if event ended
-            if (cfg['oversampling_factor']
+            if (self.oversampling_factor
                     == 1 + oversampling['oversampling_num']):
 
                 if self.current_aggregation_frame is not None:
@@ -172,6 +174,7 @@ def main(cfg, run_number, scratch):
     # merge oversampled events: calculate average hits
     if cfg['oversampling_factor'] is not None:
         tray.AddModule(MergeOversampledEvents, 'MergeOversampledEvents',
+                       OversamplingFactor=cfg['oversampling_factor'],
                        KeepKeys=cfg['oversampling_keep_keys'])
 
     tray.AddModule("I3Writer", "EventWriter",
