@@ -13,6 +13,7 @@ from icecube.filterscripts import filter_globals
 from icecube.filterscripts.baseproc import BaseProcessing
 from icecube.STTools.seededRT.configuration_services import \
     I3DOMLinkSeededRTConfigurationService
+from icecube import filter_tools
 
 from utils import get_run_folder
 
@@ -82,6 +83,26 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
         self.oversampling_counter = None
         self.pushed_frame_already = False
 
+    def push_aggregated_frame(self):
+
+        # adjust charges of pulses
+        for om_key in self.merged_pulse_series.keys():
+            for pulse in self.merged_pulse_series[om_key]:
+                pulse.charge /= self.oversampling_counter
+
+        self.current_aggregation_frame['AggregatedPulses'] = \
+            self.merged_pulse_series
+
+        # update oversampling dictionary
+        dic = dict(self.current_aggregation_frame['oversampling'])
+        del self.current_aggregation_frame['oversampling']
+        dic['num_aggregated_pulses'] = self.oversampling_counter
+        self.current_aggregation_frame['oversampling'] = \
+            dataclasses.I3MapStringInt(dic)
+
+        self.PushFrame(self.current_aggregation_frame)
+        self.pushed_frame_already = True
+
     def Physics(self, frame):
         if 'oversampling' in frame:
             oversampling = frame['oversampling']
@@ -93,17 +114,7 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
                 # push aggregated frame if it hasn't been yet
                 if (self.current_aggregation_frame is not None and
                         self.pushed_frame_already is False):
-                    self.current_aggregation_frame['AggregatedPulses'] = \
-                        self.merged_pulse_series
-
-                    # update oversampling dictionary
-                    dic = dict(self.current_aggregation_frame['oversampling'])
-                    del self.current_aggregation_frame['oversampling']
-                    dic['num_aggregated_pulses'] = self.oversampling_counter
-                    self.current_aggregation_frame['oversampling'] = \
-                        dataclasses.I3MapStringInt(dic)
-
-                    self.PushFrame(self.current_aggregation_frame)
+                    self.push_aggregated_frame()
 
                 # reset values for new event
                 self.current_aggregation_frame = frame
@@ -124,20 +135,8 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
                     == 1 + oversampling['oversampling_num']):
 
                 if self.current_aggregation_frame is not None:
-                    self.current_aggregation_frame['AggregatedPulses'] = \
-                        self.merged_pulse_series
+                    self.push_aggregated_frame()
 
-                    # update oversampling dictionary
-                    dic = dict(self.current_aggregation_frame['oversampling'])
-                    del self.current_aggregation_frame['oversampling']
-                    dic['num_aggregated_pulses'] = self.oversampling_counter
-                    self.current_aggregation_frame['oversampling'] = \
-                        dataclasses.I3MapStringInt(dic)
-
-                    self.PushFrame(self.current_aggregation_frame)
-                    self.pushed_frame_already = True
-
-            # create copy of frame:
         else:
             self.PushFrame(frame)
 
