@@ -71,14 +71,14 @@ cascade_simulation:
     0: step_0_cascade_simulation
     1: step_1_general_photon_propagation
     2: step_2_pass2_detector_simulation
-    3: step_3_pass2_L1
-    4: step_4_pass2_L2
-    5: step_5_pass2_2017OnlineL2
-    11: step_1_general_photon_propagation
-    12: step_2_2012_detector_simulation
-    13: step_3_2012_L1
-    14: step_4_2012_L2
-    15: step_5_2012_2017OnlineL2
+    3: step_3_pass2_get_pulses
+    13: step_3_pass2_L1
+    14: step_4_pass2_L2
+    15: step_5_pass2_2017OnlineL2
+    22: step_2_2012_detector_simulation
+    23: step_3_2012_L1
+    24: step_4_2012_L2
+    25: step_5_2012_2017OnlineL2
 
 
 nancy_2012_muon_l3:
