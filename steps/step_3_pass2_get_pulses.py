@@ -198,6 +198,7 @@ def main(cfg, run_number, scratch):
         keys_to_keep = [
             'I3MCTree_preMuonProp',
             'I3MCTree',
+            'MMCTrackList',
             'I3EventHeader',
             'RNGState',
             'oversampling',
