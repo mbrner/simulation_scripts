@@ -68,7 +68,7 @@ flavors: ['NuE']
 # interaction types. Options are: 'CC', 'NC'
 interaction_types: ['NC']
 # oversampling to use
-oversampling_factor: None
+oversampling_factor:
 # keep keys for merging of oversampled events
 oversampling_keep_keys: []
 
