@@ -211,7 +211,7 @@ def main(cfg, run_number, scratch):
             'SplitUncleanedInIcePulsesTimeRange',
             'SplitUncleanedInIceDSTPulsesTimeRange',
             'I3TriggerHierarchy',
-            'GCFilter_GCFilterMJD'
+            'GCFilter_GCFilterMJD',
             ]
         keys_to_keep += filter_globals.inice_split_keeps + \
             filter_globals.onlinel2filter_keeps
