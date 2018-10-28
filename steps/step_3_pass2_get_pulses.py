@@ -200,13 +200,21 @@ def main(cfg, run_number, scratch):
             'I3MCTree',
             'MMCTrackList',
             'I3EventHeader',
+            'I3SuperDST',
             'RNGState',
             'oversampling',
             'AggregatedPulses',
             'InIceDSTPulses',
             'CalibrationErrata',
             'SaturationWindows',
+            'SplitUncleanedInIcePulses',
+            'SplitUncleanedInIcePulsesTimeRange',
+            'SplitUncleanedInIceDSTPulsesTimeRange',
+            'I3TriggerHierarchy',
+            'GCFilter_GCFilterMJD'
             ]
+        keys_to_keep += filter_globals.inice_split_keeps + \
+            filter_globals.onlinel2filter_keeps
 
         tray.AddModule("Keep", "keep_before_merge",
                        keys=keys_to_keep + cfg['oversampling_keep_keys'])
