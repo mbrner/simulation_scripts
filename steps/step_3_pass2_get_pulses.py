@@ -103,6 +103,54 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
         self.PushFrame(self.current_aggregation_frame)
         self.pushed_frame_already = True
 
+    def merge_pulse_series(self, pulse_series, new_pulses):
+        """Merge two pulse series.
+
+        Assumes that new_pulses are to be merged into existing pulse_series,
+        e.g. new_pulses are smaller than pulse_series
+
+        Parameters
+        ----------
+        pulse_series : dataclasses.I3RecoPulseSeriesMap
+            Pulse series map to which the new pulses will be added
+        new_pulses : dataclasses.I3RecoPulseSeriesMap
+            New pulse series that will be merged into the existing pulse
+            series.
+        """
+        pulse_series = dataclasses.I3RecoPulseSeriesMap(pulse_series)
+
+        # Go through every key in new pulses:
+        for key, new_hits in new_pulses:
+            if key not in pulse_series:
+                # DOM has not been previously hit: just merge all hits
+                pulse_series[key] = new_hits
+            else:
+                # DOM already has hits:
+                #   now need to merge new pulses in existing series
+                # Loop through existing pulses and sort them in
+                merged_hits = list(pulse_series[key])
+                index = 0
+                for new_hit in new_hits:
+                    pulse_is_merged = False
+                    while not pulse_is_merged:
+                        if (index >= len(merged_hits) or
+                                new_hit.time < merged_hits[index].time):
+                            merged_hits.insert(index, new_hit)
+                            pulse_is_merged = True
+                        index += 1
+
+                # overwrite old pulse series
+                pulse_series[key] = merged_hits
+
+            # sanity checks
+            t_previous = pulse_series[key][0].time
+            for p in pulse_series[key][1:]:
+                assert p.time >= t_previous
+                t_previous = p.time
+
+        return pulse_series
+
+
     def Physics(self, frame):
         if 'oversampling' in frame:
             oversampling = frame['oversampling']
@@ -119,7 +167,8 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
                 # reset values for new event
                 self.current_aggregation_frame = frame
                 self.current_event_counter = oversampling['event_num_in_run']
-                self.merged_pulse_series = frame['InIceDSTPulses'].apply(frame)
+                self.merged_pulse_series = dataclasses.I3RecoPulseSeriesMap(
+                                        frame['InIceDSTPulses'].apply(frame))
                 self.oversampling_counter = 1
                 self.pushed_frame_already = False
 
@@ -127,7 +176,8 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
                 # same event, keep aggregating pulses
                 new_pulses = dataclasses.I3RecoPulseSeriesMap(
                                     frame['InIceDSTPulses'].apply(frame))
-                self.merged_pulse_series.update(new_pulses)
+                self.merged_pulse_series = self.merge_pulse_series(
+                                        self.merged_pulse_series, new_pulses)
                 self.oversampling_counter += 1
 
             # Find out if event ended
