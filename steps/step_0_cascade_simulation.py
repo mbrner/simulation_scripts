@@ -159,6 +159,16 @@ class CascadeFactory(icetray.I3ConditionalModule):
         interaction_type = self.interaction_types[
                     self.random_service.integer(self.num_interaction_types)]
 
+        # create pseduo I3MCWeightDict
+        mc_dict = {}
+        if interaction_type == 'cc':
+            # Charged Current Interaction: 1
+            mc_dict['InteractionType'] = 1
+        else:
+            # Neutral Current Interaction: 2
+            mc_dict['InteractionType'] = 2
+        frame['I3MCWeightDict'] = dataclasses.I3MapStringDouble(mc_dict)
+
         # create particle
         primary = dataclasses.I3Particle()
         daughter = dataclasses.I3Particle()
