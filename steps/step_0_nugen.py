@@ -64,29 +64,29 @@ def main(cfg, run_number, scratch):
 
     tray.AddSegment(
         segments.GenerateNeutrinos, "GenerateNeutrinos",
-        RandomService = random_service,
-        NumEvents = cfg['n_events_per_run'],
-        SimMode = cfg['simulation_mode'],
-        VTXGenMode = cfg['vertex_generation_mode'],
-        InjectionMode = cfg['injection_mode'],
-        CylinderParams = cfg['cylinder_params'],
-        AutoExtendMuonVolume = cfg['auto_extend_muon_volume'],
-        Flavor = cfg['neutrino_flavor'],
+        RandomService=random_service,
+        NumEvents=cfg['n_events_per_run'],
+        SimMode=cfg['simulation_mode'],
+        VTXGenMode=cfg['vertex_generation_mode'],
+        InjectionMode=cfg['injection_mode'],
+        CylinderParams=cfg['cylinder_params'],
+        AutoExtendMuonVolume=cfg['auto_extend_muon_volume'],
+        Flavor=cfg['neutrino_flavor'],
         # NuTypes = cfg['neutrino_types'], # Only in newer simprod versions
         # PrimaryTypeRatio = cfg['primary_type_ratio'], # Only in newer simprod versions
-        GammaIndex = cfg['gamma'],
+        GammaIndex=cfg['gamma'],
 
-        FromEnergy = cfg['e_min']*icetray.I3Units.GeV,
-        ToEnergy   = cfg['e_max']*icetray.I3Units.GeV,
+        FromEnergy=cfg['e_min']*icetray.I3Units.GeV,
+        ToEnergy=cfg['e_max']*icetray.I3Units.GeV,
 
-        ZenithRange = [cfg['zenith_min'] * icetray.I3Units.deg,
-                       cfg['zenith_max'] * icetray.I3Units.deg],
-        AzimuthRange = [cfg['azimuth_min'] * icetray.I3Units.deg,
-                        cfg['azimuth_max'] * icetray.I3Units.deg],
+        ZenithRange=[cfg['zenith_min'] * icetray.I3Units.deg,
+                     cfg['zenith_max'] * icetray.I3Units.deg],
+        AzimuthRange=[cfg['azimuth_min'] * icetray.I3Units.deg,
+                      cfg['azimuth_max'] * icetray.I3Units.deg],
 
         # UseDifferentialXsection = cfg['use_diff_cross_section'], # Only in newer simprod versions
-        CrossSections = cfg['cross_sections'],
-        CrossSectionsPath = cfg['cross_sections_path'],
+        CrossSections=cfg['cross_sections'],
+        CrossSectionsPath=cfg['cross_sections_path'],
         # ZenithSamplingMode = cfg['zenith_sampling_mode'], # Only in newer simprod versions
         )
 

@@ -1,0 +1,57 @@
+# Cascade Simulation
+
+chain_name: cascade_simulation
+seed: 1337
+
+# Number of the dataset
+dataset_number: 100
+# Events generated for each file
+n_events_per_run: 1000
+# Number of total runs/file
+n_runs: 1000
+
+# used icemodel
+icemodel: SpiceLea
+# For default location: leave empty
+icemodel_location:
+
+# Cascade Generation specific settings
+# Energy range for hadrons
+hadron_energy_range: [!!float 1e3, !!float 1e3]
+# Fraction of primary energy in hadrons
+fractional_energy_in_hadrons_range: [0.99999, 0.99999]
+# Zenith range of primary and cascade in degrees
+zenith_range: [0., 180.]
+# Azimuth range of primary and cascade in degrees
+azimuth_range: [0., 360.]
+# vertex time range in ns [min,max]
+time_range: [9000,12000]
+# vertex range in m [min,max]
+x_range: [-500,500]
+y_range: [-500,500]
+z_range: [-500,500]
+# flavors. Options are: 'NuE', 'NuMu', 'NuTau'
+flavors: ['NuE']
+# interaction types. Options are: 'CC', 'NC'
+interaction_types: ['NC']
+
+# Whether I3MCPE list should be stored
+clsim_keep_mcpe: False
+
+
+# Detector Simulation
+# keep MCPEs in frame
+det_keep_mc_hits: True
+# keep I3MCPulseSeriesMap in frame.
+det_keep_mc_pulses: False
+# Keep everything upto run X
+det_pass2_keep_all_upto: -1
+# keep MCTree with all in-ice propagated secondaries. These take a lot of space compared un propagated tree.
+det_keep_propagated_mc_tree: True
+# keep all events, do not filter
+det_filter_trigger: False
+
+
+#L1 processing
+# Keep untriggered events substream and keys
+L1_keep_untriggered: True

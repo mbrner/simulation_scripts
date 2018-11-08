@@ -64,6 +64,9 @@ def write_config_file(config,
     if 'dagman_submits_interval' in config.keys():
         lines.append('DAGMAN_MAX_SUBMIT_PER_INTERVAL={}'.format(
             config['dagman_submits_interval']))
+    if 'dagman_submit_delay' in config.keys():
+        lines.append('DAGMAN_SUBMIT_DELAY={}'.format(
+            config['dagman_submit_delay']))
     config_file = os.path.join(scratch_folder, 'dagman.config')
     with open(config_file, 'w') as open_file:
         for line in lines:

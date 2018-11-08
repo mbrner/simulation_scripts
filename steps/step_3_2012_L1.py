@@ -344,20 +344,27 @@ def main(config_file, run_number, scratch):
             print "Failed to find key frame Bool!!"
             return False
 
-    tray.AddModule("Keep", "KeepOnlyDSTs",
-                   keys = filter_globals.keep_dst_only
-                          + ["PassedAnyFilter","PassedKeepSuperDSTOnly",
-                             filter_globals.eventheader] + muongun_keys,
-                          If = dont_save_superdst
-                   )
+    # backward compatibility
+    if 'L1_keep_untriggered' in cfg and cfg['L1_keep_untriggered']:
+        discard_substream_and_keys = False
+    else:
+        discard_substream_and_keys = True
+
+    if discard_substream_and_keys:
+        tray.AddModule("Keep", "KeepOnlyDSTs",
+                       keys = filter_globals.keep_dst_only
+                              + ["PassedAnyFilter","PassedKeepSuperDSTOnly",
+                                 filter_globals.eventheader] + muongun_keys,
+                              If = dont_save_superdst
+                       )
 
 
-    ## Frames should now contain only what is needed.  now flatten, write/send to server
-    ## Squish P frames back to single Q frame, one for each split:
-    tray.AddModule("KeepFromSubstream","null_stream",
-                   StreamName = filter_globals.NullSplitter,
-                   KeepKeys = filter_globals.null_split_keeps,
-                   )
+        ## Frames should now contain only what is needed.  now flatten, write/send to server
+        ## Squish P frames back to single Q frame, one for each split:
+        tray.AddModule("KeepFromSubstream","null_stream",
+                       StreamName = filter_globals.NullSplitter,
+                       KeepKeys = filter_globals.null_split_keeps,
+                       )
 
     # Keep the P frames for InIce intact
     #tray.AddModule("KeepFromSubstream","inice_split_stream",
