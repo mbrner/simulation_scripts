@@ -42,7 +42,7 @@ def main(cfg, run_number, scratch):
     model.flux.max_multiplicity = cfg['muongun_max_multiplicity']
     spectrum = MuonGun.OffsetPowerLaw(cfg['gamma'],
                                       cfg['e_min']*icetray.I3Units.GeV,
-                                      cfg['e_min']*icetray.I3Units.Gev,
+                                      cfg['e_min']*icetray.I3Units.GeV,
                                       cfg['e_max']*icetray.I3Units.GeV)
     surface = MuonGun.Cylinder(1600, 800,
                                dataclasses.I3Position(31.25, 19.64, 0))
