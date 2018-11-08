@@ -5,7 +5,7 @@ chain_name: muongun_general_2012_pass2_distance_split
 seed: 1337
 
 # Number of the dataset
-dataset_number: 0
+dataset_number: 42
 # Events generated for each file
 n_events_per_run: 100
 # Number of total runs/file
