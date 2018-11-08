@@ -1,0 +1,33 @@
+# MuonGun with StaticSurfaceInjector
+chain_name: muongun_general_2012_pass2_distance_split
+
+# Used Random Seed
+seed: 1337
+
+# Number of the dataset
+dataset_number: 0
+# Events generated for each file
+n_events_per_run: 100
+# Number of total runs/file
+n_runs: 1000
+
+ # Name of the generator; only used for naming of the output folder
+generator: muongun
+# Starting Energy GeV
+e_min: 100
+# Maximal Energy GeV
+e_max: !!float 1e8
+# Used gamme for the generator (E^-gamma)
+gamma: 2.
+# Used icemodel ['SpiceLea']
+icemodel: SpiceLea
+# For default location: leave empty
+icemodel_location:
+
+# muongun specific options
+# Energy offset `b` of power-law approximation (E + b)^{-gamma}
+muongun_e_break: !!float 1e6
+muongun_generator: static
+muongun_model: GaisserH4a_atmod12_SIBYLL
+muongun_min_multiplicity: 1
+muongun_max_multiplicity: 1000

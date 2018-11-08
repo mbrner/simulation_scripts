@@ -27,10 +27,13 @@ def main(cfg, run_number, scratch):
 
     tray = I3Tray()
 
-    random_service, random_service_prop, _ = create_random_services(
+    random_services, _ = create_random_services(
         dataset_number=cfg['dataset_number'],
         run_number=cfg['run_number'],
-        seed=cfg['seed'])
+        seed=cfg['seed'],
+        n_services=2)
+
+    random_service, random_service_prop = random_services
 
     tray.context['I3RandomService'] = random_service
 
@@ -87,14 +90,49 @@ def main(cfg, run_number, scratch):
     else:
         outfile = cfg['outfile_pattern'].format(**cfg)
     outfile = outfile.replace(' ', '0')
-    outfile = outfile.replace('.bz2', '')
-    tray.AddModule("I3Writer", "writer",
-                   Filename=outfile,
-                   Streams=[icetray.I3Frame.DAQ,
-                            icetray.I3Frame.Physics,
-                            icetray.I3Frame.Stream('S'),
-                            icetray.I3Frame.Stream('M')])
+    if cfg['distance_splits'] is not None:
+        click.echo('SplittingDistance: {}'.format(
+            cfg['distance_splits']))
+        distance_splits = np.atleast_1d(cfg['distance_splits'])
+        dom_limits = np.atleast_1d(cfg['threshold_doms'])
+        if len(dom_limits) == 1:
+            dom_limits = np.ones_like(distance_splits) * cfg['threshold_doms']
+        oversize_factors = np.atleast_1d(cfg['oversize_factors'])
+        order = np.argsort(distance_splits)
 
+        distance_splits = distance_splits[order]
+        dom_limits = dom_limits[order]
+        oversize_factors = oversize_factors[order]
+
+        stream_objects = generate_stream_object(distance_splits,
+                                                dom_limits,
+                                                oversize_factors)
+        tray.AddModule(OversizeSplitterNSplits,
+                       "OversizeSplitterNSplits",
+                       thresholds=distance_splits,
+                       thresholds_doms=dom_limits,
+                       oversize_factors=oversize_factors)
+        for stream_i in stream_objects:
+            outfile_i = stream_i.transform_filepath(outfile)
+            tray.AddModule("I3Writer",
+                           "writer_{}".format(stream_i.stream_name),
+                           Filename=outfile_i,
+                           Streams=[icetray.I3Frame.DAQ,
+                                    icetray.I3Frame.Physics,
+                                    icetray.I3Frame.Stream('S'),
+                                    icetray.I3Frame.Stream('M')],
+                           If=stream_i)
+            click.echo('Output ({}): {}'.format(stream_i.stream_name,
+                                                outfile_i))
+    else:
+        click.echo('Output: {}'.format(outfile))
+        tray.AddModule("I3Writer", "writer",
+                       Filename=outfile,
+                       Streams=[icetray.I3Frame.DAQ,
+                                icetray.I3Frame.Physics,
+                                icetray.I3Frame.Stream('S'),
+                                icetray.I3Frame.Stream('M')])
+    click.echo('Scratch: {}'.format(scratch))
     tray.AddModule("TrashCan", "the can")
     tray.Execute()
     tray.Finish()
