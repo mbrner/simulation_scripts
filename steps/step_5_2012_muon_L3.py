@@ -9,8 +9,6 @@ from utils import get_run_folder
 
 from I3Tray import I3Tray
 from icecube import icetray, dataio, dataclasses, hdfwriter, phys_services
-from icecube import lilliput, gulliver, gulliver_modules
-from icecube import improvedLinefit, rootwriter
 
 from icecube.level3_filter_muon.MuonL3TraySegment import MuonL3
 
