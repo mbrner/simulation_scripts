@@ -30,7 +30,10 @@ unset SROOT
 unset PKG_CONFIG_PATH
 # -----------------
 
-if [ {step} -eq 0 ] ; then
+# ToDo: find a clean way to define which python version to load.
+# Possibly define job template for each step and each job template is only
+# to be used for that python version
+if [ {step} -eq 0 ] || [ {step} -eq 5 ] ; then
     echo 'Loading py2-v3.0.1'
     eval `/cvmfs/icecube.opensciencegrid.org/py2-v3.0.1/setup.sh`
     export PYTHONUSERBASE=/data/user/mhuennefeld/DNN_reco/virtualenvs/tensorflow_cpu_py2-v3.0.1/
