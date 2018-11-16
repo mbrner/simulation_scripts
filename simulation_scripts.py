@@ -60,7 +60,8 @@ def create_filename(cfg, input=False):
     return full_path
 
 
-def write_job_files(config, step, check_existing=False):
+def write_job_files(config, step, check_existing=False,
+                    run_start=None, run_stop=None):
     with open(config['job_template']) as f:
         template = f.read()
     output_base = os.path.join(config['processing_folder'], 'jobs')
@@ -74,13 +75,19 @@ def write_job_files(config, step, check_existing=False):
     scripts = []
     run_numbers = []
 
-    if 'runs_range' in config:
-        # only process certain runs if keyword is provided
-        runs_range = config['runs_range']
+    if run_start is None:
+        run_start = 0
     else:
-        runs_range = range(config['n_runs'])
+        if run_start < 0 or run_start >= config['n_runs']:
+            raise ValueError('run_start is out of range: {!r}'.format(
+                                                                    run_start))
+    if run_stop is None:
+        run_stop = config['n_runs']
+    else:
+        if run_start >= run_stop or run_stop > config['n_runs']:
+            raise ValueError('run_stop is out of range: {!r}'.format(run_stop))
 
-    for i in runs_range:
+    for i in range(run_start, run_stop):
         config['run_number'] = i
         config['run_folder'] = get_run_folder(i)
         final_out = config['outfile_pattern'].format(**config)
@@ -149,13 +156,19 @@ def build_config(data_folder, custom_settings):
               help='0=upto clsim\n1 = clsim\n2 =upto L2')
 @click.option('--resume/--no-resume', default=False,
               help='Resume processing -> check for existing output')
+@click.option('--run_start', default=None,
+              help='Only process runs starting with this number.')
+@click.option('--run_stop', default=None,
+              help='Only process runs up to this number.')
 def main(data_folder,
          config_file,
          processing_scratch,
          step,
          pbs,
          dagman,
-         resume):
+         resume,
+         run_start,
+         run_stop):
     config_file = click.format_filename(config_file)
     with open(config_file, 'r') as stream:
         custom_settings = SafeDict(yaml.load(stream))
@@ -208,7 +221,10 @@ def main(data_folder,
                 default=default)
         config['processing_scratch'] = os.path.abspath(processing_scratch)
 
-    script_files, run_numbers = write_job_files(config, step, check_existing=resume)
+    script_files, run_numbers = write_job_files(config, step,
+                                                check_existing=resume,
+                                                run_start=run_start,
+                                                run_stop=run_stop)
 
     if dagman or pbs:
         scratch_subfolder = '{dataset_number}_{step_name}'.format(**config)
