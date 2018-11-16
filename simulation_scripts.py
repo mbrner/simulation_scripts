@@ -73,7 +73,14 @@ def write_job_files(config, step, check_existing=False):
         os.makedirs(log_dir)
     scripts = []
     run_numbers = []
-    for i in range(config['n_runs']):
+
+    if 'runs_range' in config:
+        # only process certain runs if keyword is provided
+        runs_range = config['runs_range']
+    else:
+        runs_range = range(config['n_runs'])
+
+    for i in runs_range:
         config['run_number'] = i
         config['run_folder'] = get_run_folder(i)
         final_out = config['outfile_pattern'].format(**config)
