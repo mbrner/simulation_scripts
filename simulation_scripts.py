@@ -156,9 +156,9 @@ def build_config(data_folder, custom_settings):
               help='0=upto clsim\n1 = clsim\n2 =upto L2')
 @click.option('--resume/--no-resume', default=False,
               help='Resume processing -> check for existing output')
-@click.option('--run_start', default=None,
+@click.option('--run_start', default=None, type=int,
               help='Only process runs starting with this number.')
-@click.option('--run_stop', default=None,
+@click.option('--run_stop', default=None, type=int,
               help='Only process runs up to this number.')
 def main(data_folder,
          config_file,
