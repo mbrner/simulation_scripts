@@ -129,6 +129,7 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
                 #   now need to merge new pulses in existing series
                 # Loop through existing pulses and sort them in
                 merged_hits = list(pulse_series[key])
+                len_merged_hits = len(merged_hits)
                 index = 0
                 for new_hit in new_hits:
                     pulse_is_merged = False
@@ -137,19 +138,22 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
                                 new_hit.time < merged_hits[index].time):
                             merged_hits.insert(index, new_hit)
                             pulse_is_merged = True
+                            len_merged_hits += 1
                         index += 1
 
                 # overwrite old pulse series
                 pulse_series[key] = merged_hits
 
-            # sanity checks
-            t_previous = pulse_series[key][0].time
-            for p in pulse_series[key][1:]:
-                assert p.time >= t_previous
-                t_previous = p.time
+            #     # sanity check
+            #     assert len(pulse_series[key]) == len_merged_hits
+
+            # # sanity checks
+            # t_previous = pulse_series[key][0].time
+            # for p in pulse_series[key][1:]:
+            #     assert p.time >= t_previous
+            #     t_previous = p.time
 
         return pulse_series
-
 
     def Physics(self, frame):
         if 'oversampling' in frame:
