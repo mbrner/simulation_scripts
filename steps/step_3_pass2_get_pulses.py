@@ -232,46 +232,54 @@ def main(cfg, run_number, scratch):
                     simulation=True,
                     )
 
+    # Throw out unneeded streams and keys
+    if 'oversampling_keep_keys' not in cfg:
+        oversampling_keep_keys = []
+    elif cfg['oversampling_keep_keys'] is None:
+        oversampling_keep_keys = []
+
+    if cfg['L1_keep_untriggered']:
+        stream_name = filter_globals.InIceSplitter
+    else:
+        stream_name = filter_globals.NullSplitter
+    tray.AddModule("KeepFromSubstream", "DeleteSubstream",
+                   StreamName=stream_name,
+                   KeepKeys=['do_not_keep_anything'])
+
     # merge oversampled events: calculate average hits
     if cfg['oversampling_factor'] is not None:
-
-        if 'oversampling_keep_keys' not in cfg:
-            oversampling_keep_keys = []
-        elif cfg['oversampling_keep_keys'] is None:
-            oversampling_keep_keys = []
-
-        if cfg['L1_keep_untriggered']:
-            stream_name = filter_globals.InIceSplitter
+        if 'oversampling_merge_events' in cfg:
+            merge_events = cfg['oversampling_merge_events']
         else:
-            stream_name = filter_globals.NullSplitter
-        tray.AddModule("KeepFromSubstream", "DeleteSubstream",
-                       StreamName=stream_name,
-                       KeepKeys=['do_not_keep_anything'])
-        tray.AddModule(MergeOversampledEvents, 'MergeOversampledEvents',
-                       OversamplingFactor=cfg['oversampling_factor'])
-        keys_to_keep = [
-            'I3MCTree_preMuonProp',
-            'I3MCTree',
-            'MMCTrackList',
-            'I3EventHeader',
-            'I3SuperDST',
-            'RNGState',
-            'oversampling',
-            'AggregatedPulses',
-            'InIceDSTPulses',
-            'CalibrationErrata',
-            'SaturationWindows',
-            'SplitUncleanedInIcePulses',
-            'SplitUncleanedInIcePulsesTimeRange',
-            'SplitUncleanedInIceDSTPulsesTimeRange',
-            'I3TriggerHierarchy',
-            'GCFilter_GCFilterMJD',
-            ]
-        keys_to_keep += filter_globals.inice_split_keeps + \
-            filter_globals.onlinel2filter_keeps
+            # backward compability
+            merge_events = True
 
-        tray.AddModule("Keep", "keep_before_merge",
-                       keys=keys_to_keep + cfg['oversampling_keep_keys'])
+        if merge_events:
+            tray.AddModule(MergeOversampledEvents, 'MergeOversampledEvents',
+                           OversamplingFactor=cfg['oversampling_factor'])
+    keys_to_keep = [
+        'I3MCTree_preMuonProp',
+        'I3MCTree',
+        'MMCTrackList',
+        'I3EventHeader',
+        'I3SuperDST',
+        'RNGState',
+        'oversampling',
+        'AggregatedPulses',
+        'InIceDSTPulses',
+        'CalibrationErrata',
+        'SaturationWindows',
+        'SplitUncleanedInIcePulses',
+        'SplitUncleanedInIcePulsesTimeRange',
+        'SplitUncleanedInIceDSTPulsesTimeRange',
+        'I3TriggerHierarchy',
+        'GCFilter_GCFilterMJD',
+        ]
+    keys_to_keep += filter_globals.inice_split_keeps + \
+        filter_globals.onlinel2filter_keeps
+
+    tray.AddModule("Keep", "keep_before_merge",
+                   keys=keys_to_keep + cfg['oversampling_keep_keys'])
 
     tray.Add("I3OrphanQDropper")  # drop q frames not followed by p frames
     tray.AddModule("I3Writer", "EventWriter",
