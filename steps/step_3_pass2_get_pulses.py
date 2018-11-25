@@ -97,13 +97,14 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
         dic = dict(self.current_aggregation_frame['oversampling'])
         del self.current_aggregation_frame['oversampling']
         dic['num_aggregated_pulses'] = self.oversampling_counter
+        dic['TimeShift'] = self.current_time_shift
         self.current_aggregation_frame['oversampling'] = \
             dataclasses.I3MapStringInt(dic)
 
         self.PushFrame(self.current_aggregation_frame)
         self.pushed_frame_already = True
 
-    def merge_pulse_series(self, pulse_series, new_pulses):
+    def merge_pulse_series(self, pulse_series, new_pulses, time_shift):
         """Merge two pulse series.
 
         Assumes that new_pulses are to be merged into existing pulse_series,
@@ -116,14 +117,28 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
         new_pulses : dataclasses.I3RecoPulseSeriesMap
             New pulse series that will be merged into the existing pulse
             series.
+        time_shift : float
+            The time shift of the new pulses.
+
+        Returns
+        -------
+        dataclasses.I3RecoPulseSeriesMap
+            Merged pulse series map.
         """
         pulse_series = dataclasses.I3RecoPulseSeriesMap(pulse_series)
+
+        # calculate relative time difference to first oversampling frame
+        delta_t = time_shift - self.current_time_shift
 
         # Go through every key in new pulses:
         for key, new_hits in new_pulses:
             if key not in pulse_series:
                 # DOM has not been previously hit: just merge all hits
                 pulse_series[key] = new_hits
+
+                # correct times:
+                for new_hit in pulse_series[key]:
+                    new_hit.time -= delta_t
             else:
                 # DOM already has hits:
                 #   now need to merge new pulses in existing series
@@ -133,6 +148,11 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
                 index = 0
                 for new_hit in new_hits:
                     pulse_is_merged = False
+
+                    # correct for relative time shift difference
+                    new_hit.time -= delta_t
+
+                    # sort the pulse into existing list
                     while not pulse_is_merged:
                         if (index >= len(merged_hits) or
                                 new_hit.time < merged_hits[index].time):
@@ -144,8 +164,8 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
                 # overwrite old pulse series
                 pulse_series[key] = merged_hits
 
-            #     # sanity check
-            #     assert len(pulse_series[key]) == len_merged_hits
+                # # sanity check
+                # assert len(pulse_series[key]) == len_merged_hits
 
             # # sanity checks
             # t_previous = pulse_series[key][0].time
@@ -169,6 +189,7 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
                     self.push_aggregated_frame()
 
                 # reset values for new event
+                self.current_time_shift = frame['TimeShift']
                 self.current_aggregation_frame = frame
                 self.current_event_counter = oversampling['event_num_in_run']
                 self.merged_pulse_series = dataclasses.I3RecoPulseSeriesMap(
@@ -181,7 +202,9 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
                 new_pulses = dataclasses.I3RecoPulseSeriesMap(
                                     frame['InIceDSTPulses'].apply(frame))
                 self.merged_pulse_series = self.merge_pulse_series(
-                                        self.merged_pulse_series, new_pulses)
+                                        self.merged_pulse_series,
+                                        new_pulses,
+                                        frame['TimeShift'])
                 self.oversampling_counter += 1
 
             # Find out if event ended
@@ -258,6 +281,7 @@ def main(cfg, run_number, scratch):
             tray.AddModule(MergeOversampledEvents, 'MergeOversampledEvents',
                            OversamplingFactor=cfg['oversampling_factor'])
     keys_to_keep = [
+        'TimeShift',
         'I3MCTree_preMuonProp',
         'I3MCTree',
         'MMCTrackList',
