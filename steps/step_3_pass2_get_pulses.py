@@ -78,6 +78,7 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
 
     def Configure(self):
         self.oversampling_factor = self.GetParameter('OversamplingFactor')
+        self.current_time_shift = None
         self.current_event_counter = None
         self.current_aggregation_frame = None
         self.oversampling_counter = None
@@ -97,9 +98,9 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
         dic = dict(self.current_aggregation_frame['oversampling'])
         del self.current_aggregation_frame['oversampling']
         dic['num_aggregated_pulses'] = self.oversampling_counter
-        dic['TimeShift'] = self.current_time_shift
+        dic['time_shift'] = self.current_time_shift
         self.current_aggregation_frame['oversampling'] = \
-            dataclasses.I3MapStringInt(dic)
+            dataclasses.I3MapStringDouble(dic)
 
         self.PushFrame(self.current_aggregation_frame)
         self.pushed_frame_already = True
@@ -189,7 +190,7 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
                     self.push_aggregated_frame()
 
                 # reset values for new event
-                self.current_time_shift = frame['TimeShift']
+                self.current_time_shift = frame['TimeShift'].value
                 self.current_aggregation_frame = frame
                 self.current_event_counter = oversampling['event_num_in_run']
                 self.merged_pulse_series = dataclasses.I3RecoPulseSeriesMap(
@@ -204,7 +205,7 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
                 self.merged_pulse_series = self.merge_pulse_series(
                                         self.merged_pulse_series,
                                         new_pulses,
-                                        frame['TimeShift'])
+                                        frame['TimeShift'].value)
                 self.oversampling_counter += 1
 
             # Find out if event ended
