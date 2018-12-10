@@ -14,6 +14,7 @@ from I3Tray import I3Tray, I3Units
 from icecube import icetray, dataclasses
 
 from utils import create_random_services, get_run_folder
+from resources import geometry
 
 
 class CascadeFactory(icetray.I3ConditionalModule):
@@ -45,6 +46,15 @@ class CascadeFactory(icetray.I3ConditionalModule):
         self.AddParameter('z_range',
                           '[min, max] of vertex z-coordinate in meters.',
                           [-500, 500])
+        self.AddParameter('max_vertex_distance',
+                          'Maximum distance of vertex outside of convex hull '
+                          'around IceCube. If the drawn vertex is further '
+                          'outside of the convex hull than the specified '
+                          'amount, a new vertex position will be drawn.'
+                          'If max_vertex_distance is None, the sampled vertex '
+                          'position will be accepted regardless of its '
+                          'distance to the convex hull.',
+                          None)
         self.AddParameter('flavors',
                           'List of neutrino flavors to simulate.',
                           ['NuE', 'NuMu', 'NuTau'])
@@ -78,6 +88,7 @@ class CascadeFactory(icetray.I3ConditionalModule):
         self.x_range = self.GetParameter('x_range')
         self.y_range = self.GetParameter('y_range')
         self.z_range = self.GetParameter('z_range')
+        self.max_vertex_distance = self.GetParameter('max_vertex_distance')
         self.flavors = self.GetParameter('flavors')
         self.num_flavors = len(self.flavors)
         self.interaction_types = self.GetParameter('interaction_types')
@@ -131,13 +142,17 @@ class CascadeFactory(icetray.I3ConditionalModule):
         # sample cascade
         # --------------
         # vertex
-        vertex_x = self.random_service.uniform(*self.x_range) * I3Units.m
-        vertex_y = self.random_service.uniform(*self.y_range) * I3Units.m
-        vertex_z = self.random_service.uniform(*self.z_range) * I3Units.m
-        vertex = dataclasses.I3Position(
-                        vertex_x * I3Units.m,
-                        vertex_y * I3Units.m,
-                        vertex_z * I3Units.m)
+        point_is_inside = False
+        while not point_is_inside:
+            vertex_x = self.random_service.uniform(*self.x_range) * I3Units.m
+            vertex_y = self.random_service.uniform(*self.y_range) * I3Units.m
+            vertex_z = self.random_service.uniform(*self.z_range) * I3Units.m
+            vertex = dataclasses.I3Position(
+                            vertex_x * I3Units.m,
+                            vertex_y * I3Units.m,
+                            vertex_z * I3Units.m)
+            dist = geometry.distance_to_icecube_hull(vertex)
+            point_is_inside = dist < self.max_vertex_distance
 
         vertex_time = self.random_service.uniform(*self.time_range)*I3Units.ns
 
@@ -294,6 +309,8 @@ def main(cfg, run_number, scratch):
                    # Prefix=gcdfile,
                    Stream=icetray.I3Frame.DAQ)
 
+    if 'max_vertex_distance' not in cfg:
+        cfg['max_vertex_distance'] = None
     tray.AddModule(CascadeFactory,
                    'make_cascades',
                    azimuth_range=cfg['azimuth_range'],
@@ -305,6 +322,7 @@ def main(cfg, run_number, scratch):
                    x_range=cfg['x_range'],
                    y_range=cfg['y_range'],
                    z_range=cfg['z_range'],
+                   max_vertex_distance=cfg['max_vertex_distance'],
                    flavors=cfg['flavors'],
                    interaction_types=cfg['interaction_types'],
                    num_events=cfg['n_events_per_run'],

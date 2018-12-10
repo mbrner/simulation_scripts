@@ -4,6 +4,7 @@
 '''
 import numpy as np
 
+
 def ray_triangle_intersection(ray_near, ray_dir, triangle):
     """
     Möller–Trumbore intersection algorithm in pure python
@@ -54,6 +55,7 @@ def ray_triangle_intersection(ray_near, ray_dir, triangle):
         return np.nan
     return t
 
+
 def get_intersections(convex_hull, v_pos, v_dir, eps=1e-4):
     '''Function to get the intersection points of an infinite line and the
     convex hull. The returned t's are the scaling factors for v_dir to
@@ -91,8 +93,8 @@ def get_intersections(convex_hull, v_pos, v_dir, eps=1e-4):
            for simp in convex_hull.simplices]
     t_s = np.array(t_s)
     t_s = t_s[np.isfinite(t_s)]
-    if len(t_s) != 2:  # A line should have at max 2 intersection points
-                       # with a convex hull
+    if len(t_s) != 2:   # A line should have at max 2 intersection points
+                        # with a convex hull
         t_s_back = [ray_triangle_intersection(v_pos,
                                               -v_dir,
                                               convex_hull.points[simp])
@@ -148,6 +150,7 @@ def point_is_inside(convex_hull,
     t_s = get_intersections(convex_hull, v_pos, default_v_dir, eps)
     return len(t_s) == 2 and (t_s >= 0).any() and (t_s <= 0).any()
 
+
 def distance_to_convex_hull(convex_hull, v_pos):
     '''Function to determine the closest distance of a point
             to the convex hull.
@@ -172,12 +175,7 @@ def distance_to_convex_hull(convex_hull, v_pos):
     raise NotImplementedError
 
 
-
-
-
-
-def get_closest_point_on_edge(edge_point1, 
-                        edge_point2, point):
+def get_closest_point_on_edge(edge_point1, edge_point2, point):
     '''Function to determine the closest point
             on an edge defined by the two points
             edge_point1 and edge_point2
@@ -208,15 +206,15 @@ def get_closest_point_on_edge(edge_point1,
     vec_edge = B - A
     vec_point = P - A
     norm_edge = np.linalg.norm(vec_edge)
-    t_projection = np.dot(vec_edge,vec_point) / (norm_edge**2)
+    t_projection = np.dot(vec_edge, vec_point) / (norm_edge**2)
 
-    t_clipped = min(1,max(t_projection,0))
+    t_clipped = min(1, max(t_projection, 0))
     closest_point = A + t_clipped*vec_edge
 
     return closest_point
 
-def get_distance_to_edge(edge_point1, edge_point2,
-                            point):
+
+def get_distance_to_edge(edge_point1, edge_point2, point):
     '''Function to determine the closest distance of a point
             to an edge defined by the two points
             edge_point1 and edge_point2
@@ -239,14 +237,14 @@ def get_distance_to_edge(edge_point1, edge_point2,
     distance: float
     '''
     closest_point = get_closest_point_on_edge(edge_point1,
-                                        edge_point2, point)
+                                              edge_point2, point)
     distance = np.linalg.norm(closest_point - point)
     return distance
 
-def get_edge_intersection(edge_point1, 
-                        edge_point2, point):
+
+def get_edge_intersection(edge_point1, edge_point2, point):
     '''Returns t:
-        edge_point1 + u*(edge_point2-edge_point1) 
+        edge_point1 + u*(edge_point2-edge_point1)
         =
         point + t * (0, 1, 0)
         if u is within [0,1].
@@ -283,13 +281,14 @@ def get_edge_intersection(edge_point1,
     u = vec_point[0] / vec_edge[0]
     t = u * vec_edge[1] - vec_point[1]
 
-    if u > -1e-8 and u < 1 +1e-8:
+    if u > -1e-8 and u < 1 + 1e-8:
         return t
     return float('nan')
 
+
 def distance_to_axis_aligned_Volume(pos, points, z_min, z_max):
     '''Function to determine the closest distance of a point
-       to the edge of a Volume defined by z_zmin,z_max and a 
+       to the edge of a Volume defined by z_zmin,z_max and a
        2D-Polygon described through a List of counterclockwise
        points.
 
@@ -316,18 +315,18 @@ def distance_to_axis_aligned_Volume(pos, points, z_min, z_max):
         positiv if point is outside
     '''
     no_of_points = len(points)
-    edges = [ (points[i], points[ (i+1 )% (no_of_points)])
-                for i in range(no_of_points)  ]
+    edges = [(points[i], points[(i + 1) % (no_of_points)])
+             for i in range(no_of_points)]
     xy_distance = float('inf')
     list_of_ts = []
 
     for edge in edges:
-        x = (edge[0][0],edge[1][0])
-        y = (edge[0][1],edge[1][1])
-        distance = get_distance_to_edge(edge[0],edge[1],
-                                [pos[0],pos[1],0])
-        t = get_edge_intersection(edge[0],edge[1],
-                                [pos[0],pos[1],0])
+        x = (edge[0][0], edge[1][0])
+        y = (edge[0][1], edge[1][1])
+        distance = get_distance_to_edge(edge[0], edge[1],
+                                        [pos[0], pos[1], 0])
+        t = get_edge_intersection(edge[0], edge[1],
+                                  [pos[0], pos[1], 0])
         if not np.isnan(t):
             list_of_ts.append(t)
         if distance < xy_distance:
@@ -338,10 +337,10 @@ def distance_to_axis_aligned_Volume(pos, points, z_min, z_max):
         if list_of_ts[0]*list_of_ts[1] < 0:
             is_inside_xy = True
         # point is exactly on border
-        elif len([t for t in list_of_ts if t == 0])==1:
+        elif len([t for t in list_of_ts if t == 0]) == 1:
             is_inside_xy = True
 
-    #---- Calculate z_distance
+    # ---- Calculate z_distance
     is_inside_z = False
     if pos[2] < z_min:
         # underneath detector
@@ -349,19 +348,19 @@ def distance_to_axis_aligned_Volume(pos, points, z_min, z_max):
     elif pos[2] < z_max:
         # same height
         is_inside_z = True
-        z_distance =  min(pos[2] - z_min, z_max - pos[2])
+        z_distance = min(pos[2] - z_min, z_max - pos[2])
     else:
         # above detector
         z_distance = pos[2] - z_max
 
-    #---- Combine distances
+    # ---- Combine distances
     if is_inside_z:
         if is_inside_xy:
             # inside detector
-            distance =  - min(xy_distance,z_distance)
+            distance = - min(xy_distance, z_distance)
         else:
             distance = xy_distance
-    else: 
+    else:
         if is_inside_xy:
             distance = z_distance
         else:
@@ -394,16 +393,17 @@ def distance_to_icecube_hull(pos, z_min=-502, z_max=501):
         positiv if point is outside
     '''
     points = [
-           [-570.90002441, -125.13999939, 0], # string 31
-           [-256.14001465, -521.08001709, 0], # string 1
-           [ 361.        , -422.82998657, 0], # string 6
-           [ 576.36999512,  170.91999817, 0], # string 50
-           [ 338.44000244,  463.72000122, 0], # string 74
-           [ 101.04000092,  412.79000854, 0], # string 72
-           [  22.11000061,  509.5       , 0], # string 78
-           [-347.88000488,  451.51998901, 0], # string 75
+           [-570.90002441, -125.13999939, 0],  # string 31
+           [-256.14001465, -521.08001709, 0],  # string 1
+           [ 361.        , -422.82998657, 0],  # string 6
+           [ 576.36999512,  170.91999817, 0],  # string 50
+           [ 338.44000244,  463.72000122, 0],  # string 74
+           [ 101.04000092,  412.79000854, 0],  # string 72
+           [  22.11000061,  509.5       , 0],  # string 78
+           [-347.88000488,  451.51998901, 0],  # string 75
             ]
     return distance_to_axis_aligned_Volume(pos, points, z_min, z_max)
+
 
 def distance_to_deepcore_hull(pos, z_min=-502, z_max=188):
     '''Function to determine the closest distance of a point
@@ -429,17 +429,17 @@ def distance_to_deepcore_hull(pos, z_min=-502, z_max=188):
         positiv if point is outside
     '''
     points = [
-           [-77.80000305175781, -54.33000183105469, 0], # string 35
-           [1.7100000381469727, -150.6300048828125, 0], # string 26
-           [124.97000122070312, -131.25, 0], # string 27
-           [194.33999633789062, -30.920000076293945, 0], # string 37
-           [90.48999786376953, 82.3499984741211, 0], # string 46
-           [-32.959999084472656, 62.439998626708984, 0], # string 45
+           [-77.80000305175781, -54.33000183105469, 0],  # string 35
+           [1.7100000381469727, -150.6300048828125, 0],  # string 26
+           [124.97000122070312, -131.25, 0],  # string 27
+           [194.33999633789062, -30.920000076293945, 0],  # string 37
+           [90.48999786376953, 82.3499984741211, 0],  # string 46
+           [-32.959999084472656, 62.439998626708984, 0],  # string 45
             ]
     return distance_to_axis_aligned_Volume(pos, points, z_min, z_max)
 
 
-def is_in_detector_bounds(pos,extend_boundary=60):
+def is_in_detector_bounds(pos, extend_boundary=60):
     '''Function to determine whether a point is still
         withtin detector bounds
 

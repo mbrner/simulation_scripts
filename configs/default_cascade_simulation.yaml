@@ -63,6 +63,8 @@ time_range: [9000,12000]
 x_range: [-400,400]
 y_range: [-400,400]
 z_range: [-400,400]
+# Maximum Distance of vertex to convex hull around IceCube
+max_vertex_distance: 60
 # flavors. Options are: 'NuE', 'NuMu', 'NuTau'
 flavors: ['NuE']
 # interaction types. Options are: 'CC', 'NC'
