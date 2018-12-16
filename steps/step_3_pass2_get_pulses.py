@@ -139,7 +139,7 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
 
                 # correct times:
                 for new_hit in pulse_series[key]:
-                    new_hit.time -= delta_t
+                    new_hit.time += delta_t
             else:
                 # DOM already has hits:
                 #   now need to merge new pulses in existing series
@@ -151,7 +151,7 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
                     pulse_is_merged = False
 
                     # correct for relative time shift difference
-                    new_hit.time -= delta_t
+                    new_hit.time += delta_t
 
                     # sort the pulse into existing list
                     while not pulse_is_merged:
