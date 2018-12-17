@@ -81,6 +81,7 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
         self.current_time_shift = None
         self.current_event_counter = None
         self.current_aggregation_frame = None
+        self.current_daq_frame = None
         self.oversampling_counter = None
         self.pushed_frame_already = False
 
@@ -102,7 +103,9 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
         self.current_aggregation_frame['oversampling'] = \
             dataclasses.I3MapStringDouble(dic)
 
+        self.PushFrame(self.current_daq_frame)
         self.PushFrame(self.current_aggregation_frame)
+        self.current_daq_frame = None
         self.pushed_frame_already = True
 
     def merge_pulse_series(self, pulse_series, new_pulses, time_shift):
@@ -175,6 +178,10 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
             #     t_previous = p.time
 
         return pulse_series
+
+    def DAQ(self, frame):
+        if self.current_daq_frame is None:
+            self.current_daq_frame = frame
 
     def Physics(self, frame):
         if 'oversampling' in frame:
@@ -306,7 +313,6 @@ def main(cfg, run_number, scratch):
     tray.AddModule("Keep", "keep_before_merge",
                    keys=keys_to_keep + cfg['oversampling_keep_keys'])
 
-    tray.Add("I3OrphanQDropper")  # drop q frames not followed by p frames
     tray.AddModule("I3Writer", "EventWriter",
                    filename=outfile,
                    Streams=[icetray.I3Frame.DAQ,
