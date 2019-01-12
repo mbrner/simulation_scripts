@@ -101,6 +101,8 @@ class CascadeFactory(icetray.I3ConditionalModule):
         self.oversampling_factor = self.GetParameter('oversampling_factor')
         if self.oversampling_factor is None:
             self.oversampling_factor = 1
+        if self.max_vertex_distance is None:
+            self.max_vertex_distance = float('inf')
         self.events_done = 0
         self.eps = 1e-6
 
