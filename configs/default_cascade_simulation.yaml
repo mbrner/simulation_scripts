@@ -71,6 +71,8 @@ flavors: ['NuE']
 interaction_types: ['NC']
 # oversampling to use
 oversampling_factor:
+# oversample after proposal or before?
+oversample_after_proposal: False
 # keep keys for merging of oversampled events
 oversampling_keep_keys: []
 

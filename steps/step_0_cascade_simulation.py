@@ -272,6 +272,77 @@ class CascadeFactory(icetray.I3ConditionalModule):
             self.RequestSuspension()
 
 
+class DAQFrameMultiplier(icetray.I3ConditionalModule):
+    def __init__(self, context):
+        """Class to create and inject Cascades.
+
+        Parameters
+        ----------
+        context : TYPE
+            Description
+        """
+        icetray.I3ConditionalModule.__init__(self, context)
+        self.AddOutBox('OutBox')
+        self.AddParameter('oversampling_factor',
+                          'Oversampling Factor to be used. Simulation is '
+                          'averaged over these many simulations.',
+                          None)
+
+    def Configure(self):
+        """Configures CascadeFactory.
+
+        Raises
+        ------
+        ValueError
+            If interaction type or flavor is unkown.
+        """
+        self.oversampling_factor = self.GetParameter('oversampling_factor')
+        if self.oversampling_factor is None:
+            self.oversampling_factor = 1
+        self.events_done = 0
+
+        # sanity checks:
+        if self.oversampling_factor < 1:
+            raise ValueError('Oversampling must be set to "None" or integer'
+                             ' greater than 1. It is currently set to: '
+                             '{!r}'.format(self.oversampling_factor))
+
+    def DAQ(self, frame):
+        """Inject casacdes into I3MCtree.
+
+        Parameters
+        ----------
+        frame : icetray.I3Frame.DAQ
+            An I3 q-frame.
+
+        """
+
+        pre_tree = frame['I3MCTree_preMuonProp']
+        tree = frame['I3MCTree']
+
+        # oversampling
+        for i in range(self.oversampling_factor):
+            if i > 0:
+                # create a new frame
+                frame = icetray.I3Frame(frame)
+
+                del frame['I3MCTree_preMuonProp']
+                del frame['I3MCTree']
+                del frame['oversampling']
+
+                frame['I3MCTree_preMuonProp'] = dataclasses.I3MCTree(pre_tree)
+                frame['I3MCTree'] = dataclasses.I3MCTree(tree)
+
+            if self.oversampling_factor > 1:
+                frame['oversampling'] = dataclasses.I3MapStringInt({
+                                        'event_num_in_run': self.events_done,
+                                        'oversampling_num': i,
+                                    })
+            self.PushFrame(frame)
+
+        self.events_done += 1
+
+
 @click.command()
 @click.argument('cfg', click.Path(exists=True))
 @click.argument('run_number', type=int)
@@ -313,6 +384,14 @@ def main(cfg, run_number, scratch):
 
     if 'max_vertex_distance' not in cfg:
         cfg['max_vertex_distance'] = None
+    if 'oversample_after_proposal' in cfg and \
+            cfg['oversample_after_proposal']:
+        oversampling_factor_injection = None
+        oversampling_factor_photon = cfg['oversampling_factor']
+    else:
+        oversampling_factor_injection = cfg['oversampling_factor']
+        oversampling_factor_photon = None
+
     tray.AddModule(CascadeFactory,
                    'make_cascades',
                    azimuth_range=cfg['azimuth_range'],
@@ -328,7 +407,7 @@ def main(cfg, run_number, scratch):
                    flavors=cfg['flavors'],
                    interaction_types=cfg['interaction_types'],
                    num_events=cfg['n_events_per_run'],
-                   oversampling_factor=cfg['oversampling_factor'],
+                   oversampling_factor=oversampling_factor_injection,
                    random_state=cfg['seed'],
                    random_service=random_services[0],
                    )
@@ -337,6 +416,9 @@ def main(cfg, run_number, scratch):
                     'propagate_muons',
                     RandomService=random_services[1],
                     **cfg['muon_propagation_config'])
+
+    tray.AddModule(DAQFrameMultiplier, 'DAQFrameMultiplier',
+                   oversampling_factor=oversampling_factor_photon)
 
     # --------------------------------------
     # Distance Splits
