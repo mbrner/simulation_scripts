@@ -9,14 +9,17 @@ import step_3_pass2_get_pulses
 @click.argument('cfg', click.Path(exists=True))
 @click.argument('run_number', type=int)
 @click.option('--scratch/--no-scratch', default=True)
-def main(cfg, run_number, scratch):
+@click.argument('do_merging_if_necessary', type=bool, default=True)
+def main(cfg, run_number, scratch, do_merging_if_necessary):
 
     # modify config to not merge events from oversampling
     cfg['oversampling_merge_events'] = False
 
     step_3_pass2_get_pulses.main(cfg=cfg,
                                  run_number=run_number,
-                                 scratch=scratch)
+                                 scratch=scratch,
+                                 do_merging_if_necessary=False,
+                                 )
 
 
 if __name__ == '__main__':
