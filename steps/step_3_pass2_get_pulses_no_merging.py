@@ -13,7 +13,7 @@ import step_3_pass2_get_pulses
 def main(ctx, cfg, run_number, scratch):
 
     # call main function with modified click context
-    ctx.invoke(step_3_pass2_get_pulses.main, do_merging_if_necessary=False)
+    ctx.forward(step_3_pass2_get_pulses.main, do_merging_if_necessary=False)
 
 
 if __name__ == '__main__':
