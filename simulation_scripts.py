@@ -175,11 +175,28 @@ def main(data_folder,
     chain_name = custom_settings['chain_name']
     click.echo('Initialized {} chain!'.format(chain_name))
     step_enum, default_config, job_template = fetch_chain(chain_name)
+
+    # Processing chain can implement different branches. These branches
+    # can be defined by using step numbers greater than 9. If the previous
+    # step is defined in the processing chain, then the files will be used
+    # as input. If it does not exist, files form step % 10 -1 will be used,
+    # unless step % 10 is zero.
+    if step % 10 == 0:
+        # the branch does not have any previous input
+        previous_step = (step % 10) - 1
+
+    else:
+        # the branch can have previous input
+        previous_step = step - 1
+        if previous_step not in step_enum:
+            previous_step = (step % 10) - 1
+    previous_step_name = step_enum.get(previous_step, None)
+
     custom_settings.update({
         'step': step,
         'step_name': step_enum[step],
-        'previous_step_name': step_enum.get(step - 1, None),
-        'previous_step': step - 1})
+        'previous_step_name': previous_step_name,
+        'previous_step': previous_step})
 
     if 'outfile_pattern' in custom_settings.keys():
         click.echo('Building config for next step based on provided config!')
@@ -189,7 +206,7 @@ def main(data_folder,
         config.update({
             'step': step,
             'step_name': step_enum[step],
-            'previous_step_name': step_enum.get(step - 1, None)})
+            'previous_step_name': previous_step_name})
         if 'processing_scratch' in config.keys():
             processing_scratch = config['processing_scratch']
     else:
