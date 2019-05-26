@@ -9,14 +9,11 @@ import step_3_pass2_get_pulses
 @click.argument('cfg', click.Path(exists=True))
 @click.argument('run_number', type=int)
 @click.option('--scratch/--no-scratch', default=True)
-@click.argument('do_merging_if_necessary', type=bool, default=True)
-def main(cfg, run_number, scratch, do_merging_if_necessary):
+@click.pass_context
+def main(ctx, cfg, run_number, scratch):
 
-    step_3_pass2_get_pulses.main(cfg=cfg,
-                                 run_number=run_number,
-                                 scratch=scratch,
-                                 do_merging_if_necessary=False,
-                                 )
+    # call main function with modified click context
+    ctx.invoke(step_3_pass2_get_pulses.main, do_merging_if_necessary=False)
 
 
 if __name__ == '__main__':
