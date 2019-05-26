@@ -32,7 +32,7 @@ class CascadeFactory(icetray.I3ConditionalModule):
                           '[min, max] of primary azimuth in degree.', [0, 360])
         self.AddParameter('zenith_range',
                           '[min, max] of primary zenith in degree.', [0, 180])
-        self.AddParameter('hadron_energy_range', '', [10000, 10000])
+        self.AddParameter('primary_energy_range', '', [10000, 10000])
         self.AddParameter('fractional_energy_in_hadrons_range',
                           'Fraction of primary energy in hadrons', [0, 1.])
         self.AddParameter('time_range', '[min, max] of vertex time in ns.',
@@ -79,9 +79,10 @@ class CascadeFactory(icetray.I3ConditionalModule):
         """
         self.azimuth_range = self.GetParameter('azimuth_range')
         self.zenith_range = self.GetParameter('zenith_range')
-        self.hadron_energy_range = self.GetParameter('hadron_energy_range')
-        self.log_hadron_energy_range = [np.log10(self.hadron_energy_range[0]),
-                                        np.log10(self.hadron_energy_range[1])]
+        self.primary_energy_range = self.GetParameter('primary_energy_range')
+        self.log_primary_energy_range = [
+                                    np.log10(self.primary_energy_range[0]),
+                                    np.log10(self.primary_energy_range[1])]
         self.fractional_energy_in_hadrons_range = self.GetParameter(
                                         'fractional_energy_in_hadrons_range')
         self.time_range = self.GetParameter('time_range')
@@ -104,7 +105,6 @@ class CascadeFactory(icetray.I3ConditionalModule):
         if self.max_vertex_distance is None:
             self.max_vertex_distance = float('inf')
         self.events_done = 0
-        self.eps = 1e-6
 
         # make lowercase
         self.flavors = [f.lower() for f in self.flavors]
@@ -163,12 +163,12 @@ class CascadeFactory(icetray.I3ConditionalModule):
         zenith = self.random_service.uniform(*self.zenith_range)*I3Units.deg
 
         # energy
-        log_hadron_energy = self.random_service.uniform(
-                                *self.log_hadron_energy_range) * I3Units.GeV
-        hadron_energy = 10**log_hadron_energy
+        log_primary_energy = self.random_service.uniform(
+                                *self.log_primary_energy_range) * I3Units.GeV
+        primary_energy = 10**log_primary_energy
         fraction = self.random_service.uniform(
                                     *self.fractional_energy_in_hadrons_range)
-        primary_energy = hadron_energy / (self.eps + fraction)
+        hadron_energy = primary_energy * fraction
         daughter_energy = primary_energy - hadron_energy
 
         # flavor and interaction
@@ -362,7 +362,7 @@ def main(cfg, run_number, scratch):
     click.echo('Outfile: {}'.format(outfile))
     click.echo('Azimuth: [{},{}]'.format(*cfg['azimuth_range']))
     click.echo('Zenith: [{},{}]'.format(*cfg['zenith_range']))
-    click.echo('Energy: [{},{}]'.format(*cfg['hadron_energy_range']))
+    click.echo('Energy: [{},{}]'.format(*cfg['primary_energy_range']))
     click.echo('Vertex x: [{},{}]'.format(*cfg['x_range']))
     click.echo('Vertex y: [{},{}]'.format(*cfg['y_range']))
     click.echo('Vertex z: [{},{}]'.format(*cfg['z_range']))
@@ -396,7 +396,7 @@ def main(cfg, run_number, scratch):
                    'make_cascades',
                    azimuth_range=cfg['azimuth_range'],
                    zenith_range=cfg['zenith_range'],
-                   hadron_energy_range=cfg['hadron_energy_range'],
+                   primary_energy_range=cfg['primary_energy_range'],
                    fractional_energy_in_hadrons_range=cfg[
                                         'fractional_energy_in_hadrons_range'],
                    time_range=cfg['time_range'],

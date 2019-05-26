@@ -12,7 +12,7 @@ muongun_general_2012_pass2_distance_split:
     12: step_2_pass2_detector_simulation
     13: step_3_pass2_L1
     14: step_4_pass2_L2
-    
+
 muongun_floodlight_2012_pass2_distance_split:
   default_config: configs/default_muongun_floodlight_2012_pass2.yaml
   job_template: job_templates/muongun_general_template.sh
@@ -78,7 +78,7 @@ muon_resimulation:
     13: step_3_2012_L1
     14: step_4_2012_L2
     15: step_5_2012_2017OnlineL2
-    
+
 cascade_simulation:
   default_config: configs/default_cascade_simulation.yaml
   job_template: job_templates/general_py2-v3.0.1.sh
@@ -87,13 +87,14 @@ cascade_simulation:
     1: step_1_general_photon_propagation
     2: step_2_pass2_detector_simulation
     3: step_3_pass2_get_pulses
-    13: step_3_pass2_L1
-    14: step_4_pass2_L2
-    15: step_5_pass2_2017OnlineL2
-    22: step_2_2012_detector_simulation
-    23: step_3_2012_L1
-    24: step_4_2012_L2
-    25: step_5_2012_2017OnlineL2
+    13: step_3_pass2_get_pulses_no_merging
+    23: step_3_pass2_L1
+    24: step_4_pass2_L2
+    25: step_5_pass2_2017OnlineL2
+    32: step_2_2012_detector_simulation
+    33: step_3_2012_L1
+    34: step_4_2012_L2
+    35: step_5_2012_2017OnlineL2
 
 
 nancy_2012_muon_l3:

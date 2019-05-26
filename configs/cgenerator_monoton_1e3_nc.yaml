@@ -16,8 +16,8 @@ icemodel: SpiceLea
 icemodel_location:
 
 # Cascade Generation specific settings
-# Energy range for hadrons
-hadron_energy_range: [!!float 1e3, !!float 1e3]
+# Energy range for primary particle
+primary_energy_range: [!!float 1e3, !!float 1e3]
 # Fraction of primary energy in hadrons
 fractional_energy_in_hadrons_range: [0.99999, 0.99999]
 # Zenith range of primary and cascade in degrees

@@ -49,8 +49,8 @@ gcd_pass2: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_20
 
 
 # Cascade Generation specific settings
-# Energy range for hadrons
-hadron_energy_range: [!!float 1e2, !!float 1e7]
+# Energy range for primary particle
+primary_energy_range: [!!float 1e2, !!float 1e7]
 # Fraction of primary energy in hadrons
 fractional_energy_in_hadrons_range: [0.001, 1.0]
 # Zenith range of primary and cascade in degrees
