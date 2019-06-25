@@ -182,6 +182,20 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
 
         return pulse_series
 
+    def _get_pulses(self, frame):
+        """Get the I3RecoPulseSeriesMap from the frame.
+
+        Parameters
+        ----------
+        frame : I3Frame
+            The current I3Frame.
+        """
+        pulses = frame[self.pulse_key]
+        if isinstance(pulses, dataclasses.I3RecoPulseSeriesMapMask) or \
+                isinstance(pulses, dataclasses.I3RecoPulseSeriesMapUnion):
+            pulses = pulses.apply(frame)
+        return dataclasses.I3RecoPulseSeriesMap(pulses)
+
     def DAQ(self, frame):
         if self.current_daq_frame is None:
             self.current_daq_frame = frame
@@ -203,15 +217,13 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
                 self.current_time_shift = frame['TimeShift'].value
                 self.current_aggregation_frame = frame
                 self.current_event_counter = oversampling['event_num_in_run']
-                self.merged_pulse_series = dataclasses.I3RecoPulseSeriesMap(
-                                        frame[self.pulse_key].apply(frame))
+                self.merged_pulse_series = self._get_pulses(frame)
                 self.oversampling_counter = 1
                 self.pushed_frame_already = False
 
             else:
                 # same event, keep aggregating pulses
-                new_pulses = dataclasses.I3RecoPulseSeriesMap(
-                                    frame[self.pulse_key].apply(frame))
+                new_pulses = self._get_pulses(frame)
                 self.merged_pulse_series = self.merge_pulse_series(
                                         self.merged_pulse_series,
                                         new_pulses,

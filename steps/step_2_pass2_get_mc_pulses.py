@@ -8,7 +8,7 @@ import click
 import yaml
 
 from I3Tray import I3Tray, I3Units
-from icecube import icetray, dataclasses
+from icecube import icetray, dataclasses, simclasses
 from icecube.filterscripts import filter_globals
 from icecube.filterscripts.baseproc import BaseProcessing
 from icecube.STTools.seededRT.configuration_services import \
@@ -60,7 +60,7 @@ class GetMCPulses(icetray.I3ConditionalModule):
             p_frame = icetray.I3Frame(icetray.I3Frame.Physics)
 
             # add MC reco pulses from I3MCPESeriesMap
-            self._add_mc_pulses(frame, frame[self._mcpe_series])
+            self._add_mc_pulses(p_frame, frame[self._mcpe_series])
 
             # Detector simulation creates trigger and shifts times relative
             # to this trigger. Since we are skipping detector simulation,
