@@ -57,7 +57,16 @@ class GetMCPulses(icetray.I3ConditionalModule):
         self.PushFrame(frame)
 
         if self._create_p_frames:
-            self.PushFrame(icetray.I3Frame(icetray.I3Frame.Physics))
+            p_frame = icetray.I3Frame(icetray.I3Frame.Physics)
+
+            # add MC reco pulses from I3MCPESeriesMap
+            self._add_mc_pulses(frame)
+
+            # Detector simulation creates trigger and shifts times relative
+            # to this trigger. Since we are skipping detector simulation,
+            # we must manually add the TimeShift key to the frame.
+            p_frame['TimeShift'] = dataclasses.I3Double(0.)
+            self.PushFrame(p_frame)
 
     def Physics(self, frame):
         """Add MC pulses to P-frame
@@ -67,14 +76,26 @@ class GetMCPulses(icetray.I3ConditionalModule):
         frame : I3Frame
             The current I3Frame.
         """
+        if not self._create_p_frames:
 
-        '''
-        Create MC reco pulses from I3MCPESeriesMap:
+            # add MC reco pulses from I3MCPESeriesMap
+            self._add_mc_pulses(frame)
+
+        # push frame on to next modules
+        self.PushFrame(frame)
+
+    def _add_mc_pulses(self, frame):
+        '''Create MC reco pulses from I3MCPESeriesMap
 
         This is a dirty hack, so that other modules can be used without
         changing them. However, this will use up unecessary space, because
         I3RecoPulses have more data fields, which are not required by an
         MC hit (width, ATWD, ...) .
+
+        Parameters
+        ----------
+        frame : I3Frame
+            The I3Frame to which the MC Pulses will be added to.
         '''
         mc_pulse_map = dataclasses.I3RecoPulseSeriesMap()
         for omkey, mcpe_series in frame[self._mcpe_series].items():
@@ -96,9 +117,6 @@ class GetMCPulses(icetray.I3ConditionalModule):
         # write to frame
         frame[self._output_key] = mc_pulse_map
 
-        # push frame on to next modules
-        self.PushFrame(frame)
-
 
 @click.command()
 @click.argument('cfg', click.Path(exists=True))
@@ -115,7 +133,6 @@ def main(cfg, run_number, scratch, do_merging_if_necessary):
     infile = infile.replace(' ', '0')
     infile = infile.replace('Level0.{}'.format(cfg['previous_step']),
                             'Level0.{}'.format(cfg['previous_step'] % 10))
-    infile = infile.replace('2012_pass2', 'pass2')
 
     if scratch:
         outfile = cfg['scratchfile_pattern'].format(**cfg)
