@@ -60,7 +60,7 @@ class GetMCPulses(icetray.I3ConditionalModule):
             p_frame = icetray.I3Frame(icetray.I3Frame.Physics)
 
             # add MC reco pulses from I3MCPESeriesMap
-            self._add_mc_pulses(frame)
+            self._add_mc_pulses(frame, frame[self._mcpe_series])
 
             # Detector simulation creates trigger and shifts times relative
             # to this trigger. Since we are skipping detector simulation,
@@ -79,12 +79,12 @@ class GetMCPulses(icetray.I3ConditionalModule):
         if not self._create_p_frames:
 
             # add MC reco pulses from I3MCPESeriesMap
-            self._add_mc_pulses(frame)
+            self._add_mc_pulses(frame, frame[self._mcpe_series])
 
         # push frame on to next modules
         self.PushFrame(frame)
 
-    def _add_mc_pulses(self, frame):
+    def _add_mc_pulses(self, frame, mcpe_series_map):
         '''Create MC reco pulses from I3MCPESeriesMap
 
         This is a dirty hack, so that other modules can be used without
@@ -96,9 +96,11 @@ class GetMCPulses(icetray.I3ConditionalModule):
         ----------
         frame : I3Frame
             The I3Frame to which the MC Pulses will be added to.
+        mcpe_series_map : I3MCPESeriesMap
+            The I3MCPESeriesMap which will be converted.
         '''
         mc_pulse_map = dataclasses.I3RecoPulseSeriesMap()
-        for omkey, mcpe_series in frame[self._mcpe_series].items():
+        for omkey, mcpe_series in mcpe_series_map.items():
 
             mc_pulses = []
             for mcpe in mcpe_series:
