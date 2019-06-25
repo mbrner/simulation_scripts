@@ -28,7 +28,7 @@ class GetMCPulses(icetray.I3ConditionalModule):
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
         self.AddParameter('I3MCPESeriesMap', 'I3MCPESeriesMap to use.',
-                          'I3MCPESeriesMap')
+                          'I3MCPESeriesMapWithoutNoise')
         self.AddParameter('OutputKey',
                           'Output key to which the MC hits will be stored.',
                           'MCPulses')
@@ -155,7 +155,7 @@ def main(cfg, run_number, scratch, do_merging_if_necessary):
 
     # get MC pulses
     tray.AddModule(GetMCPulses, "GetMCPulses",
-                   I3MCPESeriesMap='I3MCPESeriesMap',
+                   I3MCPESeriesMap='I3MCPESeriesMapWithoutNoise',
                    OutputKey='MCPulses',
                    CreatePFrames=True)
 
@@ -175,6 +175,12 @@ def main(cfg, run_number, scratch, do_merging_if_necessary):
     # Make space and delete uneeded keys
     keys_to_delete = [
         'I3MCPESeriesMap',
+        'I3MCPulseSeriesMap',
+        'I3MCPESeriesMapWithoutNoise',
+        'I3MCPulseSeriesMapParticleIDMap',
+        'I3MCPulseSeriesMapPrimaryIDMap',
+        'InIceRawData',
+        'IceTopRawData',
         ]
     tray.AddModule('Delete', 'DeleteKeys',
                    keys=keys_to_delete)
