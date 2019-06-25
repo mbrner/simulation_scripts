@@ -77,10 +77,16 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
         self.AddParameter('OversamplingFactor', 'Oversampling factor.', None)
         self.AddParameter('PulseKey', 'The pulse key over which to aggregate.',
                           'InIceDSTPulses')
+        self.AddParameter('MinPulseTimeSeparation',
+                          'The minimum time in ns a merged pulse may be '
+                          'separated from a previous one. If it is less, then '
+                          'the two pulses will be merged into a single one',
+                          1.)
 
     def Configure(self):
         self.oversampling_factor = self.GetParameter('OversamplingFactor')
         self.pulse_key = self.GetParameter('PulseKey')
+        self.min_separation = self.GetParameter('MinPulseTimeSeparation')
         self.current_time_shift = None
         self.current_event_counter = None
         self.current_aggregation_frame = None
@@ -155,6 +161,7 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
                 index = 0
                 for new_hit in new_hits:
                     pulse_is_merged = False
+                    combine_pulses = False
 
                     # correct for relative time shift difference
                     new_hit.time += delta_t
@@ -163,10 +170,23 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
                     while not pulse_is_merged:
                         if (index >= len(merged_hits) or
                                 new_hit.time < merged_hits[index].time):
-                            merged_hits.insert(index, new_hit)
+
+                            time_diff = abs(
+                                new_hit.time - merged_hits[index - 1].time)
+                            combine_pulses = time_diff < self.min_separation
+                            if combine_pulses:
+                                # the pulses are close in time: merge
+                                merged_hits[index - 1].charge += new_hit.charge
+                            else:
+                                # insert pulse
+                                merged_hits.insert(index, new_hit)
+                                len_merged_hits += 1
+
                             pulse_is_merged = True
-                            len_merged_hits += 1
-                        index += 1
+
+                        # only increase index if we did not combine 2 pulses
+                        if not combine_pulses:
+                            index += 1
 
                 # overwrite old pulse series
                 pulse_series[key] = merged_hits
