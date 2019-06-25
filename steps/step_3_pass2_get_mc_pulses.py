@@ -135,6 +135,7 @@ def main(cfg, run_number, scratch, do_merging_if_necessary):
     infile = infile.replace(' ', '0')
     infile = infile.replace('Level0.{}'.format(cfg['previous_step']),
                             'Level0.{}'.format(cfg['previous_step'] % 10))
+    infile = infile.replace('2012_pass2', 'pass2')
 
     if scratch:
         outfile = cfg['scratchfile_pattern'].format(**cfg)
