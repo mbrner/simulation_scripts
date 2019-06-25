@@ -75,9 +75,12 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
         self.AddParameter('OversamplingFactor', 'Oversampling factor.', None)
+        self.AddParameter('PulseKey', 'The pulse key over which to aggregate.',
+                          'InIceDSTPulses')
 
     def Configure(self):
         self.oversampling_factor = self.GetParameter('OversamplingFactor')
+        self.pulse_key = self.GetParameter('PulseKey')
         self.current_time_shift = None
         self.current_event_counter = None
         self.current_aggregation_frame = None
@@ -201,14 +204,14 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
                 self.current_aggregation_frame = frame
                 self.current_event_counter = oversampling['event_num_in_run']
                 self.merged_pulse_series = dataclasses.I3RecoPulseSeriesMap(
-                                        frame['InIceDSTPulses'].apply(frame))
+                                        frame[self.pulse_key].apply(frame))
                 self.oversampling_counter = 1
                 self.pushed_frame_already = False
 
             else:
                 # same event, keep aggregating pulses
                 new_pulses = dataclasses.I3RecoPulseSeriesMap(
-                                    frame['InIceDSTPulses'].apply(frame))
+                                    frame[self.pulse_key].apply(frame))
                 self.merged_pulse_series = self.merge_pulse_series(
                                         self.merged_pulse_series,
                                         new_pulses,

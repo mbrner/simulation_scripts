@@ -95,6 +95,7 @@ cascade_simulation:
     33: step_3_2012_L1
     34: step_4_2012_L2
     35: step_5_2012_2017OnlineL2
+    42: step_2_pass2_get_mc_pulses
 
 
 nancy_2012_muon_l3:
