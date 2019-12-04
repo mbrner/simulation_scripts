@@ -128,7 +128,7 @@ class GetMCPulses(icetray.I3ConditionalModule):
 @click.argument('do_merging_if_necessary', type=bool, default=True)
 def main(cfg, run_number, scratch, do_merging_if_necessary):
     with open(cfg, 'r') as stream:
-        cfg = yaml.full_load(stream)
+        cfg = yaml.load(stream)
     cfg['run_number'] = run_number
     cfg['run_folder'] = get_run_folder(run_number)
 

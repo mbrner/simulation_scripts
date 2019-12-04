@@ -164,7 +164,7 @@ class ExecProcess(multiprocessing.Process):
 @click.option('--scratch/--no-scratch', default=True)
 def main(cfg, run_number, scratch):
     with open(cfg, 'r') as stream:
-        cfg = yaml.full_load(stream)
+        cfg = yaml.load(stream)
     cfg['run_number'] = run_number
     cfg['run_folder'] = get_run_folder(run_number)
 
