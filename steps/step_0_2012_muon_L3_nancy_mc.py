@@ -27,7 +27,7 @@ DRIVER_FILE = 'mu_photorec.list'
 def main(cfg, run_number, scratch):
     cfg['variation_name'] = cfg['variations'][cfg['step'] // 10]
     with open(cfg, 'r') as stream:
-        cfg = yaml.load(stream)
+        cfg = yaml.safe_load(stream)
     icetray.logging.set_level("WARN")
     cfg['run_number'] = run_number
     cfg['run_folder'] = (run_number % 1000) + 1

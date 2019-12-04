@@ -27,7 +27,7 @@ class SafeDict(dict):
 def fetch_chain(chain_name):
     processing_chains_f = os.path.join(SCRIPT_FOLDER, 'processing_chains.yaml')
     with open(processing_chains_f, 'r') as stream:
-        processing_chains = SafeDict(yaml.load(stream))
+        processing_chains = SafeDict(yaml.safe_load(stream))
     try:
         chain_definition = processing_chains[chain_name]
     except KeyError:
@@ -123,7 +123,7 @@ def build_config(data_folder, custom_settings):
     if data_folder.endswith('/'):
         data_folder = data_folder[:-1]
     with open(custom_settings['default_config'], 'r') as stream:
-        config = SafeDict(yaml.load(stream))
+        config = SafeDict(yaml.safe_load(stream))
     config.update(custom_settings)
 
     config.update({'data_folder': data_folder,
@@ -171,7 +171,7 @@ def main(data_folder,
          run_stop):
     config_file = click.format_filename(config_file)
     with open(config_file, 'r') as stream:
-        custom_settings = SafeDict(yaml.load(stream))
+        custom_settings = SafeDict(yaml.safe_load(stream))
     chain_name = custom_settings['chain_name']
     click.echo('Initialized {} chain!'.format(chain_name))
     step_enum, default_config, job_template = fetch_chain(chain_name)
