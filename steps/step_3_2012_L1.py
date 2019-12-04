@@ -19,7 +19,7 @@ PHOTONICS_DIR = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables'
 
 
 @click.command()
-@click.argument('config_file', click.Path(exists=True))
+@click.argument('config_file', type=click.Path(exists=True))
 @click.argument('run_number', type=int)
 @click.option('--scratch/--no-scratch', default=True)
 def main(config_file, run_number, scratch):

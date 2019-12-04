@@ -122,7 +122,7 @@ class GetMCPulses(icetray.I3ConditionalModule):
 
 
 @click.command()
-@click.argument('cfg', click.Path(exists=True))
+@click.argument('cfg', type=click.Path(exists=True))
 @click.argument('run_number', type=int)
 @click.option('--scratch/--no-scratch', default=True)
 @click.argument('do_merging_if_necessary', type=bool, default=True)

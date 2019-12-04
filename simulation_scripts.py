@@ -143,7 +143,7 @@ def build_config(data_folder, custom_settings):
 
 
 @click.command()
-@click.argument('config_file', click.Path(exists=True))
+@click.argument('config_file', type=click.Path(exists=True))
 @click.option('--data_folder', '-d', default=None,
               help='folder were all files should be placed')
 @click.option('--processing_scratch', '-p', default=None,

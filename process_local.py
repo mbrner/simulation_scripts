@@ -159,7 +159,7 @@ class JobLogBook(object):
 
 
 @click.command()
-@click.argument('path', click.Path(exists=True, resolve_path=True))
+@click.argument('path', type=click.Path(exists=True, resolve_path=True))
 @click.option('-j', '--n_jobs', default=1,
               help='Number of parallel jobs')
 @click.option('-p', '--binary_pattern', default='*.sh',

@@ -145,7 +145,7 @@ def create_pbs_files(config,
 
 
 @click.command()
-@click.argument('config_file', click.Path(exists=True))
+@click.argument('config_file', type=click.Path(exists=True))
 @click.option('-j', '--n_jobs', default=1,
               help='Number of parallel jobs')
 def process_local(config_file, n_jobs):
