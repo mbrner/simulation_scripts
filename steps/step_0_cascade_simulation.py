@@ -68,6 +68,17 @@ class CascadeFactory(icetray.I3ConditionalModule):
                           'Oversampling Factor to be used. Simulation is '
                           'averaged over these many simulations.',
                           None)
+        self.AddParameter('constant_vars',
+                          'These variables are only sampled once when the '
+                          'module is being configured. They are kept constant '
+                          'afterwards. This can for instance be used to keep '
+                          'certain parameters such as the direction constant '
+                          'for events of a run. Allowed options are: '
+                          'vertex, zenith, azimuth, primary_energy, flavor'
+                          'fractional_energy_in_hadrons, time, '
+                          'interaction_type. The variables must be passed as '
+                          'a list of str',
+                          None)
 
     def Configure(self):
         """Configures CascadeFactory.
@@ -104,28 +115,95 @@ class CascadeFactory(icetray.I3ConditionalModule):
             self.oversampling_factor = 1
         if self.max_vertex_distance is None:
             self.max_vertex_distance = float('inf')
+        self.constant_vars = self.GetParameter('constant_vars')
+        if self.constant_vars is None:
+            self.constant_vars = []
         self.events_done = 0
 
         # make lowercase
         self.flavors = [f.lower() for f in self.flavors]
+        self.constant_vars = [f.lower() for f in self.constant_vars]
         self.interaction_types = [i.lower() for i in self.interaction_types]
 
         # --------------
         # sanity checks:
         # --------------
+        for const_var in self.constant_vars:
+            if const_var not in ['vertex', 'zenith', 'azimuth', 'time',
+                                 'primary_energy', 'flavor',
+                                 'fractional_energy_in_hadrons',
+                                 'interaction_type']:
+                raise ValueError('Var unknown: {!r}'.format(const_var))
+
         for int_type in self.interaction_types:
             if int_type not in ['cc', 'nc']:
-                raise ValueError('Interaction unkown: {!r}'.format(int_type))
+                raise ValueError('Interaction unknown: {!r}'.format(int_type))
 
         for flavor in self.flavors:
             if flavor not in ['nue', 'numu', 'nutau']:
-                raise ValueError('Flavor unkown: {!r}'.format(flavor))
+                raise ValueError('Flavor unknown: {!r}'.format(flavor))
 
         if self.oversampling_factor < 1:
             raise ValueError('Oversampling must be set to "None" or integer'
                              ' greater than 1. It is currently set to: '
                              '{!r}'.format(self.oversampling_factor))
-        # --------------
+        # --------------------
+        # sample constant vars
+        # --------------------
+        # vertex
+        if 'vertex' in self.constant_vars:
+            self.vertex = self._sample_vertex()
+
+        if 'time' in self.constant_vars:
+            self.vertex_time = \
+                self.random_service.uniform(*self.time_range)*I3Units.ns
+
+        # direction
+        if 'azimuth' in self.constant_vars:
+            self.azimuth = \
+                self.random_service.uniform(*self.azimuth_range)*I3Units.deg
+        if 'zenith' in self.constant_vars:
+            self.zenith = \
+                self.random_service.uniform(*self.zenith_range)*I3Units.deg
+
+        # energy
+        if 'primary_energy' in self.constant_vars:
+            self.log_primary_energy = self.random_service.uniform(
+                                *self.log_primary_energy_range) * I3Units.GeV
+        if 'fractional_energy_in_hadrons' in self.constant_vars:
+            self.fraction = self.random_service.uniform(
+                                    *self.fractional_energy_in_hadrons_range)
+
+        # flavor and interaction
+        if 'flavor' in self.constant_vars:
+            self.flavor = \
+                self.flavors[self.random_service.integer(self.num_flavors)]
+        if 'interaction_type' in self.constant_vars:
+            self.interaction_type = self.interaction_types[
+                    self.random_service.integer(self.num_interaction_types)]
+        # --------------------
+
+    def _sample_vertex(self):
+        """Sample a vertex within allowd distance of IceCube Convex Hull.
+
+        Returns
+        -------
+        TYPE
+            Description
+        """
+        # vertex
+        point_is_inside = False
+        while not point_is_inside:
+            vertex_x = self.random_service.uniform(*self.x_range) * I3Units.m
+            vertex_y = self.random_service.uniform(*self.y_range) * I3Units.m
+            vertex_z = self.random_service.uniform(*self.z_range) * I3Units.m
+            vertex = dataclasses.I3Position(
+                            vertex_x * I3Units.m,
+                            vertex_y * I3Units.m,
+                            vertex_z * I3Units.m)
+            dist = geometry.distance_to_icecube_hull(vertex)
+            point_is_inside = dist < self.max_vertex_distance
+        return vertex
 
     def DAQ(self, frame):
         """Inject casacdes into I3MCtree.
@@ -144,36 +222,54 @@ class CascadeFactory(icetray.I3ConditionalModule):
         # sample cascade
         # --------------
         # vertex
-        point_is_inside = False
-        while not point_is_inside:
-            vertex_x = self.random_service.uniform(*self.x_range) * I3Units.m
-            vertex_y = self.random_service.uniform(*self.y_range) * I3Units.m
-            vertex_z = self.random_service.uniform(*self.z_range) * I3Units.m
-            vertex = dataclasses.I3Position(
-                            vertex_x * I3Units.m,
-                            vertex_y * I3Units.m,
-                            vertex_z * I3Units.m)
-            dist = geometry.distance_to_icecube_hull(vertex)
-            point_is_inside = dist < self.max_vertex_distance
+        if 'vertex' in self.constant_vars:
+            vertex = self.vertex
+        else:
+            vertex = self._sample_vertex()
 
-        vertex_time = self.random_service.uniform(*self.time_range)*I3Units.ns
+        if 'time' in self.constant_vars:
+            vertex_time = self.vertex_time
+        else:
+            vertex_time = \
+                self.random_service.uniform(*self.time_range)*I3Units.ns
 
         # direction
-        azimuth = self.random_service.uniform(*self.azimuth_range)*I3Units.deg
-        zenith = self.random_service.uniform(*self.zenith_range)*I3Units.deg
+        if 'azimuth' in self.constant_vars:
+            azimuth = self.azimuth
+        else:
+            azimuth = \
+                self.random_service.uniform(*self.azimuth_range)*I3Units.deg
+        if 'zenith' in self.constant_vars:
+            zenith = self.zenith
+        else:
+            zenith = \
+                self.random_service.uniform(*self.zenith_range)*I3Units.deg
 
         # energy
-        log_primary_energy = self.random_service.uniform(
+        if 'primary_energy' in self.constant_vars:
+            log_primary_energy = self.log_primary_energy
+        else:
+            log_primary_energy = self.random_service.uniform(
                                 *self.log_primary_energy_range) * I3Units.GeV
         primary_energy = 10**log_primary_energy
-        fraction = self.random_service.uniform(
+        if 'fractional_energy_in_hadrons' in self.constant_vars:
+            fraction = self.fraction
+        else:
+            fraction = self.random_service.uniform(
                                     *self.fractional_energy_in_hadrons_range)
         hadron_energy = primary_energy * fraction
         daughter_energy = primary_energy - hadron_energy
 
         # flavor and interaction
-        flavor = self.flavors[self.random_service.integer(self.num_flavors)]
-        interaction_type = self.interaction_types[
+        if 'flavor' in self.constant_vars:
+            flavor = self.flavor
+        else:
+            flavor = \
+                self.flavors[self.random_service.integer(self.num_flavors)]
+        if 'interaction_type' in self.constant_vars:
+            interaction_type = self.interaction_type
+        else:
+            interaction_type = self.interaction_types[
                     self.random_service.integer(self.num_interaction_types)]
 
         # create pseduo I3MCWeightDict
@@ -289,7 +385,7 @@ class DAQFrameMultiplier(icetray.I3ConditionalModule):
                           None)
 
     def Configure(self):
-        """Configures CascadeFactory.
+        """Configures DAQFrameMultiplier.
 
         Raises
         ------
@@ -384,6 +480,8 @@ def main(cfg, run_number, scratch):
 
     if 'max_vertex_distance' not in cfg:
         cfg['max_vertex_distance'] = None
+    if 'constant_vars' not in cfg:
+        cfg['constant_vars'] = None
     if 'oversample_after_proposal' in cfg and \
             cfg['oversample_after_proposal']:
         oversampling_factor_injection = None
@@ -410,6 +508,7 @@ def main(cfg, run_number, scratch):
                    oversampling_factor=oversampling_factor_injection,
                    random_state=cfg['seed'],
                    random_service=random_services[0],
+                   constant_vars=cfg['constant_vars'],
                    )
 
     tray.AddSegment(segments.PropagateMuons,
