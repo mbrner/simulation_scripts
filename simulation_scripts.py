@@ -24,6 +24,15 @@ class SafeDict(dict):
         return '{' + key + '}'
 
 
+class DefaultDict(dict):
+    def __init__(self, start_dict, default_value):
+        dict.__init__(self, start_dict)
+        self.default_value = default_value
+
+    def __missing__(self, key):
+        return self.default_value
+
+
 def fetch_chain(chain_name):
     processing_chains_f = os.path.join(SCRIPT_FOLDER, 'processing_chains.yaml')
     with open(processing_chains_f, 'r') as stream:
@@ -39,8 +48,13 @@ def fetch_chain(chain_name):
         job_template = chain_definition['job_template']
         if not os.path.isabs(job_template):
             job_template = os.path.join(SCRIPT_FOLDER, job_template)
+        job_templates = chain_definition['job_templates']
+        job_template_enum = DefaultDict(job_templates, default=job_template)
+        for k, template in job_template_enum.items():
+            if not os.path.isabs(template):
+                job_template_enum[k] = os.path.join(SCRIPT_FOLDER, template)
         step_enum = chain_definition['steps']
-    return step_enum, default_config, job_template
+    return step_enum, default_config, job_template_enum
 
 
 def create_filename(cfg, input=False):
@@ -174,7 +188,7 @@ def main(data_folder,
         custom_settings = SafeDict(yaml.load(stream))
     chain_name = custom_settings['chain_name']
     click.echo('Initialized {} chain!'.format(chain_name))
-    step_enum, default_config, job_template = fetch_chain(chain_name)
+    step_enum, default_config, job_template_enum = fetch_chain(chain_name)
 
     # Processing chain can implement different branches. These branches
     # can be defined by using step numbers greater than 9. If the previous
@@ -195,6 +209,7 @@ def main(data_folder,
     custom_settings.update({
         'step': step,
         'step_name': step_enum[step],
+        'job_template': job_template_enum[step],
         'previous_step_name': previous_step_name,
         'previous_step': previous_step})
 
@@ -212,7 +227,6 @@ def main(data_folder,
     else:
         click.echo('Building config from scratch!')
         custom_settings['default_config'] = default_config
-        custom_settings['job_template'] = job_template
         config = build_config(data_folder, custom_settings)
         config['infile_pattern'] = create_filename(config, input=True)
 

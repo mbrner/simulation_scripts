@@ -82,6 +82,8 @@ muon_resimulation:
 cascade_simulation:
   default_config: configs/default_cascade_simulation.yaml
   job_template: job_templates/general_py2-v3.0.1.sh
+  job_templates:
+    1: job_templates/py2-v3.0.1.sh
   steps:
     0: step_0_cascade_simulation
     1: step_1_general_photon_propagation
