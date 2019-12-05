@@ -84,10 +84,11 @@ cascade_simulation:
   job_template: job_templates/general_py2-v3.0.1.sh
   job_templates:
     1: job_templates/py2-v3.0.1.sh
+    2: job_templates/py2-v3.0.1.sh
   steps:
     0: step_0_cascade_simulation
-    1: step_1_general_photon_propagation
-    2: step_2_pass2_detector_simulation
+    1: step_1_general_photon_propagation_py2-v3.0.1
+    2: step_2_pass2_detector_simulation_py2-v3.0.1
     3: step_3_pass2_get_pulses
     13: step_3_pass2_get_pulses_no_merging
     23: step_3_pass2_L1
