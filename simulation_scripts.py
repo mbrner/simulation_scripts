@@ -25,9 +25,9 @@ class SafeDict(dict):
 
 
 class DefaultDict(dict):
-    def __init__(self, start_dict, default_value):
+    def __init__(self, start_dict, default):
         dict.__init__(self, start_dict)
-        self.default_value = default_value
+        self.default_value = default
 
     def __missing__(self, key):
         return self.default_value
