@@ -100,6 +100,17 @@ cascade_simulation:
     35: step_5_2012_2017OnlineL2
     43: step_3_pass2_get_mc_pulses
 
+cascade_snowstorm:
+  default_config: configs/default_cascade_snowstorm.yaml
+  job_template: job_templates/py3-v4.1.0.sh
+  steps:
+    0: step_0_cascade_simulation_py3_v4_1_0
+    1: step_1_snowstorm_propagation
+    2: step_2_pass2_detector_simulation_py3_v4_1_0
+    3: step_3_pass2_get_pulses_py3_v4_1_0
+    13: step_3_pass2_get_pulses_no_merging_py3_v4_1_0
+    23: step_3_pass2_get_mc_pulses_py3_v4_1_0
+
 
 nancy_2012_muon_l3:
   default_config: configs/default_nancy_simulations_2012.yaml

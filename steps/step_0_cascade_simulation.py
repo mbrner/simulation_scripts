@@ -511,10 +511,13 @@ def main(cfg, run_number, scratch):
                    constant_vars=cfg['constant_vars'],
                    )
 
-    tray.AddSegment(segments.PropagateMuons,
-                    'propagate_muons',
-                    RandomService=random_services[1],
-                    **cfg['muon_propagation_config'])
+    # propagate muons if config exists in config
+    # Note: Snowstorm may perform muon propagation internally
+    if 'muon_propagation_config' in cfg:
+        tray.AddSegment(segments.PropagateMuons,
+                        'propagate_muons',
+                        RandomService=random_services[1],
+                        **cfg['muon_propagation_config'])
 
     tray.AddModule(DAQFrameMultiplier, 'DAQFrameMultiplier',
                    oversampling_factor=oversampling_factor_photon)
