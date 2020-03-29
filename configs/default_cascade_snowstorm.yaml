@@ -140,6 +140,13 @@ snowstorm_config:
 # -----------------------------
 # Step 2: Detector Simulation
 # -----------------------------
+# Remove this list of keys from the M-Frames
+det_remove_keys_from_m_frame: [
+    'AngularAcceptance',
+    'MediumProperties',
+    'WavelengthAcceptance',
+    'WavelengthGenerationBias',
+]
 # keep MCPEs in frame
 det_keep_mc_hits: False
 # keep I3MCPulseSeriesMap in frame.

@@ -102,7 +102,7 @@ def main(cfg, run_number, scratch):
         cfg['det_keep_propagated_mc_tree'] = True
         cfg['det_keep_mc_pulses'] = True
 
-    tray.AddSegment(segments.DetectorSim, "Detector5Sim",
+    tray.AddSegment(segments.DetectorSim, "DetectorSim",
                     RandomService='I3RandomService',
                     RunID=run_id,
                     GCDFile=cfg['gcd_pass2'],
@@ -122,9 +122,13 @@ def main(cfg, run_number, scratch):
                         "WavelengthAcceptance",
                         "WavelengthGenerationBias",
                         "LeptonInjectorProperties",
-                        "EventProperties"
+                        "EventProperties",
+                        "MediumProperties",
                     ],
                     )
+
+    if cfg['det_remove_keys_from_m_frame']:
+        tray.Add("Delete", Keys=cfg['det_remove_keys_from_m_frame'])
 
     if cfg['det_convert_to_linear_tree']:
         tray.AddModule(segments.ConvertToLinearizedMCTree,
