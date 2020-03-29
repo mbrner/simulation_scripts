@@ -68,7 +68,8 @@ def main(cfg, run_number, scratch):
                    Streams=[icetray.I3Frame.DAQ,
                             icetray.I3Frame.Physics,
                             icetray.I3Frame.TrayInfo,
-                            icetray.I3Frame.Simulation],
+                            icetray.I3Frame.Simulation,
+                            icetray.I3Frame.Stream('M')],
                    DropOrphanStreams=[icetray.I3Frame.DAQ])
     tray.AddModule("TrashCan", "the can")
     tray.Execute()

@@ -90,6 +90,13 @@ DOMOversizeFactor: 1.
 UseI3PropagatorService: True
 UseGPUs: True
 SummaryFile:
+
+# These arguments will be passed on to the CLSIM Client Module
+ExtraArgumentsToI3CLSimClientModule:
+  # Sources with no DOMs within this distance (meter) are *not* simulated
+  ClosestDOMDistanceCutoff: 500.
+
+# Snowstorm Configuration
 snowstorm_config:
   # Config for the full-scale systematics dataset
   # (after alignment with the calibration group)
@@ -160,3 +167,12 @@ det_is_icetop_simulation: False
 # no resampling will be performed )
 det_dom_eff_resmapling_sample_efficiency: 0.
 det_dom_eff_resmapling_generated_efficiency: 0.
+
+
+# ------------------
+# Step 3: Get Pulses
+# ------------------
+# Simplified version of L1 processing
+
+# Keep untriggered events substream and keys
+L1_keep_untriggered: True

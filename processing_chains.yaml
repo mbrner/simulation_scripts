@@ -106,7 +106,7 @@ cascade_snowstorm:
   steps:
     0: step_0_cascade_simulation_py3_v4_1_0
     1: step_1_snowstorm_propagation
-    2: step_2_snowstorm_detector_simulation.py
+    2: step_2_snowstorm_detector_simulation
     3: step_3_pass2_get_pulses_py3_v4_1_0
     13: step_3_pass2_get_pulses_no_merging_py3_v4_1_0
     23: step_3_pass2_get_mc_pulses_py3_v4_1_0
