@@ -137,6 +137,7 @@ def adjust_resouces(config, script_files, scratch_folder):
         'walltime': resources_cfg['walltime'][config['step_number']]})
     return config
 
+
 def create_pbs_files(config,
                      script_files,
                      run_numbers,
@@ -151,7 +152,7 @@ def create_pbs_files(config,
 def process_local(config_file, n_jobs):
     config_file = click.format_filename(config_file)
     with open(config_file, 'r') as stream:
-        config = SafeDict(yaml.load(stream))
+        config = SafeDict(yaml.full_load(stream))
     click.echo('Processing {} with max. {} parralel jobs!'.format(
         config_file, n_jobs))
     output_base = os.path.join(config['processing_folder'], 'jobs')
