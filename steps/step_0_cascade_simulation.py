@@ -439,6 +439,32 @@ class DAQFrameMultiplier(icetray.I3ConditionalModule):
         self.events_done += 1
 
 
+class DummyMCTreeRenaming(icetray.I3ConditionalModule):
+    def __init__(self, context):
+        """Class to add dummy I3MCTree to frame from I3MCTree_preMuonProp
+
+        Parameters
+        ----------
+        context : TYPE
+            Description
+        """
+        icetray.I3ConditionalModule.__init__(self, context)
+        self.AddOutBox('OutBox')
+
+    def DAQ(self, frame):
+        """Inject casacdes into I3MCtree.
+
+        Parameters
+        ----------
+        frame : icetray.I3Frame.DAQ
+            An I3 q-frame.
+        """
+
+        pre_tree = frame['I3MCTree_preMuonProp']
+        frame['I3MCTree'] = dataclasses.I3MCTree(pre_tree)
+        self.PushFrame(frame)
+
+
 @click.command()
 @click.argument('cfg', type=click.Path(exists=True))
 @click.argument('run_number', type=int)
@@ -464,11 +490,14 @@ def main(cfg, run_number, scratch):
     click.echo('Vertex z: [{},{}]'.format(*cfg['z_range']))
 
     # crate random services
+    if 'random_service_use_gslrng' not in cfg:
+        cfg['random_service_use_gslrng'] = False
     random_services, _ = create_random_services(
         dataset_number=cfg['dataset_number'],
         run_number=cfg['run_number'],
         seed=cfg['seed'],
-        n_services=2)
+        n_services=n_services,
+        use_gslrng=cfg['random_service_use_gslrng'])
 
     # --------------------------------------
     # Build IceTray
@@ -518,6 +547,12 @@ def main(cfg, run_number, scratch):
                         'propagate_muons',
                         RandomService=random_services[1],
                         **cfg['muon_propagation_config'])
+    else:
+        # In this case we are not propagating the I3MCTree yet, but
+        # are letting this be done by snowstorm propagation
+        # We need to add a key named 'I3MCTree', since snowstorm expects this
+        # It will propagate the particles for us.
+        tray.AddModule(DummyMCTreeRenaming, 'DummyMCTreeRenaming')
 
     tray.AddModule(DAQFrameMultiplier, 'DAQFrameMultiplier',
                    oversampling_factor=oversampling_factor_photon)

@@ -4,7 +4,8 @@ MAX_DATASET_NUMBER = 100000
 MAX_RUN_NUMBER = 100000
 
 
-def create_random_services(dataset_number, run_number, seed, n_services=1):
+def create_random_services(dataset_number, run_number, seed, n_services=1,
+                           use_gslrng=False):
     from icecube import phys_services, icetray, dataclasses
     if run_number < 0:
         raise RuntimeError("negative run numbers are not supported")
@@ -22,10 +23,16 @@ def create_random_services(dataset_number, run_number, seed, n_services=1):
     random_services = []
     for i in range(n_services):
         streamnum = run_number + (MAX_RUN_NUMBER * i)
-        random_services.append(phys_services.I3SPRNGRandomService(
-            seed=seed,
-            nstreams=MAX_RUN_NUMBER * n_services,
-            streamnum=streamnum))
+
+        if use_gslrng:
+            random_services.append(phys_services.I3GSLRandomService(
+                seed=seed*MAX_RUN_NUMBER*n_services + streamnum))
+        else:
+            random_services.append(phys_services.I3SPRNGRandomService(
+                seed=seed,
+                nstreams=MAX_RUN_NUMBER * n_services,
+                streamnum=streamnum))
+
     return random_services, int_run_number
 
 

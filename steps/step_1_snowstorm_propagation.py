@@ -1,4 +1,4 @@
-#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v2/icetray-start
+#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py3-v4.1.0/icetray-start
 #METAPROJECT /mnt/lfs7/user/mhuennefeld/software/icecube/py3-v4.1.0/combo_V01-00-00-RC0/build
 
 """ Run Snowstorm Propagation
@@ -38,7 +38,7 @@ import tempfile
 from I3Tray import I3Tray
 from icecube import icetray, dataclasses, dataio, phys_services, clsim
 from icecube.clsim.traysegments.common import \
-    setupPropagators, setupDetector configureOpenCLDevices
+    setupPropagators, setupDetector, configureOpenCLDevices
 from icecube.clsim.traysegments.I3CLSimMakePhotons import \
     I3CLSimMakePhotonsWithServer
 from icecube.ice_models import icewave
@@ -222,10 +222,12 @@ def run_snowstorm_propagation(cfg, infile, outfile):
     }
 
     # overwrite default settings
-    cfg = default_args.update(cfg)
+    default_args.update(cfg)
+    cfg = default_args
 
     snowstorm_config = cfg['snowstorm_config']
-    cfg['SummaryFile'] = cfg['SummaryFile'].format(**cfg)
+    if cfg['SummaryFile'] is not None:
+        cfg['SummaryFile'] = cfg['SummaryFile'].format(**cfg)
     ice_model_location = \
         os.path.expandvars(snowstorm_config["IceModelLocation"])
     hole_ice_parameterization = \
@@ -236,19 +238,24 @@ def run_snowstorm_propagation(cfg, infile, outfile):
     cfg['DOMRadius'] *= icetray.I3Units.m
 
     # Print out most important settings
-    click.echo('Input: {}'.format(infile))
-    click.echo('GCDFile: {}'.format(cfg['gcd']))
-    click.echo('Output: {}'.format(outfile))
+    click.echo('\n---------------')
+    click.echo('Script Settigns')
+    click.echo('---------------')
+    click.echo('\tInput: {}'.format(infile))
+    click.echo('\tGCDFile: {}'.format(cfg['gcd']))
+    click.echo('\tOutput: {}'.format(outfile))
     for key in ['DOMOversizeFactor', 'UseI3PropagatorService', 'UseGPUs',
                 'SummaryFile']:
-        click.echo('{}: {}'.format(key, cfg[key]))
+        click.echo('\t{}: {}'.format(key, cfg[key]))
+    click.echo('---------------\n')
 
     # get random service
     random_services, _ = create_random_services(
         dataset_number=cfg['dataset_number'],
         run_number=cfg['run_number'],
         seed=cfg['seed'],
-        n_services=1)
+        n_services=1,
+        use_gslrng=cfg['random_service_use_gslrng'])
 
     random_service = random_services[0]
 
@@ -539,9 +546,12 @@ def run_snowstorm_propagation(cfg, infile, outfile):
         with open(cfg['SummaryFile'], 'w') as f:
             yaml.dump(dict(summary), f)
     print("done")
+    print('--------')
     print('Summary:')
-    for key, value in cfg['SummaryFile'].items():
+    print('--------')
+    for key, value in summary.items():
         print('\t{}: {}'.format(key, value))
+    print('--------\n')
 
     # Hurray!
     print("All finished!")

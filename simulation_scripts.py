@@ -48,7 +48,10 @@ def fetch_chain(chain_name):
         job_template = chain_definition['job_template']
         if not os.path.isabs(job_template):
             job_template = os.path.join(SCRIPT_FOLDER, job_template)
-        job_templates = chain_definition['job_templates']
+        if 'job_templates' in chain_definition:
+            job_templates = chain_definition['job_templates']
+        else:
+            job_templates = dict()
         job_template_enum = DefaultDict(job_templates, default=job_template)
         for k, template in job_template_enum.items():
             if not os.path.isabs(template):

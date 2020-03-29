@@ -38,6 +38,9 @@ dagman_submit_delay: 0
 seed: 1337
 # Whether file after IceTray should be kept
 keep_crashed_files: 0
+# If True: use I3GSLRandomService, otherwise use I3SPRNGRandomService
+# (Newer cmvfs python and icecube builds do not have I3SPRNGRandomService)
+random_service_use_gslrng: True
 
 # PATH to the GCD File
 gcd: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withScaledNoise.i3.gz
@@ -48,31 +51,36 @@ gcd_pass2: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AV
 # -------------------------
 # Cascade Generation specific settings
 # Energy range for primary particle
-primary_energy_range: [!!float 1e2, !!float 1e7]
+primary_energy_range: [!!float 1e2, !!float 1e8]
 # Fraction of primary energy in hadrons
-fractional_energy_in_hadrons_range: [0.001, 1.0]
+fractional_energy_in_hadrons_range: [0.0001, 0.0001]
 # Zenith range of primary and cascade in degrees
 zenith_range: [0., 180.]
 # Azimuth range of primary and cascade in degrees
 azimuth_range: [0., 360.]
 # vertex time range in ns [min,max]
-time_range: [9000,12000]
+time_range: [0,0]
 # vertex range in m [min,max]
-x_range: [-400,400]
-y_range: [-400,400]
-z_range: [-400,400]
+x_range: [-900,900]
+y_range: [-900,900]
+z_range: [-800,800]
 # Maximum Distance of vertex to convex hull around IceCube
-max_vertex_distance: 60
+max_vertex_distance: 300
 # flavors. Options are: 'NuE', 'NuMu', 'NuTau'
 flavors: ['NuE']
 # interaction types. Options are: 'CC', 'NC'
-interaction_types: ['NC']
+interaction_types: ['CC']
 # oversampling to use
 oversampling_factor:
 # oversample after proposal or before?
 oversample_after_proposal: False
 # keep keys for merging of oversampled events
 oversampling_keep_keys: []
+
+# Distance splits are not available for snowstorm chain
+distance_splits:
+threshold_doms:
+oversize_factors:
 
 # -----------------------------
 # Step 1: Snowstorm Propagation
@@ -132,7 +140,7 @@ det_keep_mc_pulses: False
 # keep MCTree with all in-ice propagated secondaries. These take a lot of space compared un propagated tree.
 det_keep_propagated_mc_tree: True
 # Keep everything upto run X
-det_pass2_keep_all_upto: 1000
+det_keep_all_upto: -1
 # add beacon lauches.
 det_add_beacon_launches: True
 # reduce peak memory use by repeatedly merging hits as they are generated.  WARNING: Use of this option may slightly reduce precision and drastically increase running time. It is potentially useful for very bright events, and probably harmful for very long events.
@@ -141,3 +149,14 @@ det_low_mem: False
 det_filter_trigger: True
 # do not run Vuvuzela.
 det_skip_noise_generation: False
+# convert I3MCTree to linearized version if True
+det_convert_to_linear_tree: True
+# If this is a Genie simulation, then this needs to be set to True
+det_is_genie_simulation: False
+# If this is an IceTop simulation, then this needs to be set to True
+det_is_icetop_simulation: False
+# DOM Efficiency Resampling
+#(If det_dom_eff_resmapling_sample_efficiency is set to 0,
+# no resampling will be performed )
+det_dom_eff_resmapling_sample_efficiency: 0.
+det_dom_eff_resmapling_generated_efficiency: 0.

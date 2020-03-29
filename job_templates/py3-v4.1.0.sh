@@ -15,11 +15,11 @@ KEEP_CRASHED_FILES={keep_crashed_files}
 
 echo 'Loading py3-v4.1.0'
 eval `/cvmfs/icecube.opensciencegrid.org/py3-v4.1.0/setup.sh`
-export PYTHONUSERBASE=/data/user/mhuennefeld/DNN_reco/virtualenvs/tensorflow_gpu_py3-v4.1.0/
+export PYTHONUSERBASE=/mnt/lfs7/user/mhuennefeld/DNN_reco/virtualenvs/tensorflow_gpu_py3-v4.1.0
 echo 'Using PYTHONUSERBASE: '${PYTHONUSERBASE}
 
 export PATH=$PYTHONUSERBASE/bin:$PATH
-export PYTHONPATH=$PYTHONUSERBASE/lib/python2.7/site-packages:$PYTHONPATH
+export PYTHONPATH=$PYTHONUSERBASE/lib/python3.7/site-packages:$PYTHONPATH
 
 # export CUDA
 export CUDA_HOME=/usr/local/cuda-10.0;
