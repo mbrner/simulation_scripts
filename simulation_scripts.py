@@ -36,7 +36,7 @@ class DefaultDict(dict):
 def fetch_chain(chain_name):
     processing_chains_f = os.path.join(SCRIPT_FOLDER, 'processing_chains.yaml')
     with open(processing_chains_f, 'r') as stream:
-        processing_chains = SafeDict(yaml.load(stream))
+        processing_chains = SafeDict(yaml.full_load(stream))
     try:
         chain_definition = processing_chains[chain_name]
     except KeyError:
@@ -48,7 +48,10 @@ def fetch_chain(chain_name):
         job_template = chain_definition['job_template']
         if not os.path.isabs(job_template):
             job_template = os.path.join(SCRIPT_FOLDER, job_template)
-        job_templates = chain_definition['job_templates']
+        if 'job_templates' in chain_definition:
+            job_templates = chain_definition['job_templates']
+        else:
+            job_templates = dict()
         job_template_enum = DefaultDict(job_templates, default=job_template)
         for k, template in job_template_enum.items():
             if not os.path.isabs(template):
@@ -137,7 +140,7 @@ def build_config(data_folder, custom_settings):
     if data_folder.endswith('/'):
         data_folder = data_folder[:-1]
     with open(custom_settings['default_config'], 'r') as stream:
-        config = SafeDict(yaml.load(stream))
+        config = SafeDict(yaml.full_load(stream))
     config.update(custom_settings)
 
     config.update({'data_folder': data_folder,
@@ -185,7 +188,7 @@ def main(data_folder,
          run_stop):
     config_file = click.format_filename(config_file)
     with open(config_file, 'r') as stream:
-        custom_settings = SafeDict(yaml.load(stream))
+        custom_settings = SafeDict(yaml.full_load(stream))
     chain_name = custom_settings['chain_name']
     click.echo('Initialized {} chain!'.format(chain_name))
     step_enum, default_config, job_template_enum = fetch_chain(chain_name)

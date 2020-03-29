@@ -268,7 +268,7 @@ class MergeOversampledEvents(icetray.I3ConditionalModule):
 @click.argument('do_merging_if_necessary', type=bool, default=True)
 def main(cfg, run_number, scratch, do_merging_if_necessary):
     with open(cfg, 'r') as stream:
-        cfg = yaml.load(stream)
+        cfg = yaml.full_load(stream)
     cfg['run_number'] = run_number
     cfg['run_folder'] = get_run_folder(run_number)
 
@@ -354,7 +354,8 @@ def main(cfg, run_number, scratch, do_merging_if_necessary):
                    Streams=[icetray.I3Frame.DAQ,
                             icetray.I3Frame.Physics,
                             icetray.I3Frame.TrayInfo,
-                            icetray.I3Frame.Simulation])
+                            icetray.I3Frame.Simulation,
+                            icetray.I3Frame.Stream('M')])
     tray.AddModule("TrashCan", "the can")
     tray.Execute()
     tray.Finish()
