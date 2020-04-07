@@ -306,9 +306,9 @@ def main(cfg, run_number, scratch, do_merging_if_necessary):
 
     # Throw out unneeded streams and keys
     if 'oversampling_keep_keys' not in cfg:
-        oversampling_keep_keys = []
+        cfg['oversampling_keep_keys'] = []
     elif cfg['oversampling_keep_keys'] is None:
-        oversampling_keep_keys = []
+        cfg['oversampling_keep_keys'] = []
 
     if cfg['L1_keep_untriggered']:
         stream_name = filter_globals.InIceSplitter
