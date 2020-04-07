@@ -20,7 +20,7 @@ SPLINE_TABLES = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables/splines'
 @click.option('--scratch/--no-scratch', default=True)
 def main(cfg, run_number, scratch):
     with open(cfg, 'r') as stream:
-        cfg = yaml.full_load(stream)
+        cfg = yaml.load(stream, Loader=yaml.FullLoader)
     cfg['run_number'] = run_number
     cfg['run_folder'] = get_run_folder(run_number)
     infile = cfg['infile_pattern'].format(**cfg)
