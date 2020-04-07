@@ -31,7 +31,11 @@ SPLINE_TABLES = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables/splines'
 @click.option('--scratch/--no-scratch', default=True)
 def main(cfg, run_number, scratch):
     with open(cfg, 'r') as stream:
-        cfg = yaml.full_load(stream)
+        if int(yaml.__version__[0]) < 5:
+            # backwards compatibility for yaml versions before version 5
+            cfg = yaml.load(stream)
+        else:
+            cfg = yaml.full_load(stream)
     cfg['run_number'] = run_number
     cfg['run_folder'] = get_run_folder(run_number)
 

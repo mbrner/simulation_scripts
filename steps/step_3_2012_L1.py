@@ -24,7 +24,11 @@ PHOTONICS_DIR = '/cvmfs/icecube.opensciencegrid.org/data/photon-tables'
 @click.option('--scratch/--no-scratch', default=True)
 def main(config_file, run_number, scratch):
     with open(config_file, 'r') as stream:
-        cfg = yaml.full_load(stream)
+        if int(yaml.__version__[0]) < 5:
+            # backwards compatibility for yaml versions before version 5
+            cfg = yaml.load(stream)
+        else:
+            cfg = yaml.full_load(stream)
     if 'dictitems' in cfg.keys():
         cfg = cfg['dictitems']
     cfg['run_number'] = run_number

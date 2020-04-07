@@ -237,7 +237,11 @@ def monopod_segment(tray, name, cfg, pulses='InIcePulses',
 @click.option('--scratch/--no-scratch', default=True)
 def main(cfg, run_number, scratch):
     with open(cfg, 'r') as stream:
-        cfg = yaml.full_load(stream)
+        if int(yaml.__version__[0]) < 5:
+            # backwards compatibility for yaml versions before version 5
+            cfg = yaml.load(stream)
+        else:
+            cfg = yaml.full_load(stream)
     icetray.logging.set_level("WARN")
     # icetray.logging.set_level("DEBUG")
     cfg['run_number'] = run_number

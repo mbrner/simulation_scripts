@@ -85,8 +85,6 @@ cascade_simulation:
   job_templates:
     1: job_templates/py2-v3.0.1.sh
     2: job_templates/py2-v3.0.1.sh
-    3: job_templates/py2-v3.0.1.sh
-    13: job_templates/py2-v3.0.1.sh
   steps:
     0: step_0_cascade_simulation
     1: step_1_general_photon_propagation_py2_v3_0_1
