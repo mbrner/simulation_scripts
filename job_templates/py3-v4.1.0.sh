@@ -13,6 +13,7 @@ FINAL_OUT={final_out}
 KEEP_CRASHED_FILES={keep_crashed_files}
 
 
+echo 'Starting job on Host: '$HOSTNAME
 echo 'Loading py3-v4.1.0'
 eval `/cvmfs/icecube.opensciencegrid.org/py3-v4.1.0/setup.sh`
 export PYTHONUSERBASE=/mnt/lfs7/user/mhuennefeld/DNN_reco/virtualenvs/tensorflow_gpu_py3-v4.1.0

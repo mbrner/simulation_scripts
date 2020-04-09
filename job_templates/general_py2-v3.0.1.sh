@@ -9,6 +9,9 @@
 #PBS -e {processing_folder}/logs/{step_name}_run_{run_number}_${PBS_JOBID}.err
 #PBS -q long
 #PBS -S /cvmfs/icecube.opensciencegrid.org/py2-v3.0.1/icetray-start
+
+echo 'Starting job on Host: '$HOSTNAME
+
 FINAL_OUT={final_out}
 KEEP_CRASHED_FILES={keep_crashed_files}
 
