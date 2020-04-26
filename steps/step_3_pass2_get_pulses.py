@@ -351,6 +351,11 @@ def main(cfg, run_number, scratch, do_merging_if_necessary):
     keys_to_keep += filter_globals.inice_split_keeps + \
         filter_globals.onlinel2filter_keeps
 
+    if 'event_import_settings' in cfg:
+        import_keys = [cfg['event_import_settings']['rename_dict'].get(k, k)
+                       for k in cfg['event_import_settings']['keys_to_import']]
+        keys_to_keep += import_keys
+
     tray.AddModule("Keep", "keep_before_merge",
                    keys=keys_to_keep + cfg['oversampling_keep_keys'])
 
