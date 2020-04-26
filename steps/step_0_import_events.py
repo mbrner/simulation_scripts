@@ -13,7 +13,6 @@ from icecube import icetray, dataclasses
 
 from utils import create_random_services, get_run_folder
 from resources import geometry
-from resources.cascade_factory import CascadeFactory
 from resources.oversampling import DAQFrameMultiplier
 from resources.import_events import ImportEvents
 
@@ -37,7 +36,7 @@ def main(cfg, run_number, scratch):
     # get list of files for this run
     # ------------------------------
     import_cfg = cfg['event_import_settings']
-    glob_files = import_cfg['input_file_glob_list'][run_number]
+    glob_files = import_cfg['input_file_glob_list']
     if isinstance(glob_files, str):
         # single string provided
         files = glob.glob(glob_files.format(run_number=run_number))
@@ -91,7 +90,8 @@ def main(cfg, run_number, scratch):
                         **cfg['muon_propagation_config'])
 
     tray.AddModule(DAQFrameMultiplier, 'DAQFrameMultiplier',
-                   oversampling_factor=cfg['oversampling_factor'])
+                   oversampling_factor=cfg['oversampling_factor'],
+                   mctree_keys=[import_cfg['mctree_name']])
 
     # --------------------------------------
     # Distance Splits

@@ -32,7 +32,7 @@ def export_frame(frame, frame_list, mctree_name, keys_to_export, rename_dict):
     for key in keys_to_export:
 
         if key in frame:
-            new_name = rename_dict.get(key, d=key)
+            new_name = rename_dict.get(key, key)
             fr[new_name] = frame[key]
 
     # append frame to list
@@ -97,6 +97,9 @@ class ImportEvents(icetray.I3ConditionalModule):
         # push frames
         for frame in frames:
             self.PushFrame(frame)
+
+        # end frame stream
+        self.RequestSuspension()
 
     def create_frames(self, files):
         """Create a list of frames to import from the provided files
