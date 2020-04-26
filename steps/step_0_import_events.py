@@ -1,9 +1,10 @@
-#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v3.0.1/icetray-start
-#METAPROJECT simulation/V06-00-03
+#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py3-v4.1.0/icetray-start
+#METAPROJECT /mnt/lfs7/user/mhuennefeld/software/icecube/py3-v4.1.0/combo_V01-00-00-RC0/build
 from __future__ import division
 import click
 import yaml
 import numpy as np
+import glob
 
 from icecube.simprod import segments
 
@@ -14,32 +15,7 @@ from utils import create_random_services, get_run_folder
 from resources import geometry
 from resources.cascade_factory import CascadeFactory
 from resources.oversampling import DAQFrameMultiplier
-
-
-class DummyMCTreeRenaming(icetray.I3ConditionalModule):
-    def __init__(self, context):
-        """Class to add dummy I3MCTree to frame from I3MCTree_preMuonProp
-
-        Parameters
-        ----------
-        context : TYPE
-            Description
-        """
-        icetray.I3ConditionalModule.__init__(self, context)
-        self.AddOutBox('OutBox')
-
-    def DAQ(self, frame):
-        """Inject casacdes into I3MCtree.
-
-        Parameters
-        ----------
-        frame : icetray.I3Frame.DAQ
-            An I3 q-frame.
-        """
-
-        pre_tree = frame['I3MCTree_preMuonProp']
-        frame['I3MCTree'] = dataclasses.I3MCTree(pre_tree)
-        self.PushFrame(frame)
+from resources.import_events import ImportEvents
 
 
 @click.command()
@@ -57,14 +33,29 @@ def main(cfg, run_number, scratch):
         outfile = cfg['outfile_pattern'].format(**cfg)
     outfile = outfile.replace(' ', '0')
 
+    # ------------------------------
+    # get list of files for this run
+    # ------------------------------
+    import_cfg = cfg['event_import_settings']
+    glob_files = import_cfg['input_file_glob_list'][run_number]
+    if isinstance(glob_files, str):
+        # single string provided
+        files = glob.glob(glob_files.format(run_number=run_number))
+    else:
+        # list of file globs provided
+        files = []
+        for file_pattern in glob_files:
+            files.extend(glob.glob(file_pattern.format(run_number=run_number)))
+    # sort files
+    files = sorted(files)
+    # ------------------------------
+
     click.echo('Run: {}'.format(run_number))
     click.echo('Outfile: {}'.format(outfile))
-    click.echo('Azimuth: [{},{}]'.format(*cfg['azimuth_range']))
-    click.echo('Zenith: [{},{}]'.format(*cfg['zenith_range']))
-    click.echo('Energy: [{},{}]'.format(*cfg['primary_energy_range']))
-    click.echo('Vertex x: [{},{}]'.format(*cfg['x_range']))
-    click.echo('Vertex y: [{},{}]'.format(*cfg['y_range']))
-    click.echo('Vertex z: [{},{}]'.format(*cfg['z_range']))
+    click.echo('Keys to import: {}'.format(import_cfg['keys_to_import']))
+    click.echo('input Files:')
+    for file in files:
+        click.echo('\t{}'.format(file))
 
     # crate random services
     if 'random_service_use_gslrng' not in cfg:
@@ -80,42 +71,16 @@ def main(cfg, run_number, scratch):
     # Build IceTray
     # --------------------------------------
     tray = I3Tray()
-    tray.AddModule('I3InfiniteSource', 'source',
-                   # Prefix=gcdfile,
-                   Stream=icetray.I3Frame.DAQ)
 
-    if 'max_vertex_distance' not in cfg:
-        cfg['max_vertex_distance'] = None
-    if 'constant_vars' not in cfg:
-        cfg['constant_vars'] = None
-    if 'oversample_after_proposal' in cfg and \
-            cfg['oversample_after_proposal']:
-        oversampling_factor_injection = None
-        oversampling_factor_photon = cfg['oversampling_factor']
-    else:
-        oversampling_factor_injection = cfg['oversampling_factor']
-        oversampling_factor_photon = None
-
-    tray.AddModule(CascadeFactory,
-                   'make_cascades',
-                   azimuth_range=cfg['azimuth_range'],
-                   zenith_range=cfg['zenith_range'],
-                   primary_energy_range=cfg['primary_energy_range'],
-                   fractional_energy_in_hadrons_range=cfg[
-                                        'fractional_energy_in_hadrons_range'],
-                   time_range=cfg['time_range'],
-                   x_range=cfg['x_range'],
-                   y_range=cfg['y_range'],
-                   z_range=cfg['z_range'],
-                   max_vertex_distance=cfg['max_vertex_distance'],
-                   flavors=cfg['flavors'],
-                   interaction_types=cfg['interaction_types'],
-                   num_events=cfg['n_events_per_run'],
-                   oversampling_factor=oversampling_factor_injection,
-                   random_state=cfg['seed'],
-                   random_service=random_services[0],
-                   constant_vars=cfg['constant_vars'],
-                   )
+    # import events from another I3-file
+    tray.AddModule(
+        ImportEvents,
+        'ImportEvents',
+        files=files,
+        keys_to_import=import_cfg['keys_to_import'],
+        rename_dict=import_cfg['rename_dict'],
+        mctree_name=import_cfg['mctree_name'],
+    )
 
     # propagate muons if config exists in config
     # Note: Snowstorm may perform muon propagation internally
@@ -124,15 +89,9 @@ def main(cfg, run_number, scratch):
                         'propagate_muons',
                         RandomService=random_services[1],
                         **cfg['muon_propagation_config'])
-    else:
-        # In this case we are not propagating the I3MCTree yet, but
-        # are letting this be done by snowstorm propagation
-        # We need to add a key named 'I3MCTree', since snowstorm expects this
-        # It will propagate the particles for us.
-        tray.AddModule(DummyMCTreeRenaming, 'DummyMCTreeRenaming')
 
     tray.AddModule(DAQFrameMultiplier, 'DAQFrameMultiplier',
-                   oversampling_factor=oversampling_factor_photon)
+                   oversampling_factor=cfg['oversampling_factor'])
 
     # --------------------------------------
     # Distance Splits
