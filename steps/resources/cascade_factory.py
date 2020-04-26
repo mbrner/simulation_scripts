@@ -4,7 +4,7 @@ import numpy as np
 from I3Tray import I3Tray, I3Units
 from icecube import icetray, dataclasses
 
-import geometry
+from . import geometry
 
 
 class CascadeFactory(icetray.I3ConditionalModule):
