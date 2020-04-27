@@ -340,6 +340,7 @@ def main(cfg, run_number, scratch, do_merging_if_necessary):
         'oversampling',
         'AggregatedPulses',
         'InIceDSTPulses',
+        'InIceDSTPulsesTimeRange',
         'CalibrationErrata',
         'SaturationWindows',
         'SplitUncleanedInIcePulses',
