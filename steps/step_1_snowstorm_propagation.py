@@ -48,6 +48,7 @@ from icecube.snowstorm import \
 from icecube.snowstorm import all_perturbers
 
 from utils import create_random_services, get_run_folder
+from resources import snowstorm_perturbers
 
 
 # ----------------
@@ -321,6 +322,13 @@ def run_snowstorm_propagation(cfg, infile, outfile):
                 print("-> adding {} of type {}".format(name, params["type"]))
                 perturber.add('IceWavePlusModes',
                               *icewave.get_default_perturbation())
+                continue
+
+            elif hasattr(snowstorm_perturbers, params["type"]):
+                print("-> adding {} of type {}".format(name, params["type"]))
+                get_perturber = getattr(snowstorm_perturbers, params["type"])
+                perturber.add('IceWavePlusModes',
+                              *get_perturber(**params['settings']))
                 continue
             else:
                 msg = "IceWavePlusModes of type '{}' are not implemented(yet)."
