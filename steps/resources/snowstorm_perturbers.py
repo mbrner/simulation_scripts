@@ -29,11 +29,6 @@ def custom_uncorrelated_variation(modes_to_shift, amp_sigmas, phase_sigmas,
     tuple (parametrization, distribution)
         Returns a tuple of a parameterization and a distribution which can be
         used with the  icecube.snowstorm.Perturber.
-
-    Deleted Parameters
-    ------------------
-    settings : dict
-        A dictionary containing the settings.
     """
     modes_to_shift = np.asarray(modes_to_shift)
     amp_sigmas = np.asarray(amp_sigmas)
