@@ -72,6 +72,10 @@ class ImportEvents(icetray.I3ConditionalModule):
         self.AddParameter('files',
                           'The list of I3-files from which to import events.',
                           None)
+        self.AddParameter('num_events',
+                          'The number of events to import. '
+                          'If None, all events are imported.',
+                          None)
         self.AddParameter('keys_to_import',
                           'The list of frame keys to import.',
                           [])
@@ -85,6 +89,7 @@ class ImportEvents(icetray.I3ConditionalModule):
         """
         self.mctree_name = self.GetParameter('mctree_name')
         self.files = self.GetParameter('files')
+        self.num_events = self.GetParameter('num_events')
         self.keys_to_import = self.GetParameter('keys_to_import')
         self.rename_dict = self.GetParameter('rename_dict')
 
@@ -95,8 +100,16 @@ class ImportEvents(icetray.I3ConditionalModule):
         frames = self.create_frames(self.files)
 
         # push frames
+        event_counter = 0
         for frame in frames:
+
+            # check if we have added the number of specified events
+            if self.num_events is not None:
+                if event_counter >= self.num_events:
+                    break
+
             self.PushFrame(frame)
+            event_counter += 1
 
         # end frame stream
         self.RequestSuspension()

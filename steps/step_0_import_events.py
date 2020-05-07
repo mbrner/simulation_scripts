@@ -72,10 +72,14 @@ def main(cfg, run_number, scratch):
     tray = I3Tray()
 
     # import events from another I3-file
+    if 'num_events' not in import_cfg:
+        import_cfg['num_events'] = None
+
     tray.AddModule(
         ImportEvents,
         'ImportEvents',
         files=files,
+        num_events=import_cfg['num_events'],
         keys_to_import=import_cfg['keys_to_import'],
         rename_dict=import_cfg['rename_dict'],
         mctree_name=import_cfg['mctree_name'],
