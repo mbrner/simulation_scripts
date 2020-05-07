@@ -62,7 +62,7 @@ class DAQFrameMultiplier(icetray.I3ConditionalModule):
                 del frame['oversampling']
 
                 for key, tree in zip(self.mctree_keys, trees):
-                    del frame[k]
+                    del frame[key]
                     frame[key] = dataclasses.I3MCTree(tree)
 
             if self.oversampling_factor > 1:
