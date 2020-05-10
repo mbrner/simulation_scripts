@@ -39,15 +39,16 @@ def main(cfg, run_number, scratch):
         'PPCTABLESDIR': "$I3_BUILD/ice-models/resources/models/spice_bfr-dv1_complete",
         'OGPU': '1',  # makes sure only GPUs are used (with OpenCL version)
     }
-    ppc_environment_variables = default_ppc_environment_variables.update(
-        ppc_config['environment_variables'])
+    ppc_environment_variables = dict(default_ppc_environment_variables)
+    ppc_environment_variables.update(ppc_config['environment_variables'])
 
     # define default PPC arguments
     default_ppc_arguments = {
         'gpu': 1,
         'MCTree': 'I3MCTree',
     }
-    ppc_arguments = default_ppc_arguments.update(ppc_config['arguments'])
+    ppc_arguments = dict(default_ppc_arguments)
+    ppc_arguments.update(ppc_config['arguments'])
 
     click.echo('PPC Settings:')
     for key, value in ppc_environment_variables.items():
