@@ -26,6 +26,9 @@ def main(cfg, run_number, scratch):
         outfile = cfg['outfile_pattern'].format(**cfg)
     outfile = outfile.replace(' ', '0')
 
+    infile = cfg['infile_pattern'].format(**cfg)
+    infile = infile.replace(' ', '0')
+
     click.echo('Run: {}'.format(run_number))
     click.echo('Outfile: {}'.format(outfile))
 
@@ -76,6 +79,8 @@ def main(cfg, run_number, scratch):
     # Build IceTray
     # --------------------------------------
     tray = I3Tray()
+    tray.AddModule('I3Reader', 'i3 reader',
+                   FilenameList=[cfg['gcd_pass2'], infile])
 
     # run PPC
     tray.context["I3RandomService"] = random_service
