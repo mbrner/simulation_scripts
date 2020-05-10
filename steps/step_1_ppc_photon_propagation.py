@@ -38,8 +38,9 @@ def main(cfg, run_number, scratch):
     ppc_config = cfg['ppc_config']
 
     # define default Environment variables
+    ice_base = '$I3_BUILD/ice-models/resources/models/'
     default_ppc_environment_variables = {
-        'PPCTABLESDIR': "$I3_BUILD/ice-models/resources/models/spice_bfr-dv1_complete",
+        'PPCTABLESDIR': ice_base + 'spice_bfr-dv1_complete',
         'OGPU': '1',  # makes sure only GPUs are used (with OpenCL version)
     }
     ppc_environment_variables = dict(default_ppc_environment_variables)
@@ -50,7 +51,7 @@ def main(cfg, run_number, scratch):
         'MCTree': 'I3MCTree',
     }
     if 'CUDA_VISIBLE_DEVICES' in os.environ:
-        default_ppc_arguments['gpu'] = os.environ['CUDA_VISIBLE_DEVICES']
+        default_ppc_arguments['gpu'] = int(os.environ['CUDA_VISIBLE_DEVICES'])
     ppc_arguments = dict(default_ppc_arguments)
     ppc_arguments.update(ppc_config['arguments'])
 
