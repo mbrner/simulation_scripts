@@ -47,9 +47,10 @@ def main(cfg, run_number, scratch):
 
     # define default PPC arguments
     default_ppc_arguments = {
-        'gpu': 1,
         'MCTree': 'I3MCTree',
     }
+    if 'CUDA_VISIBLE_DEVICES' in os.environ:
+        default_ppc_arguments['gpu'] = os.environ['CUDA_VISIBLE_DEVICES']
     ppc_arguments = dict(default_ppc_arguments)
     ppc_arguments.update(ppc_config['arguments'])
 

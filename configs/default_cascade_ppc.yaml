@@ -92,7 +92,7 @@ ppc_config:
         PPCTABLESDIR: "$I3_BUILD/ice-models/resources/models/spice_bfr-dv1_complete"
 
   arguments:
-        gpu: 1
+        MCTree: 'I3MCTree'
 
 # -----------------------------
 # Step 2: Detector Simulation
