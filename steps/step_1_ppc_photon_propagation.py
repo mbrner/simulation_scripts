@@ -79,15 +79,17 @@ def main(cfg, run_number, scratch):
 
     # run PPC
     tray.context["I3RandomService"] = random_service
-    tray.AddModule("i3ppc", **ppc_arguments)
+    tray.AddModule("i3ppc", 'ppc', **ppc_arguments)
 
     click.echo('Output: {}'.format(outfile))
     tray.AddModule("I3Writer", "writer",
                    Filename=outfile,
-                   Streams=[icetray.I3Frame.DAQ,
-                            icetray.I3Frame.Physics,
+                   Streams=[icetray.I3Frame.TrayInfo,
+                            icetray.I3Frame.Simulation,
+                            icetray.I3Frame.Stream('M'),
                             icetray.I3Frame.Stream('S'),
-                            icetray.I3Frame.Stream('M')])
+                            icetray.I3Frame.DAQ,
+                            icetray.I3Frame.Physics])
     # --------------------------------------
 
     click.echo('Scratch: {}'.format(scratch))
