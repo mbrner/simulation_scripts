@@ -88,6 +88,9 @@ def main(cfg, run_number, scratch):
     tray.context["I3RandomService"] = random_service
     tray.AddModule("i3ppc", 'ppc', **ppc_arguments)
 
+    # rename MCPESeries to I3MCPESeries
+    tray.Add("Rename", keys=["MCPESeries", "I3MCPESeries"])
+
     click.echo('Output: {}'.format(outfile))
     tray.AddModule("I3Writer", "writer",
                    Filename=outfile,
