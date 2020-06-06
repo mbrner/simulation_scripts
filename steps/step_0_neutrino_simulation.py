@@ -65,9 +65,9 @@ def main(cfg, run_number, scratch):
     click.echo('Vertex x: [{},{}]'.format(*cfg['x_range']))
     click.echo('Vertex y: [{},{}]'.format(*cfg['y_range']))
     click.echo('Vertex z: [{},{}]'.format(*cfg['z_range']))
-    click.echo('Shift vertex dist.: {}'.format(*cfg['shift_vertex_distance']))
-    click.echo('Max vertex dist.: {}'.format(*cfg['max_vertex_distance']))
-    click.echo('Max track dist.: {}'.format(*cfg['max_track_distance']))
+    click.echo('Shift vertex dist.: {}'.format(cfg['shift_vertex_distance']))
+    click.echo('Max vertex dist.: {}'.format(cfg['max_vertex_distance']))
+    click.echo('Max track dist.: {}'.format(cfg['max_track_distance']))
 
     # crate random services
     if 'random_service_use_gslrng' not in cfg:
