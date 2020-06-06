@@ -245,21 +245,23 @@ class NeutrinoFactory(icetray.I3ConditionalModule):
         """
         direction = dataclasses.I3Direction(zenith, azimuth)
 
-        def distance_loss(t):
-            """Distance of point on track at time t to convex hull"""
+        def get_signed_t(t):
             if forwards:
                 t = np.abs(t)
             else:
                 t = -np.abs(t)
+            return t
 
-            # additional minus here, since azimuth and zenith point in opposite
-            # direction of particle
-            pos = vertex - t * direction
+        def distance_loss(t):
+            """Distance of point on track at time t to convex hull"""
+
+            pos = vertex + get_signed_t(t[0]) * direction
             distance_to_hull = self.convex_hull_distance_function(pos)
             return (distance_to_hull - desired_distance)**2
 
-        result = minimize.minimize(distance_loss, x0=0., method='Nelder-Mead')
-        return result.x, result.fun
+        result = minimize(distance_loss, x0=0., method='Nelder-Mead')
+        result_pos = vertex + get_signed_t(result.x[0]) * direction
+        return result_pos, result.fun
 
     def _sample_vertex(self, zenith, azimuth):
         """Sample a vertex
