@@ -57,6 +57,13 @@ def main(cfg, run_number, scratch):
     outfile = outfile.replace('2012_pass2', 'pass2')
     print('Outfile != $FINAL_OUT clean up for crashed scripts not possible!')
 
+    # collect keys which are to be kept in a addition to the official keep keys
+    # of the standard L1 and L2 processing
+    if 'additional_keep_keys' in cfg:
+        additional_keep_keys = cfg['additional_keep_keys'] + muongun_keys
+    else:
+        additional_keep_keys = muongun_keys
+
     tray = I3Tray()
     """The main L1 script"""
     tray.AddModule('I3Reader',
@@ -162,7 +169,7 @@ def main(cfg, run_number, scratch):
         'WIMP_params',  # Wimp-sim
         'noise_weight',  # weights for noise-only vuvuzela simulations
         'I3GENIEResultDict'  # weight informaition for GENIE simulations
-    ] + muongun_keys
+    ] + additional_keep_keys
 
     keep_before_merge = filter_globals.q_frame_keeps + [
         'InIceDSTPulses',  # keep DST pulse masks
@@ -244,12 +251,13 @@ def main(cfg, run_number, scratch):
         discard_substream_and_keys = True
 
     if discard_substream_and_keys:
-        tray.AddModule("Keep", "KeepOnlyDSTs",
-                       keys=filter_globals.keep_dst_only + [
-                           "PassedAnyFilter",
-                           "PassedKeepSuperDSTOnly",
-                           filter_globals.eventheader] + muongun_keys,
-                       If=dont_save_superdst)
+        tray.AddModule(
+            "Keep", "KeepOnlyDSTs",
+            keys=filter_globals.keep_dst_only + [
+                "PassedAnyFilter",
+                "PassedKeepSuperDSTOnly",
+                filter_globals.eventheader] + additional_keep_keys,
+            If=dont_save_superdst)
 
         # Frames should now contain only what is needed.  now flatten,
         # write/send to server
@@ -260,12 +268,13 @@ def main(cfg, run_number, scratch):
 
     in_ice_keeps = filter_globals.inice_split_keeps + \
         filter_globals.onlinel2filter_keeps
-    in_ice_keeps = in_ice_keeps + ['I3EventHeader',
-                                   'SplitUncleanedInIcePulses',
-                                   'SplitUncleanedInIcePulsesTimeRange',
-                                   'TriggerSplitterLaunchWindow',
-                                   'I3TriggerHierarchy',
-                                   'GCFilter_GCFilterMJD'] + muongun_keys
+    in_ice_keeps = in_ice_keeps + [
+        'I3EventHeader',
+        'SplitUncleanedInIcePulses',
+        'SplitUncleanedInIcePulsesTimeRange',
+        'TriggerSplitterLaunchWindow',
+        'I3TriggerHierarchy',
+        'GCFilter_GCFilterMJD'] + additional_keep_keys
     tray.AddModule("Keep", "inice_keeps",
                    keys=in_ice_keeps,
                    If=which_split(split_name=filter_globals.InIceSplitter),)
