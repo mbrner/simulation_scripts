@@ -87,6 +87,8 @@ def main(cfg, run_number, scratch):
                    # Prefix=gcdfile,
                    Stream=icetray.I3Frame.DAQ)
 
+    if 'sample_uniformly_on_sphere' not in cfg:
+        cfg['sample_uniformly_on_sphere'] = False
     if 'oversample_after_proposal' in cfg and \
             cfg['oversample_after_proposal']:
         oversampling_factor_injection = None
@@ -98,6 +100,8 @@ def main(cfg, run_number, scratch):
         NeutrinoFactory, 'make_neutrinos',
         azimuth_range=cfg['azimuth_range'],
         zenith_range=cfg['zenith_range'],
+        sample_uniformly_on_sphere=cfg[
+            'sample_uniformly_on_sphere'],
         primary_energy_range=cfg['primary_energy_range'],
         fractional_energy_in_hadrons_range=cfg[
             'fractional_energy_in_hadrons_range'],

@@ -22,6 +22,12 @@ class CascadeFactory(icetray.I3ConditionalModule):
                           '[min, max] of primary azimuth in degree.', [0, 360])
         self.AddParameter('zenith_range',
                           '[min, max] of primary zenith in degree.', [0, 180])
+        self.AddParameter('sample_uniformly_on_sphere',
+                          'If True, zenith is sampled uniformly in cos(zenith)'
+                          ' which results in a uniform distribution on the '
+                          'sphere. If False, zenith is sampled uniformly in '
+                          'zenith which leads to more densly sampled points '
+                          'at the poles of the sphere', False)
         self.AddParameter('primary_energy_range', '', [10000, 10000])
         self.AddParameter('fractional_energy_in_hadrons_range',
                           'Fraction of primary energy in hadrons', [0, 1.])
@@ -80,6 +86,9 @@ class CascadeFactory(icetray.I3ConditionalModule):
         """
         self.azimuth_range = self.GetParameter('azimuth_range')
         self.zenith_range = self.GetParameter('zenith_range')
+        self.sample_in_cos = self.GetParameter('sample_uniformly_on_sphere')
+        self.cos_zenith_range = [np.cos(np.deg2rad(self.zenith_range[1])),
+                                 np.cos(np.deg2rad(self.zenith_range[0]))]
         self.primary_energy_range = self.GetParameter('primary_energy_range')
         self.log_primary_energy_range = [
                                     np.log10(self.primary_energy_range[0]),
@@ -153,8 +162,12 @@ class CascadeFactory(icetray.I3ConditionalModule):
             self.azimuth = \
                 self.random_service.uniform(*self.azimuth_range)*I3Units.deg
         if 'zenith' in self.constant_vars:
-            self.zenith = \
-                self.random_service.uniform(*self.zenith_range)*I3Units.deg
+            if self.sample_in_cos:
+                zenith = np.rad2deg(np.arccos(
+                    self.random_service.uniform(*self.cos_zenith_range)))
+            else:
+                zenith = self.random_service.uniform(*self.zenith_range)
+            self.zenith = zenith*I3Units.deg
 
         # energy
         if 'primary_energy' in self.constant_vars:
@@ -232,8 +245,12 @@ class CascadeFactory(icetray.I3ConditionalModule):
         if 'zenith' in self.constant_vars:
             zenith = self.zenith
         else:
-            zenith = \
-                self.random_service.uniform(*self.zenith_range)*I3Units.deg
+            if self.sample_in_cos:
+                zenith = np.rad2deg(np.arccos(
+                    self.random_service.uniform(*self.cos_zenith_range)))
+            else:
+                zenith = self.random_service.uniform(*self.zenith_range)
+            zenith = zenith*I3Units.deg
 
         # energy
         if 'primary_energy' in self.constant_vars:
