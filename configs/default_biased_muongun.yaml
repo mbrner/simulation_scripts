@@ -1,0 +1,189 @@
+# Number of the dataset
+dataset_number: 30492
+# Events generated for each file
+n_events_per_run: 1000
+# Number of total runs or files
+n_runs: 100000
+
+# Pattern for the outputfile
+output_pattern: '{run_folder}/Level0.{step}_biased_muongun_IC86.2012_pass2.{dataset_number:6d}.{run_number}.i3.bz2'
+# sub-dict to indicate need resources
+resources:
+  # Indication which steps need GPUs, default is 0
+  gpus:
+    1: 1
+  # Indication of needed memory for each step if nothing is set 1GB is assumed as default
+  memory:
+    1: 6gb
+    2: 5gb
+    3: 3gb
+    4: 3gb
+    5: 3gb
+    13: 3gb
+    23: 3gb
+    33: 3gb
+  # Indication of the walltime (in hours) for each step, if nothing is set the system default for dagman and 1h for pbs are assumed
+  walltime:
+  # Indication of the number of cores for each step, default is 1
+  cpus:
+    1: 1
+
+# Dagman options
+dagman_max_jobs: 5000
+dagman_submits_interval: 500
+dagman_scan_interval: 1
+dagman_submit_delay: 0
+
+
+# Options used in the steps
+# Options that are expected to be set to generate the scripts
+seed: 1337
+# Whether file after IceTray should be kept
+keep_crashed_files: 0
+# If True: use I3GSLRandomService, otherwise use I3SPRNGRandomService
+# (Newer cmvfs python and icecube builds do not have I3SPRNGRandomService)
+random_service_use_gslrng: True
+
+# PATH to the GCD File
+gcd: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withScaledNoise.i3.gz
+gcd_pass2: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withScaledNoise.i3.gz
+
+# -------------------------
+# Step 0: MuonGun Injection
+# -------------------------
+
+# settings for MuonGun
+GenerateCosmicRayMuonsSettings: {}
+
+# settings for Muon Geometry Filtering
+# If none are specified, no filtering is performed
+MuonGeometryFilterSettings: {}
+
+# settings for Muon Loss Profile Filtering
+# If none are specified, no filtering is performed
+MuonLossProfileFilterSettings: {}
+
+# use standalone PROPOSAL instead of CLSIM for muon propagation
+# (comment out if CLSIM is desired and set UseI3PropagatorService to True)
+muon_propagation_config: {}
+
+# oversampling to use
+oversampling_factor:
+# oversample after proposal or before?
+oversample_after_proposal: True
+# keep keys for merging of oversampled events
+oversampling_keep_keys: []
+
+# Distance splits are not available for snowstorm chain
+distance_splits:
+threshold_doms:
+oversize_factors:
+
+# -----------------------------
+# Step 1: Snowstorm Propagation
+# -----------------------------
+NumEventsPerModel: 100
+DOMOversizeFactor: 1.
+UseI3PropagatorService: False
+UseGPUs: True
+SummaryFile:
+
+# These arguments will be passed on to the CLSIM Client Module
+ExtraArgumentsToI3CLSimClientModule:
+  # Sources with no DOMs within this distance (meter) are *not* simulated
+  ClosestDOMDistanceCutoff: 500.
+
+# Snowstorm Configuration
+snowstorm_config:
+  # Config for the full-scale systematics dataset
+  # (after alignment with the calibration group)
+  # baseline ice-model and hole-ice parametrization
+  IceModelLocation: "$I3_BUILD/ice-models/resources/models/spice_3.2.1"
+  HoleIceParameterization: "$I3_BUILD/ice-models/resources/models/angsens/as.flasher_p1_0.30_p2_-1"
+  # Control ice model perturbations:
+  Perturbations:
+      # IceWavePlusModes for depth dependent absorption/scattering scaling
+      IceWavePlusModes:
+          apply: False
+          type: default
+      # Global ice scattering scaling
+      Scattering:
+          type: uniform
+          uniform:
+              limits: [[0.9, 1.1]]
+      # Global ice absorption scaling
+      Absorption:
+          type: uniform
+          uniform:
+              limits: [[0.9, 1.1]]
+      # Ice anisotropy scaling
+      AnisotropyScale:
+          type: uniform
+          uniform:
+              limits: [[0., 2.0]]
+      # DOM efficiency scaling
+      DOMEfficiency:
+          type: uniform
+          uniform:
+              limits: [[0.9, 1.1]]
+
+      # DOM angular acceptance according to the Unified HoleIce model
+      # see: https://github.com/philippeller/angular_acceptance
+      HoleIceForward_Unified:
+          type: uniform
+          uniform:
+                  limits: [[-0.65, 0.60], [-0.08, 0.08]]
+
+# -----------------------------
+# Step 2: Detector Simulation
+# -----------------------------
+# Remove this list of keys from the M-Frames
+det_remove_keys_from_m_frame: [
+    'AngularAcceptance',
+    'MediumProperties',
+    'WavelengthAcceptance',
+    'WavelengthGenerationBias',
+]
+# keep MCPEs in frame
+det_keep_mc_hits: False
+# keep I3MCPulseSeriesMap in frame.
+det_keep_mc_pulses: False
+# keep MCTree with all in-ice propagated secondaries. These take a lot of space compared un propagated tree.
+det_keep_propagated_mc_tree: True
+# Keep everything upto run X
+det_keep_all_upto: -1
+# add beacon lauches.
+det_add_beacon_launches: True
+# reduce peak memory use by repeatedly merging hits as they are generated.  WARNING: Use of this option may slightly reduce precision and drastically increase running time. It is potentially useful for very bright events, and probably harmful for very long events.
+det_low_mem: False
+# remove events that don't pass any trigger.
+det_filter_trigger: True
+# do not run Vuvuzela.
+det_skip_noise_generation: False
+# convert I3MCTree to linearized version if True
+det_convert_to_linear_tree: True
+# If this is a Genie simulation, then this needs to be set to True
+det_is_genie_simulation: False
+# If this is an IceTop simulation, then this needs to be set to True
+det_is_icetop_simulation: False
+# DOM Efficiency Resampling
+#(If det_dom_eff_resmapling_sample_efficiency is set to 0,
+# no resampling will be performed )
+det_dom_eff_resmapling_sample_efficiency: 0.
+det_dom_eff_resmapling_generated_efficiency: 0.
+
+# ----------
+# Step 3: L1
+# ----------
+# Set the Min Bias prescale to something other than default
+L1_min_bias_prescale: !!null
+# MC is produced by DOMSimulator (default=False)
+L1_2012_dom_simulator: False
+# Apply QConverter, use if file is P frame only
+L1_2012_qify: False
+# Retrigger
+L1_2012_retrigger: False
+# Run GFU
+L1_pass2_run_gfu: true
+# Keep untriggered events substream and keys
+L1_keep_untriggered: False
