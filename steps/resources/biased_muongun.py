@@ -62,7 +62,7 @@ class MuonGeometryFilter(icetray.I3ConditionalModule):
             'If None no selection will be performed based on this variable.',
             None)
         self.AddParameter(
-            'mctree_name', 'Name of I3MCTree.' 'I3MCTree_preMuonProp')
+            'mctree_name', 'Name of I3MCTree.', 'I3MCTree_preMuonProp')
 
     def Configure(self):
         """Configures MuonGeometryFilter.
@@ -76,6 +76,8 @@ class MuonGeometryFilter(icetray.I3ConditionalModule):
         self.range_length_inside_icecube_lower = self.GetParameter(
             'range_length_inside_icecube_lower')
 
+        self.mctree_name = self.GetParameter('mctree_name')
+
         # sanity checks
         for value_range in (
                 self.range_length_inside_combined,
@@ -87,19 +89,20 @@ class MuonGeometryFilter(icetray.I3ConditionalModule):
                 assert len(value_range) == 2, value_range
                 assert value_range[1] > value_range[0], value_range
 
-        self.mctree_name = self.GetParameter(mctree_name)
-
     def DAQ(self, frame):
         """Filter events based on muon geometry.
         """
 
         # get primary
-        mc_tree = frame[mctree_name]
+        mc_tree = frame[self.mctree_name]
         primaries = mc_tree.get_primaries()
         assert len(primaries) == 1, 'Expected only 1 Primary!'
 
         # get muon
-        muon = mu_utils.get_muon(frame, primaries[0], detector.icecube_hull)
+        muon = mu_utils.get_muon(
+            frame, primaries[0], detector.icecube_hull,
+            mctree_name=self.mctree_name,
+        )
 
         passed_filter = True
 
@@ -127,7 +130,7 @@ class MuonGeometryFilter(icetray.I3ConditionalModule):
         ]
 
         for value, allowed_range in zip(value_list, range_list):
-            if range_list is not None:
+            if allowed_range is not None:
                 if value < allowed_range[0] or value > allowed_range[1]:
                     passed_filter = False
         # ------------------
@@ -158,24 +161,27 @@ class MuonLossProfileFilter(icetray.I3ConditionalModule):
         icetray.I3ConditionalModule.__init__(self, context)
         self.AddOutBox('OutBox')
         self.AddParameter(
-            'mctree_name', 'Name of I3MCTree.' 'I3MCTree_preMuonProp')
+            'mctree_name', 'Name of I3MCTree.', 'I3MCTree_preMuonProp')
 
     def Configure(self):
         """Configures MuonLossProfileFilter.
         """
-        self.mctree_name = self.GetParameter(mctree_name)
+        self.mctree_name = self.GetParameter('mctree_name')
 
     def DAQ(self, frame):
         """Filter events based on muon geometry.
         """
 
         # get primary
-        mc_tree = frame[mctree_name]
+        mc_tree = frame[self.mctree_name]
         primaries = mc_tree.get_primaries()
         assert len(primaries) == 1, 'Expected only 1 Primary!'
 
         # get muon
-        muon = mu_utils.get_muon(frame, primaries[0], detector.icecube_hull)
+        muon = mu_utils.get_muon(
+            frame, primaries[0], detector.icecube_hull,
+            mctree_name=self.mctree_name,
+        )
 
         passed_filter = True
 

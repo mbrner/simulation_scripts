@@ -16,6 +16,32 @@ from resources.biased_muongun import MuonGeometryFilter
 from resources.biased_muongun import MuonLossProfileFilter
 
 
+class DummyMCTreeRenaming(icetray.I3ConditionalModule):
+    def __init__(self, context):
+        """Class to add dummy I3MCTree to frame from I3MCTree_preMuonProp
+
+        Parameters
+        ----------
+        context : TYPE
+            Description
+        """
+        icetray.I3ConditionalModule.__init__(self, context)
+        self.AddOutBox('OutBox')
+
+    def DAQ(self, frame):
+        """Inject casacdes into I3MCtree.
+
+        Parameters
+        ----------
+        frame : icetray.I3Frame.DAQ
+            An I3 q-frame.
+        """
+
+        pre_tree = frame['I3MCTree_preMuonProp']
+        frame['I3MCTree'] = dataclasses.I3MCTree(pre_tree)
+        self.PushFrame(frame)
+
+
 @click.command()
 @click.argument('cfg', type=click.Path(exists=True))
 @click.argument('run_number', type=int)
@@ -33,8 +59,15 @@ def main(cfg, run_number, scratch):
 
     click.echo('Run: {}'.format(run_number))
     click.echo('Outfile: {}'.format(outfile))
-    for setting, value in cfg['MuonGun_settings'].items():
-        click.echo('{}:'.format(setting), value)
+    for setting_key in (
+            'GenerateCosmicRayMuonsSettings',
+            'MuonGeometryFilterSettings',
+            'MuonLossProfileFilterSettings',
+            ):
+        if cfg[setting_key]:
+            click.echo('{}:'.format(setting_key))
+            for setting, value in cfg[setting_key].items():
+                click.echo('\t{}: {}'.format(setting, value))
 
     # crate random services
     if 'random_service_use_gslrng' not in cfg:
@@ -82,8 +115,9 @@ def main(cfg, run_number, scratch):
         **cfg['MuonGeometryFilterSettings']
     )
 
-    tray.AddModule(DAQFrameMultiplier, 'DAQFrameMultiplier',
-                   oversampling_factor=oversampling_factor_injection)
+    tray.AddModule(DAQFrameMultiplier, 'PreDAQFrameMultiplier',
+                   oversampling_factor=oversampling_factor_injection,
+                   mctree_keys=['I3MCTree_preMuonProp'])
 
     # propagate muons if config exists in config
     # Note: Snowstorm may perform muon propagation internally
@@ -97,10 +131,7 @@ def main(cfg, run_number, scratch):
         # are letting this be done by snowstorm propagation
         # We need to add a key named 'I3MCTree', since snowstorm expects this
         # It will propagate the particles for us.
-        tray.AddModule(
-            'Rename', 'DummyMCTreeRenaming'
-            keys=['I3MCTree_preMuonProp', 'I3MCTree'],
-        )
+        tray.AddModule('DummyMCTreeRenaming', 'DummyMCTreeRenaming')
 
     # add filter to bias simulation based on muon loss profile
     tray.AddModule(
@@ -109,8 +140,9 @@ def main(cfg, run_number, scratch):
         **cfg['MuonLossProfileFilterSettings']
     )
 
-    tray.AddModule(DAQFrameMultiplier, 'DAQFrameMultiplier',
-                   oversampling_factor=oversampling_factor_photon)
+    tray.AddModule(DAQFrameMultiplier, 'PostDAQFrameMultiplier',
+                   oversampling_factor=oversampling_factor_photon,
+                   mctree_keys=['I3MCTree'])
 
     # --------------------------------------
     # Distance Splits
