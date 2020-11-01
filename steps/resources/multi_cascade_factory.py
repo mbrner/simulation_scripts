@@ -147,6 +147,7 @@ class MultiCascadeFactory(icetray.I3ConditionalModule):
         ValueError
             If interaction type or flavor is unkown.
         """
+        self.azimuth_range = self.GetParameter('azimuth_range')
         self.zenith_range = self.GetParameter('zenith_range')
         self.sample_in_cos = self.GetParameter('sample_uniformly_on_sphere')
         self.cos_zenith_range = [np.cos(np.deg2rad(self.zenith_range[1])),
