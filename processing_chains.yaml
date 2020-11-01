@@ -122,6 +122,17 @@ cascade_ppc:
     13: step_3_pass2_get_pulses_no_merging_py3_v4_1_0
     23: step_3_pass2_get_mc_pulses_py3_v4_1_0
 
+multi_cascade_injection_snowstorm:
+  default_config: configs/default_multi_cascade_simulation_snowstorm.yaml
+  job_template: job_templates/py3-v4.1.0.sh
+  steps:
+    0: step_0_multi_cascade_simulation
+    1: step_1_snowstorm_propagation
+    2: step_2_snowstorm_detector_simulation
+    3: step_3_pass2_get_pulses_py3_v4_1_0
+    13: step_3_pass2_get_pulses_no_merging_py3_v4_1_0
+    23: step_3_pass2_get_mc_pulses_py3_v4_1_0
+
 neutrino_injection_snowstorm:
   default_config: configs/default_neutrino_simulation_snowstorm.yaml
   job_template: job_templates/py3-v4.1.0.sh
