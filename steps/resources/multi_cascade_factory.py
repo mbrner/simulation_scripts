@@ -101,13 +101,13 @@ class MultiCascadeFactory(icetray.I3ConditionalModule):
         self.AddParameter(
             'cascade_distribution_mode',
             'Defines how cascades will be distributed along the '
-            'track. Options: ["equidistant", "uniform"]'
+            'track. Options: ["equidistant", "uniform"]',
             'uniform')
         self.AddParameter(
             'cascade_distance_range',
             'Defines the range of allowed distances for the '
             'additional cascades. The distance is relative to '
-            'the primary cascade.'
+            'the primary cascade.',
             [0., 500.])
         self.AddParameter(
             'flavors',
