@@ -553,7 +553,6 @@ class MultiCascadeFactory(icetray.I3ConditionalModule):
                 distance_i = self.random_service.uniform(
                    self.cascade_distance_range[0],
                    self.cascade_distance_range[1],
-                   size=self.n_cascades - 1,
                 )
                 distances.append(distance_i)
         else:
