@@ -397,7 +397,7 @@ class MultiCascadeFactory(icetray.I3ConditionalModule):
             zenith = zenith*I3Units.deg
         return zenith, azimuth
 
-    def _get_vertex(self):
+    def _get_vertex(self, zenith, azimuth):
         """Get or sample vertex.
         """
         if 'vertex' in self.constant_vars:
@@ -587,7 +587,7 @@ class MultiCascadeFactory(icetray.I3ConditionalModule):
         zenith, azimuth = self._get_direction()
 
         # vertex
-        vertex, vertex_time = self._get_vertex()
+        vertex, vertex_time = self._get_vertex(zenith=zenith, azimuth=azimuth)
 
         # energy
         primary_energy, hadron_energy, daughter_energy = self._get_energy()
