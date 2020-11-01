@@ -548,14 +548,19 @@ class MultiCascadeFactory(icetray.I3ConditionalModule):
                self.n_cascades,
             )[1:]
         elif self.cascade_distribution_mode == 'uniform':
-            distances = self.random_service.uniform(
-               self.cascade_distance_range[0],
-               self.cascade_distance_range[1],
-               size=self.n_cascades - 1,
-            )
+            distances = []
+            for i in range(1, self.n_cascades):
+                distance_i = self.random_service.uniform(
+                   self.cascade_distance_range[0],
+                   self.cascade_distance_range[1],
+                   size=self.n_cascades - 1,
+                )
+                distances.append(distance_i)
         else:
             raise ValueError('Unknown distance distribution mode: {}'.format(
                 self.cascade_distribution_mode))
+
+        assert len(distances) == self.n_cascades - 1, distances
 
         direction = dataclasses.I3Direction(zenith, azimuth)
         vertices = []
